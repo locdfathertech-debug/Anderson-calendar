@@ -1,18 +1,28 @@
 # Anderson Family Calendar & Parent Portal
 
-A responsive, self-contained family calendar and parent portal. It runs directly in a browser with no build step or external dependencies.
+A responsive React + Vite family calendar and parent portal. The app is designed to work on desktop, tablet, and mobile screens.
 
 ## Features
 
-- Tablet- and mobile-friendly family calendar with month and week views.
-- Navigate between months and see a family agenda.
-- Add events with a name, date, time, and family member.
-- Parent portal sections for school updates and child/school details.
+- Month and week calendar views with month navigation and an upcoming agenda.
+- Add family events with a date, time, member, and location.
+- Event data persists in the browser using `localStorage`.
+- School updates and child/school information sections.
+- No UI component library or backend required for the demo.
 
 ## Run locally
 
-Open `index.html` in a modern browser. The calendar currently uses sample family and school information for demonstration; events added in the interface are held in memory and reset when the page is reloaded.
+Requires Node.js 18 or newer.
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite. To create a production build, run `npm run build`; preview it with `npm run preview`.
+
+The portal currently includes sample family and school information. Event changes are stored only in the current browser and are not synced between family members.
 
 ## Deploy
 
-The static page can be deployed from the repository root using GitHub Pages or a static hosting provider such as Vercel. No build command is required.
+This is a standard Vite app. For Vercel, import the repository and use the default Vite settings: build command `npm run build`, output directory `dist`.
