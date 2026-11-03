@@ -1,14 +1,16 @@
-# Anderson Family Calendar & Parent Portal
+# Together — Anderson Family Organizer
 
-A responsive React + Vite family calendar and parent portal. The app is designed to work on desktop, tablet, and mobile screens.
+A mobile-friendly React + Vite family organizer concept for keeping schedules, shared tasks, groceries, and household spending in one calm, collaborative space.
 
 ## Features
 
-- Month and week calendar views with month navigation and an upcoming agenda.
-- Add family events with a date, time, member, and location.
-- Event data persists in the browser using `localStorage`.
-- School updates and child/school information sections.
-- No UI component library or backend required for the demo.
+- Today dashboard with family activity, schedule, shared to-dos, and grocery snapshot.
+- Weekly family calendar with event creation.
+- Shared checklist interactions for tasks and grocery items.
+- Household budget overview with the ability to add spending categories.
+- Family member profiles and a family-space overview.
+- Responsive desktop sidebar and mobile bottom navigation.
+- Calendar, task, grocery, and budget changes persist in browser `localStorage`.
 
 ## Run locally
 
@@ -19,10 +21,10 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite. To create a production build, run `npm run build`; preview it with `npm run preview`.
+Open the local URL printed by Vite. Create a production build with `npm run build`, then preview it with `npm run preview`.
 
-The portal currently includes sample family and school information. Event changes are stored only in the current browser and are not synced between family members.
+The app is a front-end concept and uses sample family information. Data is saved only in the current browser; it is not synced to other family members and does not connect to financial accounts.
 
 ## Deploy
 
-This is a standard Vite app. For Vercel, import the repository and use the default Vite settings: build command `npm run build`, output directory `dist`.
+For Vercel, use the standard Vite configuration: build command `npm run build`, output directory `dist`.

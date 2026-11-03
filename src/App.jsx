@@ -1,248 +1,200 @@
 import { useEffect, useMemo, useState } from 'react';
 
-const STORAGE_KEY = 'anderson-family-calendar-events-v1';
-const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const colorNames = ['purple', 'green', 'orange', 'blue'];
+const STORE = {
+  events: 'anderson-organizer-events-v2',
+  tasks: 'anderson-organizer-tasks-v1',
+  groceries: 'anderson-organizer-groceries-v1',
+  expenses: 'anderson-organizer-expenses-v1',
+};
+const navItems = [
+  { id: 'home', label: 'Today', icon: '⌂' },
+  { id: 'calendar', label: 'Calendar', icon: '▦' },
+  { id: 'tasks', label: 'To-dos', icon: '✓' },
+  { id: 'groceries', label: 'Groceries', icon: '▤' },
+  { id: 'budget', label: 'Budget', icon: '$' },
+];
+const people = [
+  { id: 'sarah', name: 'Sarah', fullName: 'Sarah Anderson', initials: 'SA', color: 'lilac' },
+  { id: 'michael', name: 'Michael', fullName: 'Michael Anderson', initials: 'MA', color: 'peach' },
+  { id: 'emma', name: 'Emma', fullName: 'Emma Anderson', initials: 'EA', color: 'mint' },
+  { id: 'jack', name: 'Jack', fullName: 'Jack Anderson', initials: 'JA', color: 'sky' },
+];
+const initialTasks = [
+  { id: 't1', title: 'Pack Emma’s field day bag', person: 'Sarah', time: 'Before 8:00 AM', done: false },
+  { id: 't2', title: 'Pick up library books', person: 'Michael', time: 'After school', done: false },
+  { id: 't3', title: 'Water the garden', person: 'Emma', time: 'Anytime today', done: true },
+];
+const initialGroceries = [
+  { id: 'g1', name: 'Whole milk', amount: '1 gallon', checked: false },
+  { id: 'g2', name: 'Strawberries', amount: '1 box', checked: false },
+  { id: 'g3', name: 'Lunchbox snacks', amount: '1 pack', checked: true },
+  { id: 'g4', name: 'Pasta', amount: '2 boxes', checked: false },
+];
+const initialEvents = [
+  { id: 'e1', offset: 0, time: '8:15 AM', title: 'School drop-off', person: 'Sarah', place: 'Anderson Elementary', color: 'purple' },
+  { id: 'e2', offset: 0, time: '3:30 PM', title: 'Soccer practice', person: 'Emma', place: 'Maple Park', color: 'green' },
+  { id: 'e3', offset: 0, time: '5:00 PM', title: 'Pick up library books', person: 'Michael', place: 'Anderson Library', color: 'orange' },
+  { id: 'e4', offset: 1, time: '9:00 AM', title: 'Field Day', person: 'Emma', place: 'Anderson Elementary', color: 'blue' },
+  { id: 'e5', offset: 2, time: '4:00 PM', title: 'Music lesson', person: 'Jack', place: 'Room 12', color: 'purple' },
+  { id: 'e6', offset: 4, time: '12:00 PM', title: 'Family picnic', person: 'Everyone', place: 'Riverside Park', color: 'green' },
+];
+const initialExpenses = [
+  { id: 'b1', title: 'Groceries', amount: 428, icon: '🥑', color: 'mint' },
+  { id: 'b2', title: 'Kids & school', amount: 245, icon: '🎒', color: 'lilac' },
+  { id: 'b3', title: 'Home', amount: 186, icon: '🏡', color: 'peach' },
+];
 
-function dateKey(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function makeStarterEvents() {
-  const today = new Date();
-  const day = (offset) => {
-    const result = new Date(today.getFullYear(), today.getMonth(), Math.min(today.getDate() + offset, 27));
-    return dateKey(result);
-  };
-  return [
-    { id: 'starter-1', date: day(1), title: 'Emma · Soccer practice', time: '3:30 PM', place: 'Maple Park', color: 'green' },
-    { id: 'starter-2', date: day(2), title: 'Jack · Library books due', time: 'All day', place: 'Anderson Elementary', color: 'blue' },
-    { id: 'starter-3', date: day(3), title: 'Emma · Field Day', time: '9:00 AM', place: 'Anderson Elementary', color: 'orange' },
-    { id: 'starter-4', date: day(6), title: 'Family · Dentist', time: '2:00 PM', place: 'Oak Street Dental', color: 'purple' },
-    { id: 'starter-5', date: day(9), title: 'Family · Summer picnic', time: '12:00 PM', place: 'Riverside Park', color: 'orange' },
-    { id: 'starter-6', date: day(12), title: 'Emma · Art club', time: '3:15 PM', place: 'Room 8', color: 'purple' },
-  ];
-}
-
-function readEvents() {
+function load(key, fallback) {
   try {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) return JSON.parse(saved);
+    const value = window.localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
   } catch {
-    // Continue with starter events if local storage is unavailable or invalid.
+    return fallback;
   }
-  return makeStarterEvents();
 }
-
-function formatMonth(date) {
-  return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
-}
-
-function formatTime(time) {
-  if (!time || time === 'All day') return time || 'All day';
-  const [hours, minutes] = time.split(':').map(Number);
-  return new Date(2000, 0, 1, hours, minutes).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-}
-
-function Avatar({ initials, tone = '' }) {
-  return <span className={`avatar ${tone}`}>{initials}</span>;
-}
-
-function Sidebar({ page, onNavigate }) {
-  const links = [
-    { id: 'calendar', icon: '▦', label: 'Family calendar' },
-    { id: 'updates', icon: '◉', label: 'School updates' },
-    { id: 'children', icon: '♡', label: 'My children' },
-  ];
-  return (
-    <aside className="sidebar" aria-label="Main navigation">
-      <div className="brand"><span className="brand-mark">✦</span><span>Anderson Family</span></div>
-      <p className="section-label">Workspace</p>
-      <nav className="nav">
-        {links.map((link) => (
-          <button key={link.id} className={page === link.id ? 'active' : ''} onClick={() => onNavigate(link.id)}>
-            <span className="nav-icon" aria-hidden="true">{link.icon}</span>{link.label}
-          </button>
-        ))}
-      </nav>
-      <div className="children-block">
-        <p className="section-label">Children</p>
-        <div className="child"><Avatar initials="EA" />Emma Anderson</div>
-        <div className="child"><Avatar initials="JA" tone="mint" />Jack Anderson</div>
-      </div>
-      <div className="sidebar-bottom">A little more organized,<br />a lot more connected. <span aria-hidden="true">♡</span></div>
-    </aside>
-  );
-}
-
-function EventModal({ onClose, onSave, initialDate }) {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState(initialDate);
-  const [time, setTime] = useState('15:30');
-  const [child, setChild] = useState('Family');
-  const [place, setPlace] = useState('');
-
+function useStoredState(key, fallback) {
+  const [value, setValue] = useState(() => load(key, fallback));
   useEffect(() => {
-    const onKeyDown = (event) => { if (event.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
-
+    try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local storage is optional. */ }
+  }, [key, value]);
+  return [value, setValue];
+}
+function dateAtOffset(offset) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + offset);
+  return date;
+}
+function dateLabel(date, options = { weekday: 'long', month: 'long', day: 'numeric' }) {
+  return new Intl.DateTimeFormat('en-US', options).format(date);
+}
+function makeId() {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+}
+function Avatar({ person, size = '' }) {
+  return <span className={`avatar ${person?.color || 'lilac'} ${size}`}>{person?.initials || 'AF'}</span>;
+}
+function Icon({ children }) { return <span className="icon" aria-hidden="true">{children}</span>; }
+function SectionHeading({ title, action, onAction }) {
+  return <div className="section-heading"><h2>{title}</h2>{action && <button className="link-button" onClick={onAction}>{action}<span aria-hidden="true"> →</span></button>}</div>;
+}
+function PageHeader({ title, description, action, onAction }) {
+  return <div className="page-heading"><div><p className="eyebrow">ANDERSON FAMILY</p><h1>{title}</h1>{description && <p className="page-description">{description}</p>}</div>{action && <button className="button button-primary" onClick={onAction}><span aria-hidden="true">＋</span> {action}</button>}</div>;
+}
+function AvatarStack({ names }) {
+  return <div className="avatar-stack">{names.map((name) => <Avatar key={name} person={people.find((person) => person.name === name)} />)}</div>;
+}
+function NewItemForm({ placeholder, onAdd, buttonLabel = 'Add' }) {
+  const [value, setValue] = useState('');
   function submit(event) {
     event.preventDefault();
-    onSave({
-      id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
-      date,
-      title: `${child} · ${title.trim()}`,
-      time: formatTime(time),
-      place: place.trim() || 'Family calendar',
-      color: child === 'Emma' ? 'purple' : child === 'Jack' ? 'green' : 'blue',
-    });
+    const clean = value.trim();
+    if (!clean) return;
+    onAdd(clean);
+    setValue('');
   }
-
-  return (
-    <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <div className="modal-head"><h2 id="modal-title">Add a family event</h2><button className="close" onClick={onClose} aria-label="Close">×</button></div>
-        <form onSubmit={submit}>
-          <div className="field"><label htmlFor="event-title">Event name</label><input id="event-title" value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus placeholder="e.g. Soccer practice" /></div>
-          <div className="form-row">
-            <div className="field"><label htmlFor="event-date">Date</label><input id="event-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required /></div>
-            <div className="field"><label htmlFor="event-time">Time</label><input id="event-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
-          </div>
-          <div className="field"><label htmlFor="event-child">For</label><select id="event-child" value={child} onChange={(e) => setChild(e.target.value)}><option>Family</option><option>Emma</option><option>Jack</option></select></div>
-          <div className="field"><label htmlFor="event-place">Location <span className="optional">(optional)</span></label><input id="event-place" value={place} onChange={(e) => setPlace(e.target.value)} placeholder="Where is it?" /></div>
-          <div className="form-actions"><button type="button" className="secondary" onClick={onClose}>Cancel</button><button type="submit" className="primary">Save event</button></div>
-        </form>
-      </section>
-    </div>
-  );
+  return <form className="new-item-form" onSubmit={submit}><input aria-label={placeholder} placeholder={placeholder} value={value} onChange={(event) => setValue(event.target.value)} /><button className="button button-soft" type="submit">＋ <span>{buttonLabel}</span></button></form>;
 }
-
-function Calendar({ events, displayed, setDisplayed, view, setView, onAddEvent, onToast }) {
-  const calendarDays = useMemo(() => {
-    const year = displayed.getFullYear();
-    const month = displayed.getMonth();
-    let start;
-    let count;
-    if (view === 'week') {
-      start = new Date(year, month, displayed.getDate() - displayed.getDay());
-      count = 7;
-    } else {
-      start = new Date(year, month, 1 - new Date(year, month, 1).getDay());
-      count = 42;
-    }
-    return Array.from({ length: count }, (_, index) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + index);
-      return date;
-    });
-  }, [displayed, view]);
-
-  const monthEvents = events.filter((event) => event.date.startsWith(`${displayed.getFullYear()}-${String(displayed.getMonth() + 1).padStart(2, '0')}`));
-  const agenda = [...monthEvents].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4);
-
-  function changeMonth(delta) {
-    setDisplayed((current) => new Date(current.getFullYear(), current.getMonth() + delta, 1));
-  }
-
-  return (
-    <>
-      <div className="page-heading">
-        <div><h1>Family calendar</h1><div className="subtitle">Everyone's plans, all in one place.</div></div>
-        <button className="primary" onClick={onAddEvent}><span className="plus">＋</span>Add event</button>
-      </div>
-      <div className="welcome"><div><h2>Good morning, Sarah! <span aria-hidden="true">☀️</span></h2><p>You have <strong>{agenda.length} things</strong> coming up for the family this month.</p></div><div className="welcome-art" aria-hidden="true">🗓️</div></div>
-      <div className="layout">
-        <section className="card calendar-card" aria-label="Family calendar">
-          <div className="calendar-toolbar">
-            <div className="toolbar-left"><div className="month-title">{formatMonth(displayed)}</div><div className="arrows"><button onClick={() => changeMonth(-1)} aria-label="Previous month">‹</button><button onClick={() => changeMonth(1)} aria-label="Next month">›</button></div><button className="today-btn" onClick={() => { setDisplayed(new Date()); setView('month'); }}>Today</button></div>
-            <div className="toolbar-right"><select className="view-select" aria-label="Calendar view" value={view} onChange={(e) => setView(e.target.value)}><option value="month">Month</option><option value="week">Week</option></select></div>
-          </div>
-          <div className="week calendar-grid">
-            {weekdays.map((day) => <div key={day} className="day-head">{day}</div>)}
-            {calendarDays.map((date) => {
-              const key = dateKey(date);
-              const dayEvents = events.filter((event) => event.date === key);
-              const isToday = key === dateKey(new Date());
-              return <div key={key} className={`day ${date.getMonth() !== displayed.getMonth() ? 'outside' : ''} ${isToday ? 'today' : ''}`}>
-                <div className="day-num">{date.getDate()}</div>
-                {dayEvents.map((event) => <button key={event.id} className={`event ${event.color}`} title={`${event.time} · ${event.place}`} onClick={() => onToast(`${event.title} · ${event.time} at ${event.place}`)}>{event.title}</button>)}
-              </div>;
-            })}
-          </div>
-        </section>
-        <aside className="right-column">
-          <section className="card side-card"><div className="side-title"><h3>Coming up</h3><button className="text-button" onClick={() => setView('week')}>See week</button></div><div className="agenda-date">Plans for {formatMonth(displayed)}</div>
-            {agenda.length ? agenda.map((event) => <div className="agenda-item" key={event.id}><div className="agenda-time">{new Date(`${event.date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}<br />{event.time}</div><div className={`agenda-line ${event.color}`} /><div><div className="agenda-name">{event.title}</div><div className="agenda-meta">{event.place}</div></div></div>) : <p className="empty-message">No events yet. Add one to get started.</p>}
-          </section>
-          <section className="card side-card"><div className="side-title"><h3>School updates</h3><button className="text-button" onClick={() => onToast('Open School updates from the left navigation.')}>View all</button></div>
-            <article className="announcement"><div className="announce-top"><span className="announce-title">Field Day is coming!</span><span className="tag">Emma's class</span></div><p>Remember to pack a water bottle and wear comfy shoes on Friday.</p><small>Today · Anderson Elementary</small></article>
-            <article className="announcement"><div className="announce-top"><span className="announce-title">Library books due</span><span className="tag tag-blue">Reminder</span></div><p>Jack's library books are due back by Thursday.</p><small>Yesterday · Room 12</small></article>
-          </section>
-        </aside>
-      </div>
-    </>
-  );
-}
-
-function UpdatesPage() {
-  const updates = [
-    ['Emma\'s class', 'Field Day is coming!', 'Field Day is this Friday. Please send a water bottle, sunscreen, and a change of clothes. Students should wear comfortable shoes.', 'Today · Anderson Elementary', ''],
-    ['Reminder', 'Library books due', 'Jack\'s library books are due back by Thursday. Return them to the classroom library bin.', 'Yesterday · Room 12', 'tag-blue'],
-    ['School news', 'Summer concert schedule', 'The end-of-year music concert begins at 6:00 PM in the school auditorium. Families are welcome.', 'This week · Anderson Elementary', 'tag-green'],
-    ['Action needed', 'Update emergency contacts', 'Please review your family contact information before the end of the school year.', 'This week · Parent office', 'tag-orange'],
-  ];
-  return <section className="card portal-panel"><h1>School updates</h1><p>News and reminders from your children's school communities.</p><div className="portal-grid">{updates.map(([tag, title, body, date, tone]) => <article className="portal-tile" key={title}><span className={`tag ${tone}`}>{tag}</span><h3>{title}</h3><p>{body}</p><small>{date}</small></article>)}</div></section>;
-}
-
-function ChildrenPage() {
-  const children = [
-    { initials: 'EA', name: 'Emma Anderson', grade: 'Grade 3 · Room 8', teacher: 'Ms. Parker', next: 'Field Day, Friday', tone: '' },
-    { initials: 'JA', name: 'Jack Anderson', grade: 'Grade 1 · Room 12', teacher: 'Mr. Lewis', next: 'Library books due, Thursday', tone: 'mint' },
-  ];
-  return <section className="card portal-panel"><h1>My children</h1><p>Keep track of school details and upcoming activities.</p><div className="portal-grid">{children.map((child) => <article className="portal-tile child-tile" key={child.initials}><div className="child-heading"><Avatar initials={child.initials} tone={child.tone} /><div><h3>{child.name}</h3><p>{child.grade}</p></div></div><p><strong>Teacher:</strong> {child.teacher}<br /><strong>School:</strong> Anderson Elementary<br /><strong>Next up:</strong> {child.next}</p></article>)}</div></section>;
-}
-
-export default function App() {
-  const [page, setPage] = useState('calendar');
-  const [displayed, setDisplayed] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const [view, setView] = useState('month');
-  const [events, setEvents] = useState(readEvents);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [toast, setToast] = useState('');
-
+function EventDialog({ onClose, onSave }) {
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [time, setTime] = useState('15:30');
+  const [person, setPerson] = useState('Sarah');
   useEffect(() => {
-    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(events)); } catch { /* Storage is optional. */ }
-  }, [events]);
+    const closeOnEscape = (event) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+  return <div className="dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="event-dialog-title"><div className="dialog-head"><div><p className="eyebrow">MAKE A PLAN</p><h2 id="event-dialog-title">Add to the calendar</h2></div><button className="close-button" onClick={onClose} aria-label="Close dialog">×</button></div><form onSubmit={(event) => { event.preventDefault(); onSave({ id: makeId(), offset: Math.round((new Date(`${date}T12:00:00`) - dateAtOffset(0)) / 86400000), time: new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }), title: title.trim(), person, place: 'Family calendar', color: person === 'Emma' ? 'green' : person === 'Jack' ? 'blue' : 'purple' }); }}><label className="field-label">What’s happening?<input required autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Soccer practice" /></label><div className="form-two"><label className="field-label">Date<input required type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label className="field-label">Time<input type="time" value={time} onChange={(event) => setTime(event.target.value)} /></label></div><label className="field-label">Who’s it for?<select value={person} onChange={(event) => setPerson(event.target.value)}>{people.map((member) => <option key={member.id}>{member.name}</option>)}<option>Everyone</option></select></label><div className="dialog-actions"><button type="button" className="button button-quiet" onClick={onClose}>Cancel</button><button type="submit" className="button button-primary">Save event</button></div></form></section></div>;
+}
+function EventRow({ event }) {
+  const person = people.find((member) => member.name === event.person);
+  return <article className="event-row"><span className={`event-marker ${event.color}`} /><div className="event-time">{event.time}</div><div className="event-detail"><h3>{event.title}</h3><p><span>{event.place}</span><span className="event-person">{person && <Avatar person={person} size="tiny" />}{event.person}</span></p></div><button className="more-button" aria-label={`More options for ${event.title}`}>···</button></article>;
+}
+function TaskRow({ task, onToggle }) {
+  const person = people.find((member) => member.name === task.person);
+  return <div className={`task-row ${task.done ? 'is-done' : ''}`}><button className="check-button" aria-label={task.done ? `Mark ${task.title} incomplete` : `Complete ${task.title}`} aria-pressed={task.done} onClick={() => onToggle(task.id)}>{task.done ? '✓' : ''}</button><div className="task-copy"><span>{task.title}</span><small>{task.time}</small></div>{person && <Avatar person={person} size="small" />}</div>;
+}
+function HomePage({ tasks, setTasks, events, setPage, onNewEvent, groceries }) {
+  const todayEvents = events.filter((event) => event.offset === 0).sort((a, b) => a.time.localeCompare(b.time));
+  const completed = tasks.filter((task) => task.done).length;
+  const toggleTask = (id) => setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done } : task));
+  return <>
+    <div className="greeting-row"><div><p className="eyebrow">{dateLabel(new Date(), { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}</p><h1>Good morning, Sarah <span aria-hidden="true">☀️</span></h1><p className="page-description">A little plan goes a long way. Here’s your family’s day.</p></div><button className="button button-primary desktop-new" onClick={onNewEvent}><span aria-hidden="true">＋</span> Add a plan</button></div>
+    <section className="family-banner"><div className="banner-copy"><span className="banner-sparkle" aria-hidden="true">✦</span><p className="banner-kicker">YOUR FAMILY SPACE</p><h2>Life is better, <em>together.</em></h2><p>Keep your people and plans in sync.</p><button className="banner-button" onClick={() => setPage('family')}>Family space <span aria-hidden="true">→</span></button></div><div className="family-art" aria-hidden="true"><div className="sun-art">☀</div><div className="art-house">⌂</div><div className="art-person art-person-one">☺</div><div className="art-person art-person-two">☺</div><div className="art-heart">♥</div><span className="art-cloud">☁</span></div></section>
+    <div className="dashboard-grid">
+      <section className="panel schedule-panel"><SectionHeading title="Today’s schedule" action="Full calendar" onAction={() => setPage('calendar')} /><div className="date-strip"><div className="date-square"><strong>{dateAtOffset(0).getDate()}</strong><span>{dateLabel(dateAtOffset(0), { weekday: 'short' }).toUpperCase()}</span></div><p>{todayEvents.length ? `${todayEvents.length} plans for today` : 'Room for something lovely'}</p><button className="round-plus" aria-label="Add an event" onClick={onNewEvent}>＋</button></div><div className="event-list">{todayEvents.length ? todayEvents.map((event) => <EventRow key={event.id} event={event} />) : <p className="empty-copy">No plans yet. Add something to your family calendar.</p>}</div></section>
+      <section className="panel tasks-panel"><SectionHeading title="Family to-dos" action="See all" onAction={() => setPage('tasks')} /><div className="progress-summary"><div><strong>{completed} of {tasks.length}</strong><span>tasks done today</span></div><div className="progress-track"><span style={{ width: `${tasks.length ? completed / tasks.length * 100 : 0}%` }} /></div></div><div className="task-list">{tasks.slice(0, 3).map((task) => <TaskRow key={task.id} task={task} onToggle={id => setTasks(current => current.map(item => item.id === id ? { ...item, done: !item.done } : item))} />)}</div></section>
+      <section className="panel grocery-preview"><SectionHeading title="Grocery list" action="Open list" onAction={() => setPage('groceries')} /><div className="grocery-preview-row"><span className="grocery-emoji">🛒</span><div><strong>{groceries.filter((item) => !item.checked).length} things to pick up</strong><small>Shared with the family</small></div><AvatarStack names={['Sarah', 'Michael']} /></div><button className="grocery-open" onClick={() => setPage('groceries')}>See the list <span>→</span></button></section>
+      <section className="panel activity-panel"><SectionHeading title="Little family moments" action="Our family" onAction={() => setPage('family')} /><div className="activity-feed"><div className="activity-item"><Avatar person={people[2]} /><p><strong>Emma</strong> added <b>Field Day</b> to the calendar<small>12 min ago</small></p><span className="activity-emoji">🎨</span></div><div className="activity-item"><Avatar person={people[1]} /><p><strong>Michael</strong> checked off <b>Weekly meal plan</b><small>1 hr ago</small></p><span className="activity-emoji">✓</span></div></div></section>
+    </div>
+  </>;
+}
+function CalendarPage({ events, onNewEvent, onToast }) {
+  const [selected, setSelected] = useState(0);
+  const [weekStart, setWeekStart] = useState(() => { const date = new Date(); date.setDate(date.getDate() - date.getDay()); date.setHours(12, 0, 0, 0); return date; });
+  const days = Array.from({ length: 7 }, (_, index) => { const date = new Date(weekStart); date.setDate(date.getDate() + index); return date; });
+  const selectedDate = new Date(days[selected]);
+  const dayOffset = Math.round((selectedDate - dateAtOffset(0)) / 86400000);
+  const selectedEvents = events.filter((event) => event.offset === dayOffset).sort((a, b) => a.time.localeCompare(b.time));
+  return <><PageHeader title="Family calendar" description="All your people, all their plans." action="Add event" onAction={onNewEvent} /><section className="panel calendar-panel"><div className="calendar-controls"><button className="circle-nav" aria-label="Previous week" onClick={() => setWeekStart(current => new Date(current.getFullYear(), current.getMonth(), current.getDate() - 7))}>‹</button><h2>{dateLabel(days[0], { month: 'long' })} <span>{days[0].getFullYear()}</span></h2><button className="circle-nav" aria-label="Next week" onClick={() => setWeekStart(current => new Date(current.getFullYear(), current.getMonth(), current.getDate() + 7))}>›</button><button className="today-link" onClick={() => { const now = new Date(); now.setDate(now.getDate() - now.getDay()); now.setHours(12, 0, 0, 0); setWeekStart(now); setSelected(new Date().getDay()); }}>Today</button></div><div className="week-picker">{days.map((date, index) => <button key={date.toISOString()} className={`week-day ${selected === index ? 'selected' : ''} ${date.toDateString() === new Date().toDateString() ? 'is-today' : ''}`} onClick={() => setSelected(index)}><span>{dateLabel(date, { weekday: 'short' })}</span><strong>{date.getDate()}</strong><i>{events.some(event => event.offset === Math.round((date - dateAtOffset(0)) / 86400000)) ? '•' : ''}</i></button>)}</div><div className="selected-day-head"><div><p className="eyebrow">{dateLabel(selectedDate, { weekday: 'long' }).toUpperCase()}</p><h2>{dateLabel(selectedDate, { month: 'long', day: 'numeric' })}</h2></div><button className="button button-soft" onClick={onNewEvent}>＋ Add plan</button></div><div className="event-list">{selectedEvents.length ? selectedEvents.map(event => <EventRow key={event.id} event={event} />) : <div className="calendar-empty"><span>🌿</span><strong>A little breathing room</strong><p>No plans for this day. Enjoy it!</p><button className="link-button" onClick={onNewEvent}>Add a plan →</button></div>}</div></section><p className="demo-note">Shared family calendar · Changes are saved on this device.</p></>;
+}
+function TasksPage({ tasks, setTasks }) {
+  const [filter, setFilter] = useState('All');
+  const visible = tasks.filter(task => filter === 'All' || (filter === 'Done' ? task.done : !task.done));
+  return <><PageHeader title="Family to-dos" description="Share the little things that make family life run smoothly." /><section className="panel list-page-panel"><div className="list-page-heading"><div><span className="panel-icon lilac-bg">✓</span><div><h2>Today’s checklist</h2><p>{tasks.filter(task => task.done).length} of {tasks.length} done — you’ve got this!</p></div></div><AvatarStack names={['Sarah', 'Michael', 'Emma']} /></div><div className="filter-tabs">{['All', 'To do', 'Done'].map(item => <button key={item} className={filter === item ? 'active' : ''} onClick={() => setFilter(item)}>{item}</button>)}</div><div className="task-list large-task-list">{visible.map(task => <TaskRow key={task.id} task={task} onToggle={id => setTasks(current => current.map(item => item.id === id ? { ...item, done: !item.done } : item))} />)}</div><NewItemForm placeholder="Add a task for the family…" onAdd={title => setTasks(current => [...current, { id: makeId(), title, person: 'Sarah', time: 'Today', done: false }])} buttonLabel="Add task" /></section></>;
+}
+function GroceriesPage({ groceries, setGroceries }) {
+  const unbought = groceries.filter(item => !item.checked);
+  return <><PageHeader title="Grocery list" description="One shared list, so nothing gets left behind." /><section className="panel list-page-panel grocery-page"><div className="grocery-list-top"><div><span className="panel-icon mint-bg">🛒</span><div><h2>This week’s groceries</h2><p>{unbought.length} items left to pick up</p></div></div><AvatarStack names={['Sarah', 'Michael']} /></div><div className="grocery-items">{groceries.map(item => <label className={`grocery-item ${item.checked ? 'is-checked' : ''}`} key={item.id}><input type="checkbox" checked={item.checked} onChange={() => setGroceries(current => current.map(row => row.id === item.id ? { ...row, checked: !row.checked } : row))} /><span className="fake-check">✓</span><span className="grocery-name">{item.name}</span><span className="grocery-amount">{item.amount}</span></label>)}</div><NewItemForm placeholder="Add something to the list…" onAdd={name => setGroceries(current => [...current, { id: makeId(), name, amount: '1 item', checked: false }])} buttonLabel="Add item" /><div className="share-note"><span>✦</span> Everyone in the Anderson family can see this list.</div></section></>;
+}
+function BudgetPage({ expenses, setExpenses }) {
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState('');
+  const total = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  const budget = 1800;
+  const colors = ['mint', 'lilac', 'peach', 'sky'];
+  function addExpense(event) {
+    event.preventDefault();
+    if (!title.trim() || !Number(amount)) return;
+    setExpenses(current => [...current, { id: makeId(), title: title.trim(), amount: Number(amount), icon: '🧾', color: colors[current.length % colors.length] }]);
+    setTitle(''); setAmount('');
+  }
+  return <><PageHeader title="Family budget" description="A clear picture of where the household budget goes." /><section className="budget-hero"><div className="budget-topline"><div><p className="eyebrow">THIS MONTH’S SPENDING</p><h2>${total.toLocaleString()} <span>/ ${budget.toLocaleString()}</span></h2></div><span className="budget-emoji">🌱</span></div><div className="budget-track"><span style={{ width: `${Math.min(total / budget * 100, 100)}%` }} /></div><div className="budget-foot"><span>${(budget - total).toLocaleString()} left in your family budget</span><span>{Math.round(total / budget * 100)}% used</span></div></section><section className="panel expense-panel"><SectionHeading title="Spending categories" /><div className="expense-list">{expenses.map(item => <div className="expense-row" key={item.id}><span className={`expense-icon ${item.color}-bg`}>{item.icon}</span><div className="expense-copy"><strong>{item.title}</strong><span>${Number(item.amount).toLocaleString()} spent</span></div><div className="expense-meter"><span style={{ width: `${Math.min(Number(item.amount) / budget * 100 * 3, 100)}%` }} /></div><strong className="expense-amount">${Number(item.amount).toLocaleString()}</strong></div>)}</div><form className="expense-form" onSubmit={addExpense}><input aria-label="Expense category" placeholder="Category (e.g. Transport)" value={title} onChange={event => setTitle(event.target.value)} required /><div className="amount-input"><span>$</span><input aria-label="Amount spent" type="number" min="1" placeholder="Amount" value={amount} onChange={event => setAmount(event.target.value)} required /></div><button className="button button-soft" type="submit">＋ Add</button></form><p className="demo-note">A simple shared overview for planning. No bank accounts connected.</p></section></>;
+}
+function FamilyPage({ tasks, groceries, events }) {
+  const counts = useMemo(() => people.map(person => ({ ...person, plans: events.filter(event => event.person === person.name).length, tasks: tasks.filter(task => task.person === person.name && !task.done).length })), [events, tasks]);
+  return <><PageHeader title="Our family" description="Your favorite team, all in one place." /><section className="family-profile-card"><div className="family-profile-art"><span>🏡</span><i>♥</i><i>✦</i></div><div className="family-profile-copy"><p className="eyebrow">FAMILY SPACE</p><h2>The Andersons</h2><p>Our little corner of the world. Four people, one team.</p><div className="member-stack">{people.map(person => <Avatar key={person.id} person={person} />)}<span>4 family members</span></div></div></section><div className="family-members">{counts.map(person => <article className="panel member-card" key={person.id}><Avatar person={person} size="large" /><div className="member-info"><h2>{person.fullName}</h2><p>{person.id === 'sarah' ? 'Family organizer' : person.id === 'michael' ? 'Dad' : person.id === 'emma' ? 'Big sister' : 'Little brother'}</p></div><div className="member-stats"><span><strong>{person.plans}</strong> plans</span><span><strong>{person.tasks}</strong> to-dos</span></div></article>)}</div><section className="panel family-summary"><SectionHeading title="A family that’s in sync" /><div className="summary-stats"><div><strong>{events.length}</strong><span>upcoming plans</span></div><div><strong>{tasks.filter(task => !task.done).length}</strong><span>to-dos to share</span></div><div><strong>{groceries.filter(item => !item.checked).length}</strong><span>grocery items</span></div></div></section></>;
+}
+function App() {
+  const [page, setPage] = useState('home');
+  const [events, setEvents] = useStoredState(STORE.events, initialEvents);
+  const [tasks, setTasks] = useStoredState(STORE.tasks, initialTasks);
+  const [groceries, setGroceries] = useStoredState(STORE.groceries, initialGroceries);
+  const [expenses, setExpenses] = useStoredState(STORE.expenses, initialExpenses);
+  const [dialog, setDialog] = useState(false);
+  const [toast, setToast] = useState('');
   useEffect(() => {
     if (!toast) return undefined;
-    const timeout = window.setTimeout(() => setToast(''), 3000);
-    return () => window.clearTimeout(timeout);
+    const timer = window.setTimeout(() => setToast(''), 2600);
+    return () => window.clearTimeout(timer);
   }, [toast]);
-
-  const pageLabels = { calendar: 'Family calendar', updates: 'School updates', children: 'My children' };
+  const titles = { home: 'Today', calendar: 'Calendar', tasks: 'To-dos', groceries: 'Groceries', budget: 'Budget', family: 'Our family' };
+  const sortedEvents = useMemo(() => [...events].sort((a, b) => a.offset - b.offset), [events]);
   function saveEvent(event) {
-    setEvents((current) => [...current, event]);
-    setDisplayed(new Date(`${event.date}T12:00:00`));
-    setModalOpen(false);
-    setToast('Event added to your family calendar.');
+    setEvents(current => [...current, event]);
+    setDialog(false);
+    setToast('Your family plan is on the calendar!');
   }
-
-  return (
-    <div className="app">
-      <Sidebar page={page} onNavigate={setPage} />
-      <main className="main">
-        <header className="topbar"><div className="crumb">Anderson Family <span aria-hidden="true">/</span> <strong>{pageLabels[page]}</strong></div><div className="top-actions"><button className="icon-button" aria-label="Notifications" onClick={() => { setPage('updates'); setToast('You are all caught up on family updates.'); }}>♧<span className="dot" /></button><div className="profile"><Avatar initials="SA" tone="peach" /><span className="profile-name">Sarah Anderson</span></div></div></header>
-        {page === 'calendar' && <Calendar events={events} displayed={displayed} setDisplayed={setDisplayed} view={view} setView={setView} onAddEvent={() => setModalOpen(true)} onToast={setToast} />}
-        {page === 'updates' && <UpdatesPage />}
-        {page === 'children' && <ChildrenPage />}
-      </main>
-      {modalOpen && <EventModal initialDate={dateKey(displayed)} onClose={() => setModalOpen(false)} onSave={saveEvent} />}
-      {toast && <div className="toast" role="status">{toast}</div>}
-    </div>
-  );
+  return <div className="app-shell"><aside className="sidebar"><button className="brand" onClick={() => setPage('home')}><span className="brand-logo">✦</span><span>together<span className="brand-period">.</span><small>ANDERSON FAMILY</small></span></button><button className="family-switcher" onClick={() => setPage('family')}><span className="family-switch-icon">⌂</span><span><strong>The Andersons</strong><small>Family space</small></span><span className="switch-chevron">⌄</span></button><p className="nav-caption">YOUR SPACE</p><nav className="side-nav" aria-label="Main navigation">{navItems.map(item => <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => setPage(item.id)}><Icon>{item.icon}</Icon>{item.label}{item.id === 'groceries' && <span className="nav-count">{groceries.filter(row => !row.checked).length}</span>}</button>)}</nav><button className={`family-nav ${page === 'family' ? 'active' : ''}`} onClick={() => setPage('family')}><span className="family-nav-icon">♡</span>Our family</button><div className="sidebar-spacer" /><div className="sidebar-members"><p className="nav-caption">YOUR PEOPLE <button aria-label="Invite family member" onClick={() => setToast('Invite links are coming soon.')}>＋</button></p>{people.map(person => <div className="sidebar-person" key={person.id}><Avatar person={person} /><span>{person.name}</span><i className={`online-dot ${person.id === 'sarah' || person.id === 'michael' ? 'online' : ''}`} /></div>)}</div><div className="sidebar-user"><Avatar person={people[0]} /><span><strong>Sarah Anderson</strong><small>Family admin</small></span><button aria-label="Profile options" onClick={() => setToast('Profile settings are coming soon.')}>···</button></div></aside>
+    <main className="main-area"><header className="mobile-header"><button className="mobile-brand" onClick={() => setPage('home')}><span className="brand-logo">✦</span>together<span className="brand-period">.</span></button><button className="mobile-family" onClick={() => setPage('family')}><Avatar person={people[0]} />⌄</button></header><div className="content-wrap"><div className="topline"><div className="breadcrumbs">The Andersons <span>/</span> <strong>{titles[page]}</strong></div><div className="topline-right"><span className="sync-status"><i /> All synced</span><button className="notification-button" aria-label="Notifications" onClick={() => setToast('You’re all caught up with your family!')}>♧<i /></button><Avatar person={people[0]} /><span className="desktop-user-name">Sarah</span></div></div>
+      {page === 'home' && <HomePage tasks={tasks} setTasks={setTasks} events={sortedEvents} setPage={setPage} onNewEvent={() => setDialog(true)} groceries={groceries} />}
+      {page === 'calendar' && <CalendarPage events={sortedEvents} onNewEvent={() => setDialog(true)} onToast={setToast} />}
+      {page === 'tasks' && <TasksPage tasks={tasks} setTasks={setTasks} />}
+      {page === 'groceries' && <GroceriesPage groceries={groceries} setGroceries={setGroceries} />}
+      {page === 'budget' && <BudgetPage expenses={expenses} setExpenses={setExpenses} />}
+      {page === 'family' && <FamilyPage tasks={tasks} groceries={groceries} events={sortedEvents} />}
+      </div></main><nav className="mobile-nav" aria-label="Mobile navigation">{navItems.map(item => <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => setPage(item.id)}><Icon>{item.icon}</Icon><span>{item.label}</span></button>)}</nav>{dialog && <EventDialog onClose={() => setDialog(false)} onSave={saveEvent} />}{toast && <div className="toast" role="status">{toast}</div>}</div>;
 }
+
+export default App;
