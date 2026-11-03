@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fc">
+  <title>Anderson Family — Calendar & Parent Portal</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #20243a;
+      --muted: #85899d;
+      --line: #eceef4;
+      --paper: #fff;
+      --canvas: #f7f8fc;
+      --purple: #6f63d9;
+      --purple-soft: #f0efff;
+      --mint: #e6f6f1;
+      --peach: #fff0e8;
+      --blue: #eaf3ff;
+      --shadow: 0 14px 40px rgba(39, 43, 74, .06);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-size: 14px; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1540px; min-height: 100vh; margin: auto; display: grid; grid-template-columns: 232px minmax(0, 1fr); }
+    .sidebar { background: var(--paper); border-right: 1px solid var(--line); padding: 27px 17px; display: flex; flex-direction: column; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 9px 31px; font-size: 16px; font-weight: 750; letter-spacing: -.4px; }
+    .brand-mark { width: 35px; height: 35px; border-radius: 12px; color: white; display: grid; place-items: center; background: linear-gradient(145deg, #8276ed, #5f52c9); font-size: 18px; }
+    .section-label { color: #a4a7b6; text-transform: uppercase; font-size: 10px; font-weight: 750; letter-spacing: 1.15px; padding: 0 11px; margin: 0 0 9px; }
+    .nav { display: grid; gap: 5px; }
+    .nav button { border: 0; background: transparent; color: #767b90; border-radius: 10px; padding: 11px 12px; display: flex; align-items: center; gap: 12px; text-align: left; font-weight: 600; }
+    .nav button:hover { background: #f7f7fb; }
+    .nav button.active { background: var(--purple-soft); color: var(--purple); }
+    .nav-icon { width: 18px; text-align: center; font-size: 16px; }
+    .children-block { margin-top: 30px; }
+    .child { display:flex; align-items:center; gap:10px; padding:9px 10px; color:#62677d; font-weight:600; }
+    .avatar { display:grid; place-items:center; width:31px; height:31px; border-radius:50%; font-weight:750; font-size:11px; color:#5245ba; background:#eeecff; flex:none; }
+    .avatar.mint { color:#33866d; background:#e2f6ef; }
+    .avatar.peach { color:#b26946; background:#ffede3; }
+    .sidebar-bottom { margin-top:auto; padding:15px 10px 0; color:var(--muted); font-size:12px; line-height:1.55; }
+    .main { min-width:0; padding: 0 31px 35px; }
+    .topbar { height:76px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); margin-bottom:27px; }
+    .crumb { color:var(--muted); font-size:13px; }.crumb strong { color:var(--ink); font-weight:700; }
+    .top-actions { display:flex; align-items:center; gap:18px; }.icon-button { border:0; background:transparent; color:#787d91; font-size:18px; position:relative; padding:7px; }
+    .dot { position:absolute; width:6px; height:6px; border-radius:50%; background:#ef8870; top:5px; right:5px; border:1px solid white; }
+    .profile { display:flex; align-items:center; gap:9px; font-weight:650; font-size:13px; }.profile .avatar { width:34px;height:34px;background:#ffe9d9;color:#a96035; }
+    .page-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:15px; margin-bottom:21px; }
+    h1 { font-size:25px; letter-spacing:-.7px; margin:0 0 6px; }.subtitle { color:var(--muted); font-size:13px; }
+    .primary { border:0; background:var(--purple); color:white; padding:11px 15px; border-radius:10px; font-weight:650; box-shadow:0 5px 12px #6f63d92b; }
+    .primary:hover { background:#5f53c7; }.primary .plus { font-size:17px; vertical-align:-1px; margin-right:5px; }
+    .welcome { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:18px 21px; margin-bottom:19px; border:1px solid #ebe9ff; border-radius:14px; background:linear-gradient(100deg,#f3f1ff,#fbfaff); }
+    .welcome h2 { font-size:15px; margin:0 0 5px; }.welcome p { color:#777991; margin:0; font-size:12px; }.welcome-art { font-size:29px; padding-right:8px; }
+    .layout { display:grid; grid-template-columns:minmax(0, 1fr) 286px; gap:19px; align-items:start; }
+    .card { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); }
+    .calendar-card { overflow:hidden; }
+    .calendar-toolbar { padding:17px 19px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .month-title { font-size:16px; font-weight:750; min-width:145px; }.month-title span { color:var(--muted); font-weight:500; }
+    .toolbar-left,.toolbar-right { display:flex; align-items:center; gap:10px; }
+    .arrows { display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }.arrows button { border:0; background:#fff; color:#70758a; padding:6px 10px; }.arrows button+button { border-left:1px solid var(--line); }
+    .today-btn,.view-btn { border:1px solid var(--line); border-radius:8px; background:#fff; padding:7px 10px; color:#62677b; font-size:12px; font-weight:600; }
+    .view-select { border:1px solid var(--line); border-radius:8px; padding:7px 26px 7px 10px; background:#fff; color:#62677b; font-size:12px; }
+    .week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); }
+    .day-head { padding:13px 8px; color:#9397a8; font-size:10px; font-weight:750; text-align:center; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid var(--line); }
+    .day { min-height:116px; padding:9px 8px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); position:relative; }
+    .day:nth-child(7n) { border-right:0; }.day.outside { background:#fcfcfe; color:#b9bbc7; }.day-num { width:25px;height:25px;display:grid;place-items:center;border-radius:50%;font-size:11px;font-weight:650;margin-bottom:6px; }
+    .day.today .day-num { color:#fff;background:var(--purple); }
+    .event { border-radius:5px; padding:5px 6px; font-size:10px; line-height:1.35; margin:3px 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; font-weight:600; }
+    .event.purple { background:#efedff;color:#6055c3; }.event.green {background:#e7f6f0;color:#36836c}.event.orange{background:#fff0e7;color:#bd7048}.event.blue{background:#eaf3ff;color:#537bac}
+    .right-column { display:grid; gap:16px; }.side-card { padding:17px; }.side-title { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }.side-title h3 { margin:0; font-size:14px; }.text-button { border:0;background:transparent;color:var(--purple);font-size:11px;font-weight:650;padding:4px; }
+    .agenda-date { color:var(--muted);font-size:11px;margin:-8px 0 12px; }.agenda-item { display:grid; grid-template-columns:44px 3px 1fr; gap:9px; padding:10px 0; border-top:1px solid #f1f1f5; }.agenda-time { color:#85899a;font-size:10px;padding-top:2px; }.agenda-line { border-radius:3px;background:#8175e8; }.agenda-line.green {background:#58b99a}.agenda-line.orange{background:#f0a078}.agenda-name{font-size:11px;font-weight:700;margin-bottom:4px}.agenda-meta{color:var(--muted);font-size:10px}
+    .announcement { padding:11px 0; border-top:1px solid #f1f1f5; }.announcement:first-of-type{border-top:0;padding-top:0}.announce-top{display:flex;justify-content:space-between;gap:7px;margin-bottom:5px}.announce-title{font-size:11px;font-weight:700}.tag{background:#fff3dc;color:#aa7a22;padding:3px 6px;border-radius:5px;font-size:9px;font-weight:700;white-space:nowrap}.announcement p{font-size:10px;color:#85899a;line-height:1.5;margin:0}.announcement small{display:block;color:#a3a6b3;font-size:9px;margin-top:6px}
+    .hidden { display:none !important; }
+    .portal-panel { padding:20px; margin-top:16px; }.portal-panel h2{font-size:18px;margin:0 0 6px}.portal-panel>p{color:var(--muted);margin:0 0 18px;font-size:13px}.portal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.portal-tile{border:1px solid var(--line);border-radius:11px;padding:15px}.portal-tile h3{margin:0 0 7px;font-size:13px}.portal-tile p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+    .modal-backdrop { position:fixed;inset:0;background:#22243a77;display:grid;place-items:center;padding:18px;z-index:5; }.modal { background:#fff;border-radius:15px;width:min(440px,100%);padding:22px;box-shadow:0 24px 70px #17183244; }.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}.modal-head h2{font-size:17px;margin:0}.close{border:0;background:transparent;color:#85899d;font-size:22px}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:11px;font-weight:700;color:#64697e}.field input,.field select{width:100%;border:1px solid #e4e6ee;border-radius:8px;padding:10px;color:var(--ink);background:white}.form-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.secondary{border:1px solid var(--line);background:white;border-radius:8px;padding:9px 13px;color:#70758a;font-weight:600}
+    .toast { position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#292c43;color:white;padding:11px 16px;border-radius:10px;box-shadow:var(--shadow);z-index:8;font-size:12px; }
+    @media (max-width:1100px) { .app{grid-template-columns:205px minmax(0,1fr)}.main{padding:0 20px 28px}.layout{grid-template-columns:minmax(0,1fr) 255px}.day{min-height:103px;padding:7px 5px}.event{font-size:9px;padding:4px} }
+    @media (max-width:820px) { .app{grid-template-columns:1fr}.sidebar{display:none}.main{padding:0 18px 26px}.layout{grid-template-columns:1fr}.right-column{grid-template-columns:repeat(2,minmax(0,1fr))}.day{min-height:105px} }
+    @media (max-width:560px) { .main{padding:0 11px 20px}.topbar{height:61px;margin-bottom:20px}.profile-name{display:none}.page-heading{align-items:center}h1{font-size:21px}.subtitle{font-size:11px}.welcome{padding:14px}.calendar-toolbar{padding:12px 10px;flex-wrap:wrap}.month-title{min-width:0;font-size:14px}.toolbar-left,.toolbar-right{gap:6px}.day-head{font-size:8px;padding:10px 2px}.day{min-height:78px;padding:5px 2px}.day-num{width:21px;height:21px;font-size:9px;margin-bottom:3px}.event{padding:3px 4px;font-size:8px}.right-column{grid-template-columns:1fr}.portal-grid{grid-template-columns:1fr}.primary{padding:9px 11px;font-size:12px}.today-btn,.view-select{font-size:10px;padding:6px 7px} }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="brand"><div class="brand-mark">✦</div><span>Anderson Family</span></div>
+      <p class="section-label">Workspace</p>
+      <nav class="nav">
+        <button class="active" data-page="calendar"><span class="nav-icon">▦</span>Family calendar</button>
+        <button data-page="updates"><span class="nav-icon">◉</span>School updates</button>
+        <button data-page="children"><span class="nav-icon">♡</span>My children</button>
+      </nav>
+      <div class="children-block">
+        <p class="section-label">Children</p>
+        <div class="child"><span class="avatar">EA</span>Emma Anderson</div>
+        <div class="child"><span class="avatar mint">JA</span>Jack Anderson</div>
+      </div>
+      <div class="sidebar-bottom">A little more organized,<br>a lot more connected. <span aria-hidden="true">♡</span></div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div class="crumb">Anderson Family <span aria-hidden="true"> / </span> <strong id="breadcrumb">Family calendar</strong></div>
+        <div class="top-actions"><button class="icon-button" aria-label="Notifications" id="notifications">♧<span class="dot"></span></button><div class="profile"><span class="avatar">SA</span><span class="profile-name">Sarah Anderson</span></div></div>
+      </header>
+      <section id="calendar-page">
+        <div class="page-heading"><div><h1>Family calendar</h1><div class="subtitle">Everyone's plans, all in one place.</div></div><button class="primary" id="add-event"><span class="plus">＋</span>Add event</button></div>
+        <div class="welcome"><div><h2>Good morning, Sarah! <span aria-hidden="true">☀️</span></h2><p>You have <strong>3 things</strong> coming up for the family this week.</p></div><div class="welcome-art" aria-hidden="true">🗓️</div></div>
+        <div class="layout">
+          <section class="card calendar-card" aria-label="Family calendar">
+            <div class="calendar-toolbar">
+              <div class="toolbar-left"><div class="month-title" id="month-title">June <span>2025</span></div><div class="arrows"><button id="prev-month" aria-label="Previous month">‹</button><button id="next-month" aria-label="Next month">›</button></div><button class="today-btn" id="today-button">Today</button></div>
+              <div class="toolbar-right"><select class="view-select" aria-label="Calendar view" id="view-select"><option value="month">Month</option><option value="week">Week</option></select></div>
+            </div>
+            <div class="week" id="calendar-grid"></div>
+          </section>
+          <aside class="right-column">
+            <section class="card side-card"><div class="side-title"><h3>Coming up</h3><button class="text-button" id="see-week">See week</button></div><div class="agenda-date" id="agenda-date">Your family's next plans</div><div id="agenda-list"></div></section>
+            <section class="card side-card"><div class="side-title"><h3>School updates</h3><button class="text-button" data-open-page="updates">View all</button></div>
+              <article class="announcement"><div class="announce-top"><span class="announce-title">Field Day is coming!</span><span class="tag">Emma's class</span></div><p>Remember to pack a water bottle and wear comfy shoes on Friday.</p><small>Today · Anderson Elementary</small></article>
+              <article class="announcement"><div class="announce-top"><span class="announce-title">Library books due</span><span class="tag" style="background:#eaf3ff;color:#537bac">Reminder</span></div><p>Jack's library books are due back by Thursday.</p><small>Yesterday · Room 12</small></article>
+            </section>
+          </aside>
+        </div>
+      </section>
+      <section id="updates-page" class="card portal-panel hidden">
+        <h2>School updates</h2><p>News and reminders from your children's school communities.</p>
+        <div class="portal-grid"><article class="portal-tile"><span class="tag">Emma's class</span><h3 style="margin-top:11px">Field Day is coming!</h3><p>Field Day is this Friday. Please send a water bottle, sunscreen, and a change of clothes. Students should wear comfortable shoes.</p></article><article class="portal-tile"><span class="tag" style="background:#eaf3ff;color:#537bac">Reminder</span><h3 style="margin-top:11px">Library books due</h3><p>Jack's library books are due back by Thursday. Return them to the classroom library bin.</p></article><article class="portal-tile"><span class="tag" style="background:#e6f6f1;color:#36836c">School news</span><h3 style="margin-top:11px">Summer concert schedule</h3><p>The end-of-year music concert begins at 6:00 PM in the school auditorium. Families are welcome.</p></article><article class="portal-tile"><span class="tag" style="background:#fff0e7;color:#bd7048">Action needed</span><h3 style="margin-top:11px">Update emergency contacts</h3><p>Please review your family contact information before the end of the school year.</p></article></div>
+      </section>
+      <section id="children-page" class="card portal-panel hidden">
+        <h2>My children</h2><p>Keep track of school details and upcoming activities.</p>
+        <div class="portal-grid"><article class="portal-tile"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span class="avatar">EA</span><div><h3 style="margin:0">Emma Anderson</h3><p>Grade 3 · Room 8</p></div></div><p><strong>Teacher:</strong> Ms. Parker<br><strong>School:</strong> Anderson Elementary<br><strong>Next up:</strong> Field Day, Friday</p></article><article class="portal-tile"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span class="avatar mint">JA</span><div><h3 style="margin:0">Jack Anderson</h3><p>Grade 1 · Room 12</p></div></div><p><strong>Teacher:</strong> Mr. Lewis<br><strong>School:</strong> Anderson Elementary<br><strong>Next up:</strong> Library books due, Thursday</p></article></div>
+      </section>
+    </main>
+  </div>
+  <div id="modal-root"></div><div id="toast-root" aria-live="polite"></div>
+  <script>
+    const events = [
+      {date:'2025-06-03', title:'Emma · Soccer practice', time:'3:30 PM', color:'green', place:'Maple Park'},
+      {date:'2025-06-05', title:'Jack · Library books due', time:'All day', color:'blue', place:'Anderson Elementary'},
+      {date:'2025-06-06', title:'Emma · Field Day', time:'9:00 AM', color:'orange', place:'Anderson Elementary'},
+      {date:'2025-06-10', title:'Family · Dentist', time:'2:00 PM', color:'purple', place:'Oak Street Dental'},
+      {date:'2025-06-12', title:'Jack · Music class', time:'4:00 PM', color:'green', place:'Anderson Elementary'},
+      {date:'2025-06-14', title:'Family · Summer picnic', time:'12:00 PM', color:'orange', place:'Riverside Park'},
+      {date:'2025-06-17', title:'Emma · Art club', time:'3:15 PM', color:'purple', place:'Room 8'},
+      {date:'2025-06-20', title:'Jack · Class celebration', time:'1:00 PM', color:'blue', place:'Room 12'},
+      {date:'2025-06-24', title:'Family · Parent meeting', time:'6:00 PM', color:'green', place:'School library'}
+    ];
+    let displayed = new Date(2025, 5, 1);
+    let view = 'month';
+    const grid = document.getElementById('calendar-grid');
+    const monthTitle = document.getElementById('month-title');
+    const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    function ymd(date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
+    function renderCalendar() {
+      const year = displayed.getFullYear(), month = displayed.getMonth();
+      monthTitle.innerHTML = `${displayed.toLocaleString('en-US',{month:'long'})} <span>${year}</span>`;
+      grid.replaceChildren();
+      weekdays.forEach(day => { const el=document.createElement('div'); el.className='day-head'; el.textContent=day; grid.append(el); });
+      const first = new Date(year, month, 1);
+      let start = new Date(year, month, 1-first.getDay());
+      let count = view === 'week' ? 7 : 42;
+      if (view === 'week') { start = new Date(year, month, Math.max(1, displayed.getDate()-displayed.getDay())); }
+      for (let i=0;i<count;i++) {
+        const date=new Date(start); date.setDate(start.getDate()+i);
+        const cell=document.createElement('div'); cell.className='day'+(date.getMonth()!==month?' outside':'')+(ymd(date)==='2025-06-03'?' today':'');
+        const num=document.createElement('div'); num.className='day-num'; num.textContent=date.getDate(); cell.append(num);
+        events.filter(e=>e.date===ymd(date)).forEach(event=>{ const item=document.createElement('div'); item.className=`event ${event.color}`; item.textContent=event.title; item.title=`${event.time} · ${event.place}`; item.addEventListener('click',()=>showToast(`${event.title} · ${event.time} at ${event.place}`)); cell.append(item); });
+        grid.append(cell);
+      }
+      document.getElementById('agenda-date').textContent = `Plans for ${displayed.toLocaleString('en-US',{month:'long',year:'numeric'})}`;
+      renderAgenda();
+    }
+    function renderAgenda() {
+      const list=document.getElementById('agenda-list'); list.replaceChildren();
+      const upcoming=events.filter(e=>e.date.startsWith(`${displayed.getFullYear()}-${String(displayed.getMonth()+1).padStart(2,'0')}`)).slice(0,4);
+      if(!upcoming.length){list.innerHTML='<p style="color:var(--muted);font-size:11px">No events yet. Add one to get started.</p>';return;}
+      upcoming.forEach(event=>{const item=document.createElement('div');item.className='agenda-item';const d=new Date(`${event.date}T12:00:00`);item.innerHTML=`<div class="agenda-time">${d.toLocaleString('en-US',{month:'short',day:'numeric'})}<br>${event.time}</div><div class="agenda-line ${event.color==='green'?'green':event.color==='orange'?'orange':''}"></div><div><div class="agenda-name"></div><div class="agenda-meta"></div></div>`;item.querySelector('.agenda-name').textContent=event.title;item.querySelector('.agenda-meta').textContent=event.place;list.append(item);});
+    }
+    function showToast(message) {const root=document.getElementById('toast-root');root.innerHTML='';const toast=document.createElement('div');toast.className='toast';toast.textContent=message;root.append(toast);setTimeout(()=>toast.remove(),3000);}
+    document.getElementById('prev-month').addEventListener('click',()=>{displayed.setMonth(displayed.getMonth()-1);renderCalendar();});
+    document.getElementById('next-month').addEventListener('click',()=>{displayed.setMonth(displayed.getMonth()+1);renderCalendar();});
+    document.getElementById('today-button').addEventListener('click',()=>{displayed=new Date(2025,5,1);view='month';document.getElementById('view-select').value='month';renderCalendar();});
+    document.getElementById('view-select').addEventListener('change',e=>{view=e.target.value;renderCalendar();});
+    document.getElementById('see-week').addEventListener('click',()=>{view='week';document.getElementById('view-select').value='week';renderCalendar();});
+    function openPage(page) {
+      const pages={calendar:document.getElementById('calendar-page'),updates:document.getElementById('updates-page'),children:document.getElementById('children-page')};
+      Object.entries(pages).forEach(([key,el])=>el.classList.toggle('hidden',key!==page));
+      document.querySelectorAll('.nav button[data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===page));
+      const names={calendar:'Family calendar',updates:'School updates',children:'My children'};document.getElementById('breadcrumb').textContent=names[page];
+      document.querySelector('.page-heading')?.classList.toggle('hidden',page!=='calendar');
+      document.querySelector('.welcome')?.classList.toggle('hidden',page!=='calendar');
+      document.querySelector('.layout')?.classList.toggle('hidden',page!=='calendar');
+    }
+    document.querySelectorAll('.nav button[data-page]').forEach(button=>button.addEventListener('click',()=>openPage(button.dataset.page)));
+    document.querySelectorAll('[data-open-page]').forEach(button=>button.addEventListener('click',()=>openPage(button.dataset.openPage)));
+    document.getElementById('notifications').addEventListener('click',()=>{openPage('updates');showToast('You are all caught up on family updates.');});
+    document.getElementById('add-event').addEventListener('click',()=>{
+      const root=document.getElementById('modal-root');root.innerHTML=`<div class="modal-backdrop" role="presentation"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><h2 id="modal-title">Add a family event</h2><button class="close" aria-label="Close">×</button></div><form id="event-form"><div class="field"><label for="event-title">Event name</label><input id="event-title" name="title" required placeholder="e.g. Soccer practice"></div><div class="field"><label for="event-date">Date</label><input id="event-date" name="date" type="date" required value="${ymd(displayed)}"></div><div class="field"><label for="event-time">Time</label><input id="event-time" name="time" type="time" value="15:30"></div><div class="field"><label for="event-child">For</label><select id="event-child" name="child"><option>Family</option><option>Emma</option><option>Jack</option></select></div><div class="form-actions"><button type="button" class="secondary" id="cancel-event">Cancel</button><button type="submit" class="primary">Save event</button></div></form></section></div>`;
+      const close=()=>root.replaceChildren();root.querySelector('.close').addEventListener('click',close);root.querySelector('#cancel-event').addEventListener('click',close);root.querySelector('.modal-backdrop').addEventListener('click',e=>{if(e.target===e.currentTarget)close();});root.querySelector('#event-form').addEventListener('submit',e=>{e.preventDefault();const form=new FormData(e.currentTarget);const child=form.get('child');const time=form.get('time');events.push({date:form.get('date'),title:`${child} · ${form.get('title')}`,time:time?new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'All day',color:child==='Emma'?'purple':child==='Jack'?'green':'blue',place:'Family calendar'});displayed=new Date(`${form.get('date')}T12:00:00`);close();renderCalendar();showToast('Event added to your family calendar.');});
+      root.querySelector('#event-title').focus();
+    });
+    renderCalendar();
+  </script>
+</body>
+</html>
