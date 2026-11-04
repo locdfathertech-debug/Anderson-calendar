@@ -1,11 +1,18 @@
 {
-  "name": "FamilyWall — Anderson Family",
-  "short_name": "FamilyWall",
+  "name": "Anderson Family Hub",
+  "short_name": "Family Hub",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "landscape",
-  "background_color": "#f3f6fa",
-  "theme_color": "#6159d9",
+  "orientation": "any",
+  "background_color": "#f8f9f6",
+  "theme_color": "#346853",
   "description": "A shared family wall calendar for schedules, school, and everyday tasks.",
-  "icons": []
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
