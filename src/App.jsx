@@ -1,200 +1,175 @@
 import { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Award, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, GraduationCap,
+  ImagePlus, ListTodo, LockKeyhole, LogOut, Plane, Plus, Settings, Trash2, UserRound, X,
+} from 'lucide-react';
 
-const STORE = {
-  events: 'anderson-organizer-events-v2',
-  tasks: 'anderson-organizer-tasks-v1',
-  groceries: 'anderson-organizer-groceries-v1',
-  expenses: 'anderson-organizer-expenses-v1',
-};
-const navItems = [
-  { id: 'home', label: 'Today', icon: '⌂' },
-  { id: 'calendar', label: 'Calendar', icon: '▦' },
-  { id: 'tasks', label: 'To-dos', icon: '✓' },
-  { id: 'groceries', label: 'Groceries', icon: '▤' },
-  { id: 'budget', label: 'Budget', icon: '$' },
+const members = [
+  { id: 'dad', name: 'Dad', role: 'Parent', initials: 'D', tone: 'blue' },
+  { id: 'mom', name: 'Mom', role: 'Parent', initials: 'M', tone: 'pink' },
+  { id: 'mia', name: 'Mia', role: 'Child', initials: 'M', tone: 'purple' },
 ];
-const people = [
-  { id: 'sarah', name: 'Sarah', fullName: 'Sarah Anderson', initials: 'SA', color: 'lilac' },
-  { id: 'michael', name: 'Michael', fullName: 'Michael Anderson', initials: 'MA', color: 'peach' },
-  { id: 'emma', name: 'Emma', fullName: 'Emma Anderson', initials: 'EA', color: 'mint' },
-  { id: 'jack', name: 'Jack', fullName: 'Jack Anderson', initials: 'JA', color: 'sky' },
-];
-const initialTasks = [
-  { id: 't1', title: 'Pack Emma’s field day bag', person: 'Sarah', time: 'Before 8:00 AM', done: false },
-  { id: 't2', title: 'Pick up library books', person: 'Michael', time: 'After school', done: false },
-  { id: 't3', title: 'Water the garden', person: 'Emma', time: 'Anytime today', done: true },
-];
-const initialGroceries = [
-  { id: 'g1', name: 'Whole milk', amount: '1 gallon', checked: false },
-  { id: 'g2', name: 'Strawberries', amount: '1 box', checked: false },
-  { id: 'g3', name: 'Lunchbox snacks', amount: '1 pack', checked: true },
-  { id: 'g4', name: 'Pasta', amount: '2 boxes', checked: false },
-];
-const initialEvents = [
-  { id: 'e1', offset: 0, time: '8:15 AM', title: 'School drop-off', person: 'Sarah', place: 'Anderson Elementary', color: 'purple' },
-  { id: 'e2', offset: 0, time: '3:30 PM', title: 'Soccer practice', person: 'Emma', place: 'Maple Park', color: 'green' },
-  { id: 'e3', offset: 0, time: '5:00 PM', title: 'Pick up library books', person: 'Michael', place: 'Anderson Library', color: 'orange' },
-  { id: 'e4', offset: 1, time: '9:00 AM', title: 'Field Day', person: 'Emma', place: 'Anderson Elementary', color: 'blue' },
-  { id: 'e5', offset: 2, time: '4:00 PM', title: 'Music lesson', person: 'Jack', place: 'Room 12', color: 'purple' },
-  { id: 'e6', offset: 4, time: '12:00 PM', title: 'Family picnic', person: 'Everyone', place: 'Riverside Park', color: 'green' },
-];
-const initialExpenses = [
-  { id: 'b1', title: 'Groceries', amount: 428, icon: '🥑', color: 'mint' },
-  { id: 'b2', title: 'Kids & school', amount: 245, icon: '🎒', color: 'lilac' },
-  { id: 'b3', title: 'Home', amount: 186, icon: '🏡', color: 'peach' },
-];
-
-function load(key, fallback) {
-  try {
-    const value = window.localStorage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
-  } catch {
-    return fallback;
-  }
+const colors = ['blue', 'pink', 'purple'];
+const todayKey = () => formatDate(new Date());
+function formatDate(date) {
+  const year = date.getFullYear();
+  return `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
-function useStoredState(key, fallback) {
-  const [value, setValue] = useState(() => load(key, fallback));
-  useEffect(() => {
-    try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local storage is optional. */ }
-  }, [key, value]);
-  return [value, setValue];
-}
-function dateAtOffset(offset) {
+function offsetDate(offset) {
   const date = new Date();
   date.setHours(12, 0, 0, 0);
   date.setDate(date.getDate() + offset);
-  return date;
+  return formatDate(date);
 }
-function dateLabel(date, options = { weekday: 'long', month: 'long', day: 'numeric' }) {
-  return new Intl.DateTimeFormat('en-US', options).format(date);
+function makeId() { return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`; }
+function readStore(key, fallback) {
+  try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) : fallback; } catch { return fallback; }
 }
-function makeId() {
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+function useStored(key, fallback) {
+  const [value, setValue] = useState(() => readStore(key, fallback));
+  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local storage is optional. */ } }, [key, value]);
+  return [value, setValue];
 }
-function Avatar({ person, size = '' }) {
-  return <span className={`avatar ${person?.color || 'lilac'} ${size}`}>{person?.initials || 'AF'}</span>;
+const starterEvents = [
+  { id: 'e1', date: offsetDate(0), title: 'Soccer practice', memberId: 'mia', time: '3:30 PM' },
+  { id: 'e2', date: offsetDate(0), title: 'Dentist appointment', memberId: 'dad', time: '5:00 PM' },
+  { id: 'e3', date: offsetDate(1), title: 'Library books due', memberId: 'mia', time: 'All day' },
+  { id: 'e4', date: offsetDate(3), title: 'Family movie night', memberId: 'mom', time: '6:30 PM' },
+  { id: 'e5', date: offsetDate(6), title: 'Piano lesson', memberId: 'mia', time: '4:00 PM' },
+];
+const starterChores = [
+  { id: 'c1', date: offsetDate(0), title: 'Take out the recycling', memberId: 'dad', completed: false },
+  { id: 'c2', date: offsetDate(0), title: 'Empty the dishwasher', memberId: 'mia', completed: true },
+  { id: 'c3', date: offsetDate(0), title: 'Pack field day bag', memberId: 'mom', completed: false },
+];
+const starterVacations = [
+  { id: 'v1', title: 'Summer by the sea', date: 'June 10 – 17', image: 'beach' },
+  { id: 'v2', title: 'Mountain weekend', date: 'December 20 – 27', image: 'mountain' },
+];
+const starterGrades = [
+  { id: 'g1', memberId: 'mia', subject: 'Math', grade: 'A−' },
+  { id: 'g2', memberId: 'mia', subject: 'Science', grade: 'B+' },
+  { id: 'g3', memberId: 'mia', subject: 'English', grade: 'A' },
+  { id: 'g4', memberId: 'mia', subject: 'History', grade: 'A' },
+];
+const holidays = [
+  ['2026-01-01', "New Year's Day"], ['2026-01-19', 'Martin Luther King Jr. Day'],
+  ['2026-02-16', "Presidents' Day"], ['2026-05-25', 'Memorial Day'],
+  ['2026-06-19', 'Juneteenth'], ['2026-07-04', 'Independence Day'],
+  ['2026-09-07', 'Labor Day'], ['2026-11-26', 'Thanksgiving'], ['2026-12-25', 'Christmas Day'],
+].map(([date, title], index) => ({ id: `holiday-${index}`, date, title, holiday: true }));
+
+function Avatar({ member, size = '' }) {
+  return <span className={`avatar ${member?.tone || 'purple'} ${size}`} aria-label={member?.name}>{member?.initials || '?'}</span>;
 }
-function Icon({ children }) { return <span className="icon" aria-hidden="true">{children}</span>; }
-function SectionHeading({ title, action, onAction }) {
-  return <div className="section-heading"><h2>{title}</h2>{action && <button className="link-button" onClick={onAction}>{action}<span aria-hidden="true"> →</span></button>}</div>;
+function SectionTitle({ icon: Icon, children, action, onAction }) {
+  return <div className="section-title"><h2>{Icon && <Icon size={16} />} {children}</h2>{action && <button className="text-action" onClick={onAction}>{action} <span>→</span></button>}</div>;
 }
-function PageHeader({ title, description, action, onAction }) {
-  return <div className="page-heading"><div><p className="eyebrow">ANDERSON FAMILY</p><h1>{title}</h1>{description && <p className="page-description">{description}</p>}</div>{action && <button className="button button-primary" onClick={onAction}><span aria-hidden="true">＋</span> {action}</button>}</div>;
-}
-function AvatarStack({ names }) {
-  return <div className="avatar-stack">{names.map((name) => <Avatar key={name} person={people.find((person) => person.name === name)} />)}</div>;
-}
-function NewItemForm({ placeholder, onAdd, buttonLabel = 'Add' }) {
-  const [value, setValue] = useState('');
-  function submit(event) {
-    event.preventDefault();
-    const clean = value.trim();
-    if (!clean) return;
-    onAdd(clean);
-    setValue('');
-  }
-  return <form className="new-item-form" onSubmit={submit}><input aria-label={placeholder} placeholder={placeholder} value={value} onChange={(event) => setValue(event.target.value)} /><button className="button button-soft" type="submit">＋ <span>{buttonLabel}</span></button></form>;
-}
-function EventDialog({ onClose, onSave }) {
+function EventDialog({ initialDate, onClose, onSave }) {
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(initialDate);
   const [time, setTime] = useState('15:30');
-  const [person, setPerson] = useState('Sarah');
+  const [memberId, setMemberId] = useState('mia');
   useEffect(() => {
-    const closeOnEscape = (event) => { if (event.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
+    const close = (event) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
   }, [onClose]);
-  return <div className="dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section className="dialog" role="dialog" aria-modal="true" aria-labelledby="event-dialog-title"><div className="dialog-head"><div><p className="eyebrow">MAKE A PLAN</p><h2 id="event-dialog-title">Add to the calendar</h2></div><button className="close-button" onClick={onClose} aria-label="Close dialog">×</button></div><form onSubmit={(event) => { event.preventDefault(); onSave({ id: makeId(), offset: Math.round((new Date(`${date}T12:00:00`) - dateAtOffset(0)) / 86400000), time: new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }), title: title.trim(), person, place: 'Family calendar', color: person === 'Emma' ? 'green' : person === 'Jack' ? 'blue' : 'purple' }); }}><label className="field-label">What’s happening?<input required autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Soccer practice" /></label><div className="form-two"><label className="field-label">Date<input required type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label className="field-label">Time<input type="time" value={time} onChange={(event) => setTime(event.target.value)} /></label></div><label className="field-label">Who’s it for?<select value={person} onChange={(event) => setPerson(event.target.value)}>{people.map((member) => <option key={member.id}>{member.name}</option>)}<option>Everyone</option></select></label><div className="dialog-actions"><button type="button" className="button button-quiet" onClick={onClose}>Cancel</button><button type="submit" className="button button-primary">Save event</button></div></form></section></div>;
+  return <div className="overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><motion.section className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" initial={{ opacity: 0, y: 12, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
+    <div className="dialog-heading"><div><span className="eyebrow">A LITTLE PLAN</span><h2 id="dialog-title">Add to the calendar</h2></div><button className="icon-button" onClick={onClose} aria-label="Close"><X size={20} /></button></div>
+    <form onSubmit={(event) => { event.preventDefault(); onSave({ id: makeId(), date, title: title.trim(), time: time ? new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'All day', memberId }); }}>
+      <label className="form-field">What’s happening?<input required autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Soccer practice, dentist…" /></label>
+      <div className="form-row"><label className="form-field">Date<input required type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label className="form-field">Time<input type="time" value={time} onChange={(event) => setTime(event.target.value)} /></label></div>
+      <label className="form-field">Who’s it for?<select value={memberId} onChange={(event) => setMemberId(event.target.value)}>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
+      <div className="dialog-actions"><button type="button" className="button button-quiet" onClick={onClose}>Cancel</button><button className="button button-primary">Save event</button></div>
+    </form>
+  </motion.section></div>;
 }
-function EventRow({ event }) {
-  const person = people.find((member) => member.name === event.person);
-  return <article className="event-row"><span className={`event-marker ${event.color}`} /><div className="event-time">{event.time}</div><div className="event-detail"><h3>{event.title}</h3><p><span>{event.place}</span><span className="event-person">{person && <Avatar person={person} size="tiny" />}{event.person}</span></p></div><button className="more-button" aria-label={`More options for ${event.title}`}>···</button></article>;
+function AddLine({ placeholder, onAdd }) {
+  const [value, setValue] = useState('');
+  return <form className="add-line" onSubmit={(event) => { event.preventDefault(); if (!value.trim()) return; onAdd(value.trim()); setValue(''); }}><input value={value} onChange={(event) => setValue(event.target.value)} placeholder={placeholder} /><button aria-label="Add item"><Plus size={17} /></button></form>;
 }
-function TaskRow({ task, onToggle }) {
-  const person = people.find((member) => member.name === task.person);
-  return <div className={`task-row ${task.done ? 'is-done' : ''}`}><button className="check-button" aria-label={task.done ? `Mark ${task.title} incomplete` : `Complete ${task.title}`} aria-pressed={task.done} onClick={() => onToggle(task.id)}>{task.done ? '✓' : ''}</button><div className="task-copy"><span>{task.title}</span><small>{task.time}</small></div>{person && <Avatar person={person} size="small" />}</div>;
-}
-function HomePage({ tasks, setTasks, events, setPage, onNewEvent, groceries }) {
-  const todayEvents = events.filter((event) => event.offset === 0).sort((a, b) => a.time.localeCompare(b.time));
-  const completed = tasks.filter((task) => task.done).length;
-  const toggleTask = (id) => setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done } : task));
+function CalendarView({ currentDate, setCurrentDate, selectedDate, setSelectedDate, events, onAdd }) {
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const days = useMemo(() => {
+    const first = new Date(year, month, 1);
+    const start = new Date(year, month, 1 - first.getDay());
+    return Array.from({ length: 42 }, (_, index) => { const day = new Date(start); day.setDate(start.getDate() + index); return day; });
+  }, [year, month]);
+  const dailyEvents = [...events, ...holidays].filter((event) => event.date === selectedDate);
+  const changeMonth = (amount) => setCurrentDate((date) => new Date(date.getFullYear(), date.getMonth() + amount, 1));
   return <>
-    <div className="greeting-row"><div><p className="eyebrow">{dateLabel(new Date(), { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}</p><h1>Good morning, Sarah <span aria-hidden="true">☀️</span></h1><p className="page-description">A little plan goes a long way. Here’s your family’s day.</p></div><button className="button button-primary desktop-new" onClick={onNewEvent}><span aria-hidden="true">＋</span> Add a plan</button></div>
-    <section className="family-banner"><div className="banner-copy"><span className="banner-sparkle" aria-hidden="true">✦</span><p className="banner-kicker">YOUR FAMILY SPACE</p><h2>Life is better, <em>together.</em></h2><p>Keep your people and plans in sync.</p><button className="banner-button" onClick={() => setPage('family')}>Family space <span aria-hidden="true">→</span></button></div><div className="family-art" aria-hidden="true"><div className="sun-art">☀</div><div className="art-house">⌂</div><div className="art-person art-person-one">☺</div><div className="art-person art-person-two">☺</div><div className="art-heart">♥</div><span className="art-cloud">☁</span></div></section>
-    <div className="dashboard-grid">
-      <section className="panel schedule-panel"><SectionHeading title="Today’s schedule" action="Full calendar" onAction={() => setPage('calendar')} /><div className="date-strip"><div className="date-square"><strong>{dateAtOffset(0).getDate()}</strong><span>{dateLabel(dateAtOffset(0), { weekday: 'short' }).toUpperCase()}</span></div><p>{todayEvents.length ? `${todayEvents.length} plans for today` : 'Room for something lovely'}</p><button className="round-plus" aria-label="Add an event" onClick={onNewEvent}>＋</button></div><div className="event-list">{todayEvents.length ? todayEvents.map((event) => <EventRow key={event.id} event={event} />) : <p className="empty-copy">No plans yet. Add something to your family calendar.</p>}</div></section>
-      <section className="panel tasks-panel"><SectionHeading title="Family to-dos" action="See all" onAction={() => setPage('tasks')} /><div className="progress-summary"><div><strong>{completed} of {tasks.length}</strong><span>tasks done today</span></div><div className="progress-track"><span style={{ width: `${tasks.length ? completed / tasks.length * 100 : 0}%` }} /></div></div><div className="task-list">{tasks.slice(0, 3).map((task) => <TaskRow key={task.id} task={task} onToggle={id => setTasks(current => current.map(item => item.id === id ? { ...item, done: !item.done } : item))} />)}</div></section>
-      <section className="panel grocery-preview"><SectionHeading title="Grocery list" action="Open list" onAction={() => setPage('groceries')} /><div className="grocery-preview-row"><span className="grocery-emoji">🛒</span><div><strong>{groceries.filter((item) => !item.checked).length} things to pick up</strong><small>Shared with the family</small></div><AvatarStack names={['Sarah', 'Michael']} /></div><button className="grocery-open" onClick={() => setPage('groceries')}>See the list <span>→</span></button></section>
-      <section className="panel activity-panel"><SectionHeading title="Little family moments" action="Our family" onAction={() => setPage('family')} /><div className="activity-feed"><div className="activity-item"><Avatar person={people[2]} /><p><strong>Emma</strong> added <b>Field Day</b> to the calendar<small>12 min ago</small></p><span className="activity-emoji">🎨</span></div><div className="activity-item"><Avatar person={people[1]} /><p><strong>Michael</strong> checked off <b>Weekly meal plan</b><small>1 hr ago</small></p><span className="activity-emoji">✓</span></div></div></section>
-    </div>
+    <div className="calendar-toolbar"><div><span className="eyebrow">YOUR FAMILY, IN SYNC</span><h1>{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h1></div><div className="toolbar-actions"><button className="button button-light" onClick={() => { const now = new Date(); setCurrentDate(new Date(now.getFullYear(), now.getMonth(), 1)); setSelectedDate(todayKey()); }}>Today</button><button className="round-button" onClick={() => changeMonth(-1)} aria-label="Previous month"><ChevronLeft size={19} /></button><button className="round-button" onClick={() => changeMonth(1)} aria-label="Next month"><ChevronRight size={19} /></button><button className="button button-primary add-event" onClick={onAdd}><Plus size={16} /> Add event</button></div></div>
+    <div className="calendar-grid">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => <div className="weekday" key={day}>{day}</div>)}{days.map((day) => {
+      const key = formatDate(day);
+      const items = [...events, ...holidays].filter((event) => event.date === key);
+      return <button key={key} className={`calendar-day ${day.getMonth() !== month ? 'outside' : ''} ${key === selectedDate ? 'selected' : ''} ${key === todayKey() ? 'is-today' : ''}`} onClick={() => setSelectedDate(key)}><span className="day-number">{day.getDate()}</span><span className="day-events">{items.slice(0, 2).map((event) => <span key={event.id} className={`day-event ${event.holiday ? 'holiday' : members.find((member) => member.id === event.memberId)?.tone || 'blue'}`}>{event.title}</span>)}{items.length > 2 && <small>+{items.length - 2} more</small>}</span></button>;
+    })}</div>
+    <div className="selected-agenda"><div className="agenda-heading"><div><span className="eyebrow">SELECTED DAY</span><h2>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h2></div><button className="button button-soft" onClick={onAdd}><Plus size={15} /> Add plan</button></div>{dailyEvents.length ? dailyEvents.map((event) => <div className="agenda-row" key={event.id}><Clock3 size={15} /><time>{event.time || 'All day'}</time><strong>{event.title}</strong><span>{event.holiday ? 'Family' : members.find((member) => member.id === event.memberId)?.name}</span></div>) : <p className="quiet-empty">A little breathing room. No plans on this day.</p>}</div>
   </>;
 }
-function CalendarPage({ events, onNewEvent, onToast }) {
-  const [selected, setSelected] = useState(0);
-  const [weekStart, setWeekStart] = useState(() => { const date = new Date(); date.setDate(date.getDate() - date.getDay()); date.setHours(12, 0, 0, 0); return date; });
-  const days = Array.from({ length: 7 }, (_, index) => { const date = new Date(weekStart); date.setDate(date.getDate() + index); return date; });
-  const selectedDate = new Date(days[selected]);
-  const dayOffset = Math.round((selectedDate - dateAtOffset(0)) / 86400000);
-  const selectedEvents = events.filter((event) => event.offset === dayOffset).sort((a, b) => a.time.localeCompare(b.time));
-  return <><PageHeader title="Family calendar" description="All your people, all their plans." action="Add event" onAction={onNewEvent} /><section className="panel calendar-panel"><div className="calendar-controls"><button className="circle-nav" aria-label="Previous week" onClick={() => setWeekStart(current => new Date(current.getFullYear(), current.getMonth(), current.getDate() - 7))}>‹</button><h2>{dateLabel(days[0], { month: 'long' })} <span>{days[0].getFullYear()}</span></h2><button className="circle-nav" aria-label="Next week" onClick={() => setWeekStart(current => new Date(current.getFullYear(), current.getMonth(), current.getDate() + 7))}>›</button><button className="today-link" onClick={() => { const now = new Date(); now.setDate(now.getDate() - now.getDay()); now.setHours(12, 0, 0, 0); setWeekStart(now); setSelected(new Date().getDay()); }}>Today</button></div><div className="week-picker">{days.map((date, index) => <button key={date.toISOString()} className={`week-day ${selected === index ? 'selected' : ''} ${date.toDateString() === new Date().toDateString() ? 'is-today' : ''}`} onClick={() => setSelected(index)}><span>{dateLabel(date, { weekday: 'short' })}</span><strong>{date.getDate()}</strong><i>{events.some(event => event.offset === Math.round((date - dateAtOffset(0)) / 86400000)) ? '•' : ''}</i></button>)}</div><div className="selected-day-head"><div><p className="eyebrow">{dateLabel(selectedDate, { weekday: 'long' }).toUpperCase()}</p><h2>{dateLabel(selectedDate, { month: 'long', day: 'numeric' })}</h2></div><button className="button button-soft" onClick={onNewEvent}>＋ Add plan</button></div><div className="event-list">{selectedEvents.length ? selectedEvents.map(event => <EventRow key={event.id} event={event} />) : <div className="calendar-empty"><span>🌿</span><strong>A little breathing room</strong><p>No plans for this day. Enjoy it!</p><button className="link-button" onClick={onNewEvent}>Add a plan →</button></div>}</div></section><p className="demo-note">Shared family calendar · Changes are saved on this device.</p></>;
-}
-function TasksPage({ tasks, setTasks }) {
-  const [filter, setFilter] = useState('All');
-  const visible = tasks.filter(task => filter === 'All' || (filter === 'Done' ? task.done : !task.done));
-  return <><PageHeader title="Family to-dos" description="Share the little things that make family life run smoothly." /><section className="panel list-page-panel"><div className="list-page-heading"><div><span className="panel-icon lilac-bg">✓</span><div><h2>Today’s checklist</h2><p>{tasks.filter(task => task.done).length} of {tasks.length} done — you’ve got this!</p></div></div><AvatarStack names={['Sarah', 'Michael', 'Emma']} /></div><div className="filter-tabs">{['All', 'To do', 'Done'].map(item => <button key={item} className={filter === item ? 'active' : ''} onClick={() => setFilter(item)}>{item}</button>)}</div><div className="task-list large-task-list">{visible.map(task => <TaskRow key={task.id} task={task} onToggle={id => setTasks(current => current.map(item => item.id === id ? { ...item, done: !item.done } : item))} />)}</div><NewItemForm placeholder="Add a task for the family…" onAdd={title => setTasks(current => [...current, { id: makeId(), title, person: 'Sarah', time: 'Today', done: false }])} buttonLabel="Add task" /></section></>;
-}
-function GroceriesPage({ groceries, setGroceries }) {
-  const unbought = groceries.filter(item => !item.checked);
-  return <><PageHeader title="Grocery list" description="One shared list, so nothing gets left behind." /><section className="panel list-page-panel grocery-page"><div className="grocery-list-top"><div><span className="panel-icon mint-bg">🛒</span><div><h2>This week’s groceries</h2><p>{unbought.length} items left to pick up</p></div></div><AvatarStack names={['Sarah', 'Michael']} /></div><div className="grocery-items">{groceries.map(item => <label className={`grocery-item ${item.checked ? 'is-checked' : ''}`} key={item.id}><input type="checkbox" checked={item.checked} onChange={() => setGroceries(current => current.map(row => row.id === item.id ? { ...row, checked: !row.checked } : row))} /><span className="fake-check">✓</span><span className="grocery-name">{item.name}</span><span className="grocery-amount">{item.amount}</span></label>)}</div><NewItemForm placeholder="Add something to the list…" onAdd={name => setGroceries(current => [...current, { id: makeId(), name, amount: '1 item', checked: false }])} buttonLabel="Add item" /><div className="share-note"><span>✦</span> Everyone in the Anderson family can see this list.</div></section></>;
-}
-function BudgetPage({ expenses, setExpenses }) {
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const total = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
-  const budget = 1800;
-  const colors = ['mint', 'lilac', 'peach', 'sky'];
-  function addExpense(event) {
-    event.preventDefault();
-    if (!title.trim() || !Number(amount)) return;
-    setExpenses(current => [...current, { id: makeId(), title: title.trim(), amount: Number(amount), icon: '🧾', color: colors[current.length % colors.length] }]);
-    setTitle(''); setAmount('');
-  }
-  return <><PageHeader title="Family budget" description="A clear picture of where the household budget goes." /><section className="budget-hero"><div className="budget-topline"><div><p className="eyebrow">THIS MONTH’S SPENDING</p><h2>${total.toLocaleString()} <span>/ ${budget.toLocaleString()}</span></h2></div><span className="budget-emoji">🌱</span></div><div className="budget-track"><span style={{ width: `${Math.min(total / budget * 100, 100)}%` }} /></div><div className="budget-foot"><span>${(budget - total).toLocaleString()} left in your family budget</span><span>{Math.round(total / budget * 100)}% used</span></div></section><section className="panel expense-panel"><SectionHeading title="Spending categories" /><div className="expense-list">{expenses.map(item => <div className="expense-row" key={item.id}><span className={`expense-icon ${item.color}-bg`}>{item.icon}</span><div className="expense-copy"><strong>{item.title}</strong><span>${Number(item.amount).toLocaleString()} spent</span></div><div className="expense-meter"><span style={{ width: `${Math.min(Number(item.amount) / budget * 100 * 3, 100)}%` }} /></div><strong className="expense-amount">${Number(item.amount).toLocaleString()}</strong></div>)}</div><form className="expense-form" onSubmit={addExpense}><input aria-label="Expense category" placeholder="Category (e.g. Transport)" value={title} onChange={event => setTitle(event.target.value)} required /><div className="amount-input"><span>$</span><input aria-label="Amount spent" type="number" min="1" placeholder="Amount" value={amount} onChange={event => setAmount(event.target.value)} required /></div><button className="button button-soft" type="submit">＋ Add</button></form><p className="demo-note">A simple shared overview for planning. No bank accounts connected.</p></section></>;
-}
-function FamilyPage({ tasks, groceries, events }) {
-  const counts = useMemo(() => people.map(person => ({ ...person, plans: events.filter(event => event.person === person.name).length, tasks: tasks.filter(task => task.person === person.name && !task.done).length })), [events, tasks]);
-  return <><PageHeader title="Our family" description="Your favorite team, all in one place." /><section className="family-profile-card"><div className="family-profile-art"><span>🏡</span><i>♥</i><i>✦</i></div><div className="family-profile-copy"><p className="eyebrow">FAMILY SPACE</p><h2>The Andersons</h2><p>Our little corner of the world. Four people, one team.</p><div className="member-stack">{people.map(person => <Avatar key={person.id} person={person} />)}<span>4 family members</span></div></div></section><div className="family-members">{counts.map(person => <article className="panel member-card" key={person.id}><Avatar person={person} size="large" /><div className="member-info"><h2>{person.fullName}</h2><p>{person.id === 'sarah' ? 'Family organizer' : person.id === 'michael' ? 'Dad' : person.id === 'emma' ? 'Big sister' : 'Little brother'}</p></div><div className="member-stats"><span><strong>{person.plans}</strong> plans</span><span><strong>{person.tasks}</strong> to-dos</span></div></article>)}</div><section className="panel family-summary"><SectionHeading title="A family that’s in sync" /><div className="summary-stats"><div><strong>{events.length}</strong><span>upcoming plans</span></div><div><strong>{tasks.filter(task => !task.done).length}</strong><span>to-dos to share</span></div><div><strong>{groceries.filter(item => !item.checked).length}</strong><span>grocery items</span></div></div></section></>;
+function Portal({ active, setActive, close, chores, setChores, vacations, setVacations, grades, setGrades, backgrounds, setBackgrounds }) {
+  const [task, setTask] = useState('');
+  const [vacation, setVacation] = useState('');
+  const [subject, setSubject] = useState('');
+  const [grade, setGrade] = useState('');
+  const [image, setImage] = useState('');
+  const tabs = [{ id: 'tasks', label: 'Manage tasks', icon: ListTodo }, { id: 'vacations', label: 'Vacations', icon: Plane }, { id: 'grades', label: 'School & grades', icon: GraduationCap }, { id: 'photos', label: 'Screensaver photos', icon: ImagePlus }];
+  return <div className="portal-screen"><aside className="portal-sidebar"><div className="portal-brand"><span className="brand-icon"><Settings size={19} /></span><span><b>Parent space</b><small><LockKeyhole size={11} /> Family organizer</small></span></div><p className="eyebrow">FAMILY SETTINGS</p>{tabs.map(({ id, label, icon: Icon }) => <button key={id} className={`portal-tab ${active === id ? 'active' : ''}`} onClick={() => setActive(id)}><Icon size={17} />{label}</button>)}<button className="portal-exit" onClick={close}><LogOut size={17} /> Back to calendar</button></aside><main className="portal-content"><div className="demo-warning"><LockKeyhole size={15} /><span><strong>Family space preview.</strong> This browser-only demo has no account authentication or private data protection.</span></div>
+    {active === 'tasks' && <><div className="portal-page-title"><span className="eyebrow">THE LITTLE THINGS</span><h1>Manage family tasks</h1><p>Share the everyday jobs and celebrate getting them done.</p></div><form className="portal-add" onSubmit={(event) => { event.preventDefault(); if (task.trim()) { setChores((current) => [...current, { id: makeId(), title: task.trim(), date: todayKey(), memberId: 'mia', completed: false }]); setTask(''); } }}><input value={task} onChange={(event) => setTask(event.target.value)} placeholder="Add a task for the family…" /><button className="button button-primary"><Plus size={15} /> Add task</button></form><div className="portal-list">{chores.map((chore) => <div className="portal-list-row" key={chore.id}><div><strong>{chore.title}</strong><small>{chore.date} · {members.find((member) => member.id === chore.memberId)?.name || 'Family'}</small></div><button className="delete-button" onClick={() => setChores((current) => current.filter((item) => item.id !== chore.id))} aria-label={`Delete ${chore.title}`}><Trash2 size={17} /></button></div>)}</div></>}
+    {active === 'vacations' && <><div className="portal-page-title"><span className="eyebrow">MAKE MEMORIES</span><h1>Upcoming vacations</h1><p>Dream it up, get it on the family wall.</p></div><AddLine placeholder="Add a trip idea…" onAdd={(title) => setVacations((current) => [...current, { id: makeId(), title, date: 'Dates to come', image: 'beach' }])} /><div className="portal-list">{vacations.map((trip) => <div className="portal-list-row" key={trip.id}><div><strong>{trip.title}</strong><small>{trip.date}</small></div><button className="delete-button" onClick={() => setVacations((current) => current.filter((item) => item.id !== trip.id))} aria-label={`Delete ${trip.title}`}><Trash2 size={17} /></button></div>)}</div></>}
+    {active === 'grades' && <><div className="portal-page-title"><span className="eyebrow">CHEERING YOU ON</span><h1>School & grades</h1><p>A little snapshot of Mia’s school wins.</p></div><form className="portal-add grade-form" onSubmit={(event) => { event.preventDefault(); if (subject.trim() && grade.trim()) { setGrades((current) => [...current, { id: makeId(), memberId: 'mia', subject: subject.trim(), grade: grade.trim() }]); setSubject(''); setGrade(''); } }}><input value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Subject" /><input value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="Grade" /><button className="button button-primary"><Plus size={15} /> Add</button></form><div className="grade-grid">{grades.map((item) => <div className="grade-card" key={item.id}><span>{item.subject}</span><strong>{item.grade}</strong><button className="delete-button" onClick={() => setGrades((current) => current.filter((gradeItem) => gradeItem.id !== item.id))} aria-label={`Delete ${item.subject}`}><Trash2 size={15} /></button></div>)}</div></>}
+    {active === 'photos' && <><div className="portal-page-title"><span className="eyebrow">A LITTLE WINDOW</span><h1>Screensaver photos</h1><p>Add a photo URL for the family wall screensaver.</p></div><form className="portal-add" onSubmit={(event) => { event.preventDefault(); if (image.trim()) { setBackgrounds((current) => [...current, image.trim()]); setImage(''); } }}><input type="url" value={image} onChange={(event) => setImage(event.target.value)} placeholder="https://example.com/photo.jpg" /><button className="button button-primary"><Plus size={15} /> Add photo</button></form><div className="photo-list">{backgrounds.map((url, index) => <div className="photo-card" key={`${url}-${index}`}><img src={url} alt="Family screensaver" /><button className="delete-button" onClick={() => setBackgrounds((current) => current.filter((_, itemIndex) => itemIndex !== index))} aria-label="Remove photo"><Trash2 size={16} /></button></div>)}</div></>}
+    </main></div>;
 }
 function App() {
-  const [page, setPage] = useState('home');
-  const [events, setEvents] = useStoredState(STORE.events, initialEvents);
-  const [tasks, setTasks] = useStoredState(STORE.tasks, initialTasks);
-  const [groceries, setGroceries] = useStoredState(STORE.groceries, initialGroceries);
-  const [expenses, setExpenses] = useStoredState(STORE.expenses, initialExpenses);
-  const [dialog, setDialog] = useState(false);
+  const [events, setEvents] = useStored('family-wall-events-v1', starterEvents);
+  const [chores, setChores] = useStored('family-wall-chores-v1', starterChores);
+  const [vacations, setVacations] = useStored('family-wall-vacations-v1', starterVacations);
+  const [grades, setGrades] = useStored('family-wall-grades-v1', starterGrades);
+  const [backgrounds, setBackgrounds] = useStored('family-wall-backgrounds-v1', []);
+  const [currentDate, setCurrentDate] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState(todayKey());
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [portalOpen, setPortalOpen] = useState(false);
+  const [portalTab, setPortalTab] = useState('tasks');
+  const [screensaver, setScreensaver] = useState(false);
+  const [bgIndex, setBgIndex] = useState(0);
+  const [now, setNow] = useState(new Date());
   const [toast, setToast] = useState('');
   useEffect(() => {
-    if (!toast) return undefined;
-    const timer = window.setTimeout(() => setToast(''), 2600);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
-  const titles = { home: 'Today', calendar: 'Calendar', tasks: 'To-dos', groceries: 'Groceries', budget: 'Budget', family: 'Our family' };
-  const sortedEvents = useMemo(() => [...events].sort((a, b) => a.offset - b.offset), [events]);
-  function saveEvent(event) {
-    setEvents(current => [...current, event]);
-    setDialog(false);
-    setToast('Your family plan is on the calendar!');
-  }
-  return <div className="app-shell"><aside className="sidebar"><button className="brand" onClick={() => setPage('home')}><span className="brand-logo">✦</span><span>together<span className="brand-period">.</span><small>ANDERSON FAMILY</small></span></button><button className="family-switcher" onClick={() => setPage('family')}><span className="family-switch-icon">⌂</span><span><strong>The Andersons</strong><small>Family space</small></span><span className="switch-chevron">⌄</span></button><p className="nav-caption">YOUR SPACE</p><nav className="side-nav" aria-label="Main navigation">{navItems.map(item => <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => setPage(item.id)}><Icon>{item.icon}</Icon>{item.label}{item.id === 'groceries' && <span className="nav-count">{groceries.filter(row => !row.checked).length}</span>}</button>)}</nav><button className={`family-nav ${page === 'family' ? 'active' : ''}`} onClick={() => setPage('family')}><span className="family-nav-icon">♡</span>Our family</button><div className="sidebar-spacer" /><div className="sidebar-members"><p className="nav-caption">YOUR PEOPLE <button aria-label="Invite family member" onClick={() => setToast('Invite links are coming soon.')}>＋</button></p>{people.map(person => <div className="sidebar-person" key={person.id}><Avatar person={person} /><span>{person.name}</span><i className={`online-dot ${person.id === 'sarah' || person.id === 'michael' ? 'online' : ''}`} /></div>)}</div><div className="sidebar-user"><Avatar person={people[0]} /><span><strong>Sarah Anderson</strong><small>Family admin</small></span><button aria-label="Profile options" onClick={() => setToast('Profile settings are coming soon.')}>···</button></div></aside>
-    <main className="main-area"><header className="mobile-header"><button className="mobile-brand" onClick={() => setPage('home')}><span className="brand-logo">✦</span>together<span className="brand-period">.</span></button><button className="mobile-family" onClick={() => setPage('family')}><Avatar person={people[0]} />⌄</button></header><div className="content-wrap"><div className="topline"><div className="breadcrumbs">The Andersons <span>/</span> <strong>{titles[page]}</strong></div><div className="topline-right"><span className="sync-status"><i /> All synced</span><button className="notification-button" aria-label="Notifications" onClick={() => setToast('You’re all caught up with your family!')}>♧<i /></button><Avatar person={people[0]} /><span className="desktop-user-name">Sarah</span></div></div>
-      {page === 'home' && <HomePage tasks={tasks} setTasks={setTasks} events={sortedEvents} setPage={setPage} onNewEvent={() => setDialog(true)} groceries={groceries} />}
-      {page === 'calendar' && <CalendarPage events={sortedEvents} onNewEvent={() => setDialog(true)} onToast={setToast} />}
-      {page === 'tasks' && <TasksPage tasks={tasks} setTasks={setTasks} />}
-      {page === 'groceries' && <GroceriesPage groceries={groceries} setGroceries={setGroceries} />}
-      {page === 'budget' && <BudgetPage expenses={expenses} setExpenses={setExpenses} />}
-      {page === 'family' && <FamilyPage tasks={tasks} groceries={groceries} events={sortedEvents} />}
-      </div></main><nav className="mobile-nav" aria-label="Mobile navigation">{navItems.map(item => <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => setPage(item.id)}><Icon>{item.icon}</Icon><span>{item.label}</span></button>)}</nav>{dialog && <EventDialog onClose={() => setDialog(false)} onSave={saveEvent} />}{toast && <div className="toast" role="status">{toast}</div>}</div>;
+    let idle;
+    const reset = () => { setScreensaver(false); window.clearTimeout(idle); idle = window.setTimeout(() => setScreensaver(true), 120000); };
+    const activity = ['pointerdown', 'pointermove', 'keydown', 'touchstart'];
+    activity.forEach((name) => window.addEventListener(name, reset, { passive: true }));
+    reset();
+    return () => { window.clearTimeout(idle); activity.forEach((name) => window.removeEventListener(name, reset)); };
+  }, []);
+  useEffect(() => { const interval = window.setInterval(() => setNow(new Date()), 1000); return () => window.clearInterval(interval); }, []);
+  useEffect(() => { if (!screensaver || !backgrounds.length) return undefined; const interval = window.setInterval(() => setBgIndex((index) => (index + 1) % backgrounds.length), 15000); return () => window.clearInterval(interval); }, [screensaver, backgrounds.length]);
+  useEffect(() => { if (!toast) return undefined; const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer); }, [toast]);
+  const selectedChores = chores.filter((chore) => chore.date === selectedDate);
+  function saveEvent(event) { setEvents((current) => [...current, event]); setDialogOpen(false); setToast('Added to your family calendar!'); }
+  function toggleChore(id) { setChores((current) => current.map((chore) => chore.id === id ? { ...chore, completed: !chore.completed } : chore)); }
+  return <div className="wall-app">
+    <aside className="left-rail"><button className="logo-lockup" onClick={() => { setPortalOpen(false); }}><span className="logo-mark"><CalendarDays size={21} /></span><span>Family<span>Wall</span><small>YOUR FAMILY, IN SYNC</small></span></button>
+      <section className="rail-section"><SectionTitle icon={UserRound}>Family status</SectionTitle><div className="member-grid">{members.map((member) => <div className="member-tile" key={member.id}><Avatar member={member} size="large" /><strong>{member.name}</strong><small>{member.role}</small></div>)}</div></section>
+      <section className="rail-section grade-section"><SectionTitle icon={GraduationCap}>Mia’s school</SectionTitle><div className="grades-card">{grades.slice(0, 4).map((item) => <div className="grade-row" key={item.id}><span>{item.subject}</span><strong>{item.grade}</strong></div>)}{!grades.length && <p className="empty-note">No grades added yet.</p>}</div></section>
+      <div className="rail-bottom"><span className="mini-avatar">F</span><span><strong>Anderson family</strong><small>Family wall</small></span><button aria-label="Open parent space" onClick={() => setPortalOpen(true)}><Settings size={17} /></button></div>
+    </aside>
+    <main className="center-column"><header className="mobile-top"><span className="logo-mark"><CalendarDays size={19} /></span><strong>FamilyWall</strong><button onClick={() => setPortalOpen(true)} aria-label="Parent space"><Settings size={20} /></button></header><div className="calendar-card"><CalendarView currentDate={currentDate} setCurrentDate={setCurrentDate} selectedDate={selectedDate} setSelectedDate={setSelectedDate} events={events} onAdd={() => setDialogOpen(true)} /></div></main>
+    <aside className="right-rail"><button className="primary-add" onClick={() => setDialogOpen(true)}><Plus size={19} /> Add new</button>
+      <section className="rail-section vacation-section"><SectionTitle icon={Plane} action="Manage" onAction={() => { setPortalTab('vacations'); setPortalOpen(true); }}>Upcoming vacations</SectionTitle><div className="vacation-list">{vacations.slice(0, 3).map((trip) => <div className={`vacation-card ${trip.image === 'mountain' ? 'mountain' : 'beach'}`} key={trip.id}><div className="vacation-overlay" /><div className="vacation-copy"><strong>{trip.title}</strong><span><Clock3 size={12} /> {trip.date}</span></div><span className="vacation-sun">✦</span></div>)}{!vacations.length && <p className="empty-note">Add a trip idea in Parent space.</p>}</div></section>
+      <section className="rail-section chores-section"><SectionTitle icon={ListTodo}>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short' })} tasks</SectionTitle><p className="selected-date-label">{new Date(`${selectedDate}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p><div className="chore-card">{selectedChores.length ? selectedChores.map((chore) => <button className={`chore-row ${chore.completed ? 'done' : ''}`} key={chore.id} onClick={() => toggleChore(chore.id)}><span className="check-circle">{chore.completed && <Check size={13} />}</span><span className="chore-title">{chore.title}<small>{members.find((member) => member.id === chore.memberId)?.name}</small></span><Avatar member={members.find((member) => member.id === chore.memberId)} /></button>) : <p className="empty-note">All caught up! Add a task in Parent space.</p>}</div><button className="manage-tasks" onClick={() => { setPortalTab('tasks'); setPortalOpen(true); }}>Manage family tasks <ChevronRight size={15} /></button></section>
+      <section className="family-note"><Award size={17} /><span>Every little thing you do together makes a big difference.</span></section>
+    </aside>
+    {dialogOpen && <EventDialog initialDate={selectedDate} onClose={() => setDialogOpen(false)} onSave={saveEvent} />}
+    {portalOpen && <Portal active={portalTab} setActive={setPortalTab} close={() => setPortalOpen(false)} chores={chores} setChores={setChores} vacations={vacations} setVacations={setVacations} grades={grades} setGrades={setGrades} backgrounds={backgrounds} setBackgrounds={setBackgrounds} />}
+    <AnimatePresence>{screensaver && !portalOpen && <motion.div className="screensaver" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setScreensaver(false)}>{backgrounds.length > 0 ? <img src={backgrounds[bgIndex % backgrounds.length]} alt="Family screensaver background" /> : <div className="screensaver-gradient" />}<div className="screen-shade" /><motion.div className="clock-widget" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}><span className="eyebrow">THE ANDERSONS</span><strong>{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong><h2>{now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}</h2><div className="up-next"><span><Clock3 size={15} /> UP NEXT</span>{events.filter((event) => event.date >= todayKey()).slice(0, 3).map((event) => <div key={event.id}><i />{event.title}<small>{event.date === todayKey() ? 'Today' : new Date(`${event.date}T12:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}</small></div>)}{!events.length && <p>Nothing on the calendar just yet.</p>}</div><small className="screen-hint">Tap anywhere to return</small></motion.div></motion.div>}</AnimatePresence>
+    {toast && <div className="toast" role="status">{toast}</div>}
+  </div>;
 }
 
 export default App;

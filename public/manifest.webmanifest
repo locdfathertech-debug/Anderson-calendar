@@ -1,0 +1,11 @@
+{
+  "name": "FamilyWall — Anderson Family",
+  "short_name": "FamilyWall",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#f3f6fa",
+  "theme_color": "#6159d9",
+  "description": "A shared family wall calendar for schedules, school, and everyday tasks.",
+  "icons": []
+}
