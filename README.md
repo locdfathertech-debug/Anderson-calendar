@@ -26,6 +26,6 @@ Use the existing `vite-anderson-calendar` project in `locdfathertech-9238`. Set 
 
 ## Integration limits
 
-Payments are manual records, not transfers or provider notifications. Calendars export to ICS; two-way sync is future work. No bank connection is configured. Photo display accepts HTTPS URLs; image uploads are future work. A service worker caches the app shell and static assets only; private family records and offline edits are not cached. See `tasks/verification.md` for verified behavior and current limits.
+Parents record chore payments manually. Calendars export to ICS; two-way sync is future work. No bank connection is configured. Photo display accepts HTTPS URLs; image uploads are future work. A service worker caches the app shell and static assets only; private family records and offline edits are not cached. See `tasks/verification.md` for verified behavior and current limits.
 
 SQL integration checks in `tests/rls.sql` use rollback-only test accounts and records and must be run against the intended project. They leave no users or records behind.

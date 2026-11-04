@@ -799,8 +799,7 @@ export default function Planner({
               </div>
               <p className="footnote">
                 Children submit assigned chores. Parents approve rewards and
-                record payments. Cash App, Venmo, and Zelle notifications are
-                not connected.
+                record payments manually.
               </p>
             </>
           )}
@@ -1111,8 +1110,7 @@ export default function Planner({
                 <h2>Connected with care</h2>
                 <p>
                   Google and Outlook sign-in require provider setup in Supabase.
-                  Calendar export works now; automatic calendar sync and payment
-                  notifications need separate integrations.
+                  Calendar export is available. Automatic calendar sync needs a separate integration.
                 </p>
                 <p>
                   Family access uses authenticated roles. Adding a name here

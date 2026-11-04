@@ -8,7 +8,7 @@
 - Preview-only Vercel VITE_SUPABASE_URL and publishable key configured. Existing production environment untouched.
 - No real family account exists yet in this Supabase project. Owner registers with locdfathertech@gmail.com. Existing approved second parent email retained from the repository. Additional accounts must first be authorized in the parent portal.
 - Google/Microsoft provider credentials and redirect allowlists require setup in Supabase; OAuth UI exists but no provider login was verified. Signup/email-confirmation delivery has not been exercised.
-- Calendar export is supported. Provider calendar sync, bank sync, automatic payment notifications and transfers are not implemented.
+- Calendar export is supported. Provider calendar sync remains pending.
 - PWA shell caching contains no family records. Offline edits and background synchronization are not implemented.
 - Photo memories use user-supplied HTTPS URLs, not uploads. Wall mode is manually activated.
 - Browser: light/dark modes and wall display verified. Fixed wall agenda to omit timed events that have already passed today.
