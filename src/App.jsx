@@ -1,175 +1,119 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Award, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, GraduationCap,
-  ImagePlus, ListTodo, LockKeyhole, LogOut, Plane, Plus, Settings, Trash2, UserRound, X,
-} from 'lucide-react';
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { CalendarDays, ChevronLeft, ChevronRight, CircleUserRound, GraduationCap, ListChecks, LockKeyhole, LogOut, Plane, Plus, Settings, Trash2 } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from './lib/supabase.js';
 
-const members = [
-  { id: 'dad', name: 'Dad', role: 'Parent', initials: 'D', tone: 'blue' },
-  { id: 'mom', name: 'Mom', role: 'Parent', initials: 'M', tone: 'pink' },
-  { id: 'mia', name: 'Mia', role: 'Child', initials: 'M', tone: 'purple' },
+const NAV = [
+  { path: '/calendar', label: 'Family calendar', Icon: CalendarDays },
+  { path: '/tasks', label: 'Family tasks', Icon: ListChecks },
+  { path: '/vacations', label: 'Vacations', Icon: Plane },
+  { path: '/grades', label: 'School & grades', Icon: GraduationCap, admin: true },
+  { path: '/admin', label: 'Admin settings', Icon: Settings, admin: true },
 ];
-const colors = ['blue', 'pink', 'purple'];
-const todayKey = () => formatDate(new Date());
-function formatDate(date) {
-  const year = date.getFullYear();
-  return `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-function offsetDate(offset) {
-  const date = new Date();
-  date.setHours(12, 0, 0, 0);
-  date.setDate(date.getDate() + offset);
-  return formatDate(date);
-}
-function makeId() { return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`; }
-function readStore(key, fallback) {
-  try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) : fallback; } catch { return fallback; }
-}
-function useStored(key, fallback) {
-  const [value, setValue] = useState(() => readStore(key, fallback));
-  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local storage is optional. */ } }, [key, value]);
-  return [value, setValue];
-}
-const starterEvents = [
-  { id: 'e1', date: offsetDate(0), title: 'Soccer practice', memberId: 'mia', time: '3:30 PM' },
-  { id: 'e2', date: offsetDate(0), title: 'Dentist appointment', memberId: 'dad', time: '5:00 PM' },
-  { id: 'e3', date: offsetDate(1), title: 'Library books due', memberId: 'mia', time: 'All day' },
-  { id: 'e4', date: offsetDate(3), title: 'Family movie night', memberId: 'mom', time: '6:30 PM' },
-  { id: 'e5', date: offsetDate(6), title: 'Piano lesson', memberId: 'mia', time: '4:00 PM' },
-];
-const starterChores = [
-  { id: 'c1', date: offsetDate(0), title: 'Take out the recycling', memberId: 'dad', completed: false },
-  { id: 'c2', date: offsetDate(0), title: 'Empty the dishwasher', memberId: 'mia', completed: true },
-  { id: 'c3', date: offsetDate(0), title: 'Pack field day bag', memberId: 'mom', completed: false },
-];
-const starterVacations = [
-  { id: 'v1', title: 'Summer by the sea', date: 'June 10 – 17', image: 'beach' },
-  { id: 'v2', title: 'Mountain weekend', date: 'December 20 – 27', image: 'mountain' },
-];
-const starterGrades = [
-  { id: 'g1', memberId: 'mia', subject: 'Math', grade: 'A−' },
-  { id: 'g2', memberId: 'mia', subject: 'Science', grade: 'B+' },
-  { id: 'g3', memberId: 'mia', subject: 'English', grade: 'A' },
-  { id: 'g4', memberId: 'mia', subject: 'History', grade: 'A' },
-];
-const holidays = [
-  ['2026-01-01', "New Year's Day"], ['2026-01-19', 'Martin Luther King Jr. Day'],
-  ['2026-02-16', "Presidents' Day"], ['2026-05-25', 'Memorial Day'],
-  ['2026-06-19', 'Juneteenth'], ['2026-07-04', 'Independence Day'],
-  ['2026-09-07', 'Labor Day'], ['2026-11-26', 'Thanksgiving'], ['2026-12-25', 'Christmas Day'],
-].map(([date, title], index) => ({ id: `holiday-${index}`, date, title, holiday: true }));
+const PEOPLE = ['Dad', 'Mom', 'Mia'];
+const PAGE_TITLES = { '/calendar': 'Family calendar', '/tasks': 'Family tasks', '/vacations': 'Upcoming vacations', '/grades': 'School & grades', '/admin': 'Admin settings' };
+const dateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const idFor = (email) => email?.split('@')[0]?.replace(/[^a-z]/gi, '').slice(0, 2).toUpperCase() || 'AF';
 
-function Avatar({ member, size = '' }) {
-  return <span className={`avatar ${member?.tone || 'purple'} ${size}`} aria-label={member?.name}>{member?.initials || '?'}</span>;
+function AuthScreen({ mode = 'login' }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  async function submit(event) {
+    event.preventDefault(); setBusy(true); setMessage('');
+    const result = mode === 'reset'
+      ? await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/login` })
+      : await supabase.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    setMessage(result.error?.message || (mode === 'reset' ? 'If this address is authorized, a reset email is on its way.' : 'Signed in. Loading your family space…'));
+  }
+  return <main className="auth-wrap"><section className="auth-card"><div className="brand-mark"><CalendarDays size={21}/></div><p className="eyebrow">ANDERSON FAMILY</p><h1>{mode === 'reset' ? 'Reset your password' : 'Welcome to FamilyWall'}</h1><p className="muted">{mode === 'reset' ? 'We’ll email you a secure password reset link.' : 'Sign in to see your family calendar and plans.'}</p><form onSubmit={submit}><label>Email address<input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>{mode === 'login' && <label>Password<input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} /></label>}<button className="button primary" disabled={busy}>{busy ? 'Please wait…' : mode === 'reset' ? 'Send reset link' : 'Sign in'}</button></form>{message && <p className="form-message" role="status">{message}</p>}<Link className="auth-link" to={mode === 'reset' ? '/login' : '/reset-password'}>{mode === 'reset' ? 'Back to sign in' : 'Forgot password?'}</Link><p className="auth-foot">Access is invite-only. Ask a family administrator for an account.</p></section></main>;
 }
-function SectionTitle({ icon: Icon, children, action, onAction }) {
-  return <div className="section-title"><h2>{Icon && <Icon size={16} />} {children}</h2>{action && <button className="text-action" onClick={onAction}>{action} <span>→</span></button>}</div>;
+
+function SignInGate({ session, profile, loading, children }) {
+  const location = useLocation();
+  if (!isSupabaseConfigured) return <main className="config-message"><h1>Supabase setup needed</h1><p>Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in your deployment environment, then redeploy.</p></main>;
+  if (loading) return <main className="config-message">Checking your secure family session…</main>;
+  if (!session) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (!profile) return <main className="config-message"><h1>Family profile unavailable</h1><p>Your account is not authorized for this family. Contact the super administrator.</p><button className="button" onClick={() => supabase.auth.signOut()}>Sign out</button></main>;
+  return children;
 }
-function EventDialog({ initialDate, onClose, onSave }) {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState(initialDate);
-  const [time, setTime] = useState('15:30');
-  const [memberId, setMemberId] = useState('mia');
+
+function Layout({ session, profile, children }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isAdmin = ['admin', 'super_admin'].includes(profile.role);
+  const visibleNav = NAV.filter((item) => !item.admin || isAdmin);
+  async function signOut() { await supabase.auth.signOut(); navigate('/login'); }
+  return <div className="app-shell"><aside className="sidebar"><Link className="brand" to="/calendar"><span className="brand-mark"><CalendarDays size={20}/></span><span>FamilyWall<small>ANDERSON FAMILY</small></span></Link><div className="family-switch"><span className="family-icon">⌂</span><span><b>Anderson family</b><small>Shared family space</small></span></div><p className="nav-label">YOUR SPACE</p><nav className="side-nav">{visibleNav.map(({ path, label, Icon }) => <Link key={path} className={location.pathname === path ? 'active' : ''} to={path}><Icon size={17}/>{label}</Link>)}</nav><div className="sidebar-bottom"><span className="avatar">{idFor(session.user.email)}</span><span className="user-copy"><b>{session.user.email}</b><small>{profile.role.replace('_', ' ')}</small></span><button aria-label="Sign out" onClick={signOut}><LogOut size={17}/></button></div></aside><main className="main"><header className="topbar"><div className="breadcrumbs">Anderson family <span>/</span> <b>{PAGE_TITLES[location.pathname] || 'FamilyWall'}</b></div><div className="top-user"><span className="sync-dot"/> Secured by Supabase <span className="avatar">{idFor(session.user.email)}</span></div></header>{children}</main></div>;
+}
+
+function PageHeading({ title, description, action }) { return <div className="page-heading"><div><p className="eyebrow">YOUR FAMILY, IN SYNC</p><h1>{title}</h1><p className="muted">{description}</p></div>{action}</div>; }
+function CalendarPage({ rows, onAdd }) {
+  const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [selected, setSelected] = useState(dateKey(new Date()));
+  const year = month.getFullYear(), monthIndex = month.getMonth();
+  const days = useMemo(() => { const first = new Date(year, monthIndex, 1); const start = new Date(year, monthIndex, 1 - first.getDay()); return Array.from({ length: 42 }, (_, i) => { const day = new Date(start); day.setDate(start.getDate() + i); return day; }); }, [year, monthIndex]);
+  const selectedRows = rows.filter((event) => event.event_date === selected).sort((a, b) => (a.event_time || '').localeCompare(b.event_time || ''));
+  return <><PageHeading title="Family calendar" description="Everyone’s plans, all in one place." action={<button className="button primary" onClick={onAdd}><Plus size={16}/> Add event</button>}/><section className="panel calendar-panel"><div className="calendar-toolbar"><button className="button quiet" onClick={() => { const today = new Date(); setMonth(new Date(today.getFullYear(), today.getMonth(), 1)); setSelected(dateKey(today)); }}>Today</button><button className="round" aria-label="Previous month" onClick={() => setMonth(new Date(year, monthIndex - 1, 1))}><ChevronLeft size={18}/></button><h2>{month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2><button className="round" aria-label="Next month" onClick={() => setMonth(new Date(year, monthIndex + 1, 1))}><ChevronRight size={18}/></button></div><div className="calendar-grid">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((day) => <div className="weekday" key={day}>{day}</div>)}{days.map((day) => { const key = dateKey(day); const items = rows.filter((event) => event.event_date === key); return <button key={key} className={`calendar-day ${day.getMonth() !== monthIndex ? 'outside' : ''} ${key === selected ? 'selected' : ''} ${key === dateKey(new Date()) ? 'today' : ''}`} onClick={() => setSelected(key)}><span className="day-number">{day.getDate()}</span>{items.slice(0, 2).map((item) => <span className="day-event" key={item.id}>{item.title}</span>)}{items.length > 2 && <small>+{items.length - 2} more</small>}</button>;})}</div><div className="agenda"><h2>{new Date(`${selected}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h2>{selectedRows.length ? selectedRows.map((event) => <div className="data-row" key={event.id}><time>{event.event_time || 'All day'}</time><b>{event.title}</b><span>{event.assigned_to}</span><small>{event.place}</small></div>) : <p className="muted">No plans for this day yet.</p>}</div></section></>;
+}
+
+function DataPage({ kind, rows, onAdd, onDelete, onToggle }) {
+  const [title, setTitle] = useState(''), [date, setDate] = useState(dateKey(new Date())), [time, setTime] = useState('15:30'), [person, setPerson] = useState('Mia');
+  const configs = { tasks: { title: 'Family tasks', description: 'Share the little jobs that keep family life moving.', table: 'chores', field: 'title', dateField: 'due_date', adminOnly: false }, vacations: { title: 'Upcoming vacations', description: 'Make room for the memories you’ll make together.', table: 'vacations', field: 'title', dateField: 'date_label', adminOnly: true } };
+  const config = configs[kind];
+  const add = (event) => { event.preventDefault(); if (!title.trim()) return; onAdd(kind, kind === 'tasks' ? { title: title.trim(), due_date: date, assigned_to: person } : { title: title.trim(), date_label: date, image_url: '' }); setTitle(''); };
+  return <><PageHeading title={config.title} description={config.description}/><section className="panel list-panel"><form className="add-form" onSubmit={add}><input aria-label="Item name" placeholder={kind === 'tasks' ? 'Add a family task…' : 'Add a trip…'} value={title} onChange={(e) => setTitle(e.target.value)} required/><input aria-label="Date" type={kind === 'tasks' ? 'date' : 'text'} placeholder={kind === 'tasks' ? '' : 'Dates'} value={date} onChange={(e) => setDate(e.target.value)}/>{kind === 'tasks' && <select aria-label="Assign to" value={person} onChange={(e) => setPerson(e.target.value)}>{PEOPLE.map((name) => <option key={name}>{name}</option>)}</select>}<button className="button primary"><Plus size={15}/> Add</button></form><div className="rows">{rows.map((row) => <article className="data-row" key={row.id}>{kind === 'tasks' && <button className={`task-check ${row.completed ? 'checked' : ''}`} aria-label="Toggle complete" onClick={() => onToggle(row)}>{row.completed ? '✓' : ''}</button>}<div className="row-main"><b>{row.title}</b><small>{kind === 'tasks' ? `${row.due_date} · ${row.assigned_to}` : row.date_label}</small></div><button className="delete-button" onClick={() => onDelete(kind, row.id)} aria-label={`Delete ${row.title}`}><Trash2 size={16}/></button></article>)}{!rows.length && <p className="muted empty">Nothing here yet. Add your first item above.</p>}</div></section></>;
+}
+function GradesPage({ rows, onAdd, onDelete }) {
+  const [subject, setSubject] = useState(''), [grade, setGrade] = useState('');
+  return <><PageHeading title="School & grades" description="A private family view of school progress."/><section className="panel list-panel"><form className="add-form" onSubmit={(e) => { e.preventDefault(); if (subject.trim() && grade.trim()) { onAdd({ subject: subject.trim(), grade: grade.trim(), member_name: 'Mia' }); setSubject(''); setGrade(''); } }}><input placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} required/><input placeholder="Grade" value={grade} onChange={(e) => setGrade(e.target.value)} required/><button className="button primary"><Plus size={15}/> Add grade</button></form><div className="grade-grid">{rows.map((row) => <article className="grade-card" key={row.id}><span>{row.subject}</span><b>{row.grade}</b><button className="delete-button" onClick={() => onDelete(row.id)} aria-label={`Delete ${row.subject}`}><Trash2 size={15}/></button></article>)}</div>{!rows.length && <p className="muted empty">No grades recorded.</p>}</section></>;
+}
+function AdminPage({ profile, users, onRoleChange }) {
+  return <><PageHeading title="Admin settings" description="Access is enforced by Supabase row-level security."/><section className="panel list-panel"><div className="security-note"><LockKeyhole size={18}/><span><b>Role: {profile.role.replace('_', ' ')}</b><small>Only the super admin can change account roles. Database policies remain the source of truth.</small></span></div>{profile.role === 'super_admin' ? <><h2>Family accounts</h2>{users.map((user) => <div className="data-row" key={user.id}><div className="row-main"><b>{user.email}</b><small>{user.id === profile.id ? 'You' : 'Anderson family'}</small></div>{user.id !== profile.id && <select value={user.role} onChange={(e) => onRoleChange(user.id, e.target.value)} aria-label={`Role for ${user.email}`}><option value="member">Member</option><option value="admin">Admin</option></select>}<span className="role-badge">{user.id === profile.id ? 'Super admin' : user.role}</span></div>)}</> : <p className="muted">Admin access lets you manage family events, tasks, vacations, and grades. Role assignment is reserved for the super administrator.</p>}</section></>;
+}
+function AppRoutes() {
+  const [session, setSession] = useState(null), [profile, setProfile] = useState(null), [loading, setLoading] = useState(true), [rows, setRows] = useState({ events: [], chores: [], vacations: [], grades: [] }), [users, setUsers] = useState([]), [error, setError] = useState(''), [dialog, setDialog] = useState(false);
+  const location = useLocation(), navigate = useNavigate();
+  async function loadProfile(user) {
+    if (!user) { setProfile(null); setRows({ events: [], chores: [], vacations: [], grades: [] }); return; }
+    const { data, error: profileError } = await supabase.from('profiles').select('id,email,role,family_id').eq('id', user.id).maybeSingle();
+    if (profileError) { setError(profileError.message); setProfile(null); return; }
+    setProfile(data);
+    if (!data) return;
+    const tables = ['events', 'chores', 'vacations'];
+    if (['admin', 'super_admin'].includes(data.role)) tables.push('grades');
+    const results = await Promise.all(tables.map((table) => supabase.from(table).select('*').eq('family_id', data.family_id).order(table === 'events' ? 'event_date' : table === 'chores' ? 'due_date' : 'created_at', { ascending: true })));
+    const next = { events: [], chores: [], vacations: [], grades: [] };
+    results.forEach((result, index) => { if (result.error) setError(result.error.message); else next[tables[index]] = result.data || []; });
+    setRows(next);
+    if (data.role === 'super_admin') { const { data: profiles, error: usersError } = await supabase.from('profiles').select('id,email,role').eq('family_id', data.family_id); if (usersError) setError(usersError.message); else setUsers(profiles || []); }
+  }
   useEffect(() => {
-    const close = (event) => { if (event.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', close);
-    return () => window.removeEventListener('keydown', close);
-  }, [onClose]);
-  return <div className="overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><motion.section className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" initial={{ opacity: 0, y: 12, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
-    <div className="dialog-heading"><div><span className="eyebrow">A LITTLE PLAN</span><h2 id="dialog-title">Add to the calendar</h2></div><button className="icon-button" onClick={onClose} aria-label="Close"><X size={20} /></button></div>
-    <form onSubmit={(event) => { event.preventDefault(); onSave({ id: makeId(), date, title: title.trim(), time: time ? new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'All day', memberId }); }}>
-      <label className="form-field">What’s happening?<input required autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Soccer practice, dentist…" /></label>
-      <div className="form-row"><label className="form-field">Date<input required type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label className="form-field">Time<input type="time" value={time} onChange={(event) => setTime(event.target.value)} /></label></div>
-      <label className="form-field">Who’s it for?<select value={memberId} onChange={(event) => setMemberId(event.target.value)}>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
-      <div className="dialog-actions"><button type="button" className="button button-quiet" onClick={onClose}>Cancel</button><button className="button button-primary">Save event</button></div>
-    </form>
-  </motion.section></div>;
-}
-function AddLine({ placeholder, onAdd }) {
-  const [value, setValue] = useState('');
-  return <form className="add-line" onSubmit={(event) => { event.preventDefault(); if (!value.trim()) return; onAdd(value.trim()); setValue(''); }}><input value={value} onChange={(event) => setValue(event.target.value)} placeholder={placeholder} /><button aria-label="Add item"><Plus size={17} /></button></form>;
-}
-function CalendarView({ currentDate, setCurrentDate, selectedDate, setSelectedDate, events, onAdd }) {
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const days = useMemo(() => {
-    const first = new Date(year, month, 1);
-    const start = new Date(year, month, 1 - first.getDay());
-    return Array.from({ length: 42 }, (_, index) => { const day = new Date(start); day.setDate(start.getDate() + index); return day; });
-  }, [year, month]);
-  const dailyEvents = [...events, ...holidays].filter((event) => event.date === selectedDate);
-  const changeMonth = (amount) => setCurrentDate((date) => new Date(date.getFullYear(), date.getMonth() + amount, 1));
-  return <>
-    <div className="calendar-toolbar"><div><span className="eyebrow">YOUR FAMILY, IN SYNC</span><h1>{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h1></div><div className="toolbar-actions"><button className="button button-light" onClick={() => { const now = new Date(); setCurrentDate(new Date(now.getFullYear(), now.getMonth(), 1)); setSelectedDate(todayKey()); }}>Today</button><button className="round-button" onClick={() => changeMonth(-1)} aria-label="Previous month"><ChevronLeft size={19} /></button><button className="round-button" onClick={() => changeMonth(1)} aria-label="Next month"><ChevronRight size={19} /></button><button className="button button-primary add-event" onClick={onAdd}><Plus size={16} /> Add event</button></div></div>
-    <div className="calendar-grid">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => <div className="weekday" key={day}>{day}</div>)}{days.map((day) => {
-      const key = formatDate(day);
-      const items = [...events, ...holidays].filter((event) => event.date === key);
-      return <button key={key} className={`calendar-day ${day.getMonth() !== month ? 'outside' : ''} ${key === selectedDate ? 'selected' : ''} ${key === todayKey() ? 'is-today' : ''}`} onClick={() => setSelectedDate(key)}><span className="day-number">{day.getDate()}</span><span className="day-events">{items.slice(0, 2).map((event) => <span key={event.id} className={`day-event ${event.holiday ? 'holiday' : members.find((member) => member.id === event.memberId)?.tone || 'blue'}`}>{event.title}</span>)}{items.length > 2 && <small>+{items.length - 2} more</small>}</span></button>;
-    })}</div>
-    <div className="selected-agenda"><div className="agenda-heading"><div><span className="eyebrow">SELECTED DAY</span><h2>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h2></div><button className="button button-soft" onClick={onAdd}><Plus size={15} /> Add plan</button></div>{dailyEvents.length ? dailyEvents.map((event) => <div className="agenda-row" key={event.id}><Clock3 size={15} /><time>{event.time || 'All day'}</time><strong>{event.title}</strong><span>{event.holiday ? 'Family' : members.find((member) => member.id === event.memberId)?.name}</span></div>) : <p className="quiet-empty">A little breathing room. No plans on this day.</p>}</div>
-  </>;
-}
-function Portal({ active, setActive, close, chores, setChores, vacations, setVacations, grades, setGrades, backgrounds, setBackgrounds }) {
-  const [task, setTask] = useState('');
-  const [vacation, setVacation] = useState('');
-  const [subject, setSubject] = useState('');
-  const [grade, setGrade] = useState('');
-  const [image, setImage] = useState('');
-  const tabs = [{ id: 'tasks', label: 'Manage tasks', icon: ListTodo }, { id: 'vacations', label: 'Vacations', icon: Plane }, { id: 'grades', label: 'School & grades', icon: GraduationCap }, { id: 'photos', label: 'Screensaver photos', icon: ImagePlus }];
-  return <div className="portal-screen"><aside className="portal-sidebar"><div className="portal-brand"><span className="brand-icon"><Settings size={19} /></span><span><b>Parent space</b><small><LockKeyhole size={11} /> Family organizer</small></span></div><p className="eyebrow">FAMILY SETTINGS</p>{tabs.map(({ id, label, icon: Icon }) => <button key={id} className={`portal-tab ${active === id ? 'active' : ''}`} onClick={() => setActive(id)}><Icon size={17} />{label}</button>)}<button className="portal-exit" onClick={close}><LogOut size={17} /> Back to calendar</button></aside><main className="portal-content"><div className="demo-warning"><LockKeyhole size={15} /><span><strong>Family space preview.</strong> This browser-only demo has no account authentication or private data protection.</span></div>
-    {active === 'tasks' && <><div className="portal-page-title"><span className="eyebrow">THE LITTLE THINGS</span><h1>Manage family tasks</h1><p>Share the everyday jobs and celebrate getting them done.</p></div><form className="portal-add" onSubmit={(event) => { event.preventDefault(); if (task.trim()) { setChores((current) => [...current, { id: makeId(), title: task.trim(), date: todayKey(), memberId: 'mia', completed: false }]); setTask(''); } }}><input value={task} onChange={(event) => setTask(event.target.value)} placeholder="Add a task for the family…" /><button className="button button-primary"><Plus size={15} /> Add task</button></form><div className="portal-list">{chores.map((chore) => <div className="portal-list-row" key={chore.id}><div><strong>{chore.title}</strong><small>{chore.date} · {members.find((member) => member.id === chore.memberId)?.name || 'Family'}</small></div><button className="delete-button" onClick={() => setChores((current) => current.filter((item) => item.id !== chore.id))} aria-label={`Delete ${chore.title}`}><Trash2 size={17} /></button></div>)}</div></>}
-    {active === 'vacations' && <><div className="portal-page-title"><span className="eyebrow">MAKE MEMORIES</span><h1>Upcoming vacations</h1><p>Dream it up, get it on the family wall.</p></div><AddLine placeholder="Add a trip idea…" onAdd={(title) => setVacations((current) => [...current, { id: makeId(), title, date: 'Dates to come', image: 'beach' }])} /><div className="portal-list">{vacations.map((trip) => <div className="portal-list-row" key={trip.id}><div><strong>{trip.title}</strong><small>{trip.date}</small></div><button className="delete-button" onClick={() => setVacations((current) => current.filter((item) => item.id !== trip.id))} aria-label={`Delete ${trip.title}`}><Trash2 size={17} /></button></div>)}</div></>}
-    {active === 'grades' && <><div className="portal-page-title"><span className="eyebrow">CHEERING YOU ON</span><h1>School & grades</h1><p>A little snapshot of Mia’s school wins.</p></div><form className="portal-add grade-form" onSubmit={(event) => { event.preventDefault(); if (subject.trim() && grade.trim()) { setGrades((current) => [...current, { id: makeId(), memberId: 'mia', subject: subject.trim(), grade: grade.trim() }]); setSubject(''); setGrade(''); } }}><input value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Subject" /><input value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="Grade" /><button className="button button-primary"><Plus size={15} /> Add</button></form><div className="grade-grid">{grades.map((item) => <div className="grade-card" key={item.id}><span>{item.subject}</span><strong>{item.grade}</strong><button className="delete-button" onClick={() => setGrades((current) => current.filter((gradeItem) => gradeItem.id !== item.id))} aria-label={`Delete ${item.subject}`}><Trash2 size={15} /></button></div>)}</div></>}
-    {active === 'photos' && <><div className="portal-page-title"><span className="eyebrow">A LITTLE WINDOW</span><h1>Screensaver photos</h1><p>Add a photo URL for the family wall screensaver.</p></div><form className="portal-add" onSubmit={(event) => { event.preventDefault(); if (image.trim()) { setBackgrounds((current) => [...current, image.trim()]); setImage(''); } }}><input type="url" value={image} onChange={(event) => setImage(event.target.value)} placeholder="https://example.com/photo.jpg" /><button className="button button-primary"><Plus size={15} /> Add photo</button></form><div className="photo-list">{backgrounds.map((url, index) => <div className="photo-card" key={`${url}-${index}`}><img src={url} alt="Family screensaver" /><button className="delete-button" onClick={() => setBackgrounds((current) => current.filter((_, itemIndex) => itemIndex !== index))} aria-label="Remove photo"><Trash2 size={16} /></button></div>)}</div></>}
-    </main></div>;
-}
-function App() {
-  const [events, setEvents] = useStored('family-wall-events-v1', starterEvents);
-  const [chores, setChores] = useStored('family-wall-chores-v1', starterChores);
-  const [vacations, setVacations] = useStored('family-wall-vacations-v1', starterVacations);
-  const [grades, setGrades] = useStored('family-wall-grades-v1', starterGrades);
-  const [backgrounds, setBackgrounds] = useStored('family-wall-backgrounds-v1', []);
-  const [currentDate, setCurrentDate] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const [selectedDate, setSelectedDate] = useState(todayKey());
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [portalOpen, setPortalOpen] = useState(false);
-  const [portalTab, setPortalTab] = useState('tasks');
-  const [screensaver, setScreensaver] = useState(false);
-  const [bgIndex, setBgIndex] = useState(0);
-  const [now, setNow] = useState(new Date());
-  const [toast, setToast] = useState('');
-  useEffect(() => {
-    let idle;
-    const reset = () => { setScreensaver(false); window.clearTimeout(idle); idle = window.setTimeout(() => setScreensaver(true), 120000); };
-    const activity = ['pointerdown', 'pointermove', 'keydown', 'touchstart'];
-    activity.forEach((name) => window.addEventListener(name, reset, { passive: true }));
-    reset();
-    return () => { window.clearTimeout(idle); activity.forEach((name) => window.removeEventListener(name, reset)); };
+    if (!isSupabaseConfigured) { setLoading(false); return undefined; }
+    let alive = true;
+    supabase.auth.getSession().then(async ({ data }) => { if (!alive) return; setSession(data.session); await loadProfile(data.session?.user); if (alive) setLoading(false); });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => { setSession(nextSession); window.setTimeout(() => { if (alive) { loadProfile(nextSession?.user); setLoading(false); } }, 0); });
+    return () => { alive = false; listener.subscription.unsubscribe(); };
   }, []);
-  useEffect(() => { const interval = window.setInterval(() => setNow(new Date()), 1000); return () => window.clearInterval(interval); }, []);
-  useEffect(() => { if (!screensaver || !backgrounds.length) return undefined; const interval = window.setInterval(() => setBgIndex((index) => (index + 1) % backgrounds.length), 15000); return () => window.clearInterval(interval); }, [screensaver, backgrounds.length]);
-  useEffect(() => { if (!toast) return undefined; const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer); }, [toast]);
-  const selectedChores = chores.filter((chore) => chore.date === selectedDate);
-  function saveEvent(event) { setEvents((current) => [...current, event]); setDialogOpen(false); setToast('Added to your family calendar!'); }
-  function toggleChore(id) { setChores((current) => current.map((chore) => chore.id === id ? { ...chore, completed: !chore.completed } : chore)); }
-  return <div className="wall-app">
-    <aside className="left-rail"><button className="logo-lockup" onClick={() => { setPortalOpen(false); }}><span className="logo-mark"><CalendarDays size={21} /></span><span>Family<span>Wall</span><small>YOUR FAMILY, IN SYNC</small></span></button>
-      <section className="rail-section"><SectionTitle icon={UserRound}>Family status</SectionTitle><div className="member-grid">{members.map((member) => <div className="member-tile" key={member.id}><Avatar member={member} size="large" /><strong>{member.name}</strong><small>{member.role}</small></div>)}</div></section>
-      <section className="rail-section grade-section"><SectionTitle icon={GraduationCap}>Mia’s school</SectionTitle><div className="grades-card">{grades.slice(0, 4).map((item) => <div className="grade-row" key={item.id}><span>{item.subject}</span><strong>{item.grade}</strong></div>)}{!grades.length && <p className="empty-note">No grades added yet.</p>}</div></section>
-      <div className="rail-bottom"><span className="mini-avatar">F</span><span><strong>Anderson family</strong><small>Family wall</small></span><button aria-label="Open parent space" onClick={() => setPortalOpen(true)}><Settings size={17} /></button></div>
-    </aside>
-    <main className="center-column"><header className="mobile-top"><span className="logo-mark"><CalendarDays size={19} /></span><strong>FamilyWall</strong><button onClick={() => setPortalOpen(true)} aria-label="Parent space"><Settings size={20} /></button></header><div className="calendar-card"><CalendarView currentDate={currentDate} setCurrentDate={setCurrentDate} selectedDate={selectedDate} setSelectedDate={setSelectedDate} events={events} onAdd={() => setDialogOpen(true)} /></div></main>
-    <aside className="right-rail"><button className="primary-add" onClick={() => setDialogOpen(true)}><Plus size={19} /> Add new</button>
-      <section className="rail-section vacation-section"><SectionTitle icon={Plane} action="Manage" onAction={() => { setPortalTab('vacations'); setPortalOpen(true); }}>Upcoming vacations</SectionTitle><div className="vacation-list">{vacations.slice(0, 3).map((trip) => <div className={`vacation-card ${trip.image === 'mountain' ? 'mountain' : 'beach'}`} key={trip.id}><div className="vacation-overlay" /><div className="vacation-copy"><strong>{trip.title}</strong><span><Clock3 size={12} /> {trip.date}</span></div><span className="vacation-sun">✦</span></div>)}{!vacations.length && <p className="empty-note">Add a trip idea in Parent space.</p>}</div></section>
-      <section className="rail-section chores-section"><SectionTitle icon={ListTodo}>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short' })} tasks</SectionTitle><p className="selected-date-label">{new Date(`${selectedDate}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p><div className="chore-card">{selectedChores.length ? selectedChores.map((chore) => <button className={`chore-row ${chore.completed ? 'done' : ''}`} key={chore.id} onClick={() => toggleChore(chore.id)}><span className="check-circle">{chore.completed && <Check size={13} />}</span><span className="chore-title">{chore.title}<small>{members.find((member) => member.id === chore.memberId)?.name}</small></span><Avatar member={members.find((member) => member.id === chore.memberId)} /></button>) : <p className="empty-note">All caught up! Add a task in Parent space.</p>}</div><button className="manage-tasks" onClick={() => { setPortalTab('tasks'); setPortalOpen(true); }}>Manage family tasks <ChevronRight size={15} /></button></section>
-      <section className="family-note"><Award size={17} /><span>Every little thing you do together makes a big difference.</span></section>
-    </aside>
-    {dialogOpen && <EventDialog initialDate={selectedDate} onClose={() => setDialogOpen(false)} onSave={saveEvent} />}
-    {portalOpen && <Portal active={portalTab} setActive={setPortalTab} close={() => setPortalOpen(false)} chores={chores} setChores={setChores} vacations={vacations} setVacations={setVacations} grades={grades} setGrades={setGrades} backgrounds={backgrounds} setBackgrounds={setBackgrounds} />}
-    <AnimatePresence>{screensaver && !portalOpen && <motion.div className="screensaver" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setScreensaver(false)}>{backgrounds.length > 0 ? <img src={backgrounds[bgIndex % backgrounds.length]} alt="Family screensaver background" /> : <div className="screensaver-gradient" />}<div className="screen-shade" /><motion.div className="clock-widget" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}><span className="eyebrow">THE ANDERSONS</span><strong>{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong><h2>{now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}</h2><div className="up-next"><span><Clock3 size={15} /> UP NEXT</span>{events.filter((event) => event.date >= todayKey()).slice(0, 3).map((event) => <div key={event.id}><i />{event.title}<small>{event.date === todayKey() ? 'Today' : new Date(`${event.date}T12:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}</small></div>)}{!events.length && <p>Nothing on the calendar just yet.</p>}</div><small className="screen-hint">Tap anywhere to return</small></motion.div></motion.div>}</AnimatePresence>
-    {toast && <div className="toast" role="status">{toast}</div>}
-  </div>;
+  useEffect(() => { if (session && profile && location.pathname === '/login') navigate('/calendar', { replace: true }); }, [session, profile, location.pathname, navigate]);
+  async function mutate(table, operation) {
+    setError('');
+    const payload = { ...operation.payload, family_id: profile.family_id };
+    const result = operation.action === 'insert' ? await supabase.from(table).insert(payload).select().single() : operation.action === 'delete' ? await supabase.from(table).delete().eq('id', operation.id).eq('family_id', profile.family_id) : await supabase.from(table).update(operation.payload).eq('id', operation.id).eq('family_id', profile.family_id).select().single();
+    if (result.error) { setError(result.error.message); return null; }
+    await loadProfile(session.user);
+    return result.data;
+  }
+  async function addItem(kind, payload) { const table = kind === 'tasks' ? 'chores' : kind; await mutate(table, { action: 'insert', payload }); }
+  async function deleteItem(kind, id) { await mutate(kind === 'tasks' ? 'chores' : kind, { action: 'delete', id }); }
+  async function toggleTask(row) { await mutate('chores', { action: 'update', id: row.id, payload: { completed: !row.completed } }); }
+  async function saveEvent(event) { await mutate('events', { action: 'insert', payload: event }); setDialog(false); }
+  async function changeRole(userId, role) { const { error: rpcError } = await supabase.rpc('set_family_role', { target_user_id: userId, new_role: role }); if (rpcError) setError(rpcError.message); else await loadProfile(session.user); }
+  const guarded = (element, adminOnly = false) => <SignInGate session={session} profile={profile} loading={loading}>{adminOnly && !['admin', 'super_admin'].includes(profile.role) ? <Navigate to="/calendar" replace/> : <Layout session={session} profile={profile}>{element}</Layout>}</SignInGate>;
+  const eventDialog = dialog && <EventDialog initialDate={dateKey(new Date())} onClose={() => setDialog(false)} onSave={saveEvent}/>;
+  if (loading) return <main className="config-message">Loading FamilyWall…</main>;
+  return <><Routes><Route path="/login" element={session ? <Navigate to="/calendar" replace/> : <AuthScreen/>}/><Route path="/reset-password" element={<AuthScreen mode="reset"/>}/><Route path="/" element={<Navigate to={session ? '/calendar' : '/login'} replace/>}/><Route path="/calendar" element={guarded(<><PageHeading title="Family calendar" description="Everyone’s plans, all in one place." action={<button className="button primary" onClick={() => setDialog(true)}><Plus size={16}/> Add event</button>}/><CalendarPage rows={rows.events} onAdd={() => setDialog(true)}/></>)}/><Route path="/tasks" element={guarded(<DataPage kind="tasks" rows={rows.chores} onAdd={addItem} onDelete={deleteItem} onToggle={toggleTask}/>)} /><Route path="/vacations" element={guarded(<DataPage kind="vacations" rows={rows.vacations} onAdd={addItem} onDelete={deleteItem}/>, true)}/><Route path="/grades" element={guarded(<GradesPage rows={rows.grades} onAdd={(payload) => addItem('grades', payload)} onDelete={(id) => deleteItem('grades', id)}/>, true)}/><Route path="/admin" element={guarded(<AdminPage profile={profile || { role: 'member', id: '' }} users={users} onRoleChange={changeRole}/>, true)}/><Route path="*" element={<Navigate to="/calendar" replace/>}/></Routes>{error && <div className="error-toast" role="alert">{error}<button onClick={() => setError('')} aria-label="Dismiss">×</button></div>}{eventDialog}</>;
 }
-
-export default App;
+export default function App() { return <BrowserRouter><AppRoutes/></BrowserRouter>; }
