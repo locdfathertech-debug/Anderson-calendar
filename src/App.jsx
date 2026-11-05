@@ -352,14 +352,21 @@ function Auth({ recovery = false, onError }) {
       onError("Provider sign-in needs deployment configuration.");
       return;
     }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: window.location.origin,
-        ...(provider === "azure" ? { scopes: "email" } : {}),
-      },
-    });
-    if (error) onError(error.message);
+    setBusy(true);
+    onError("");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+          ...(provider === "azure" ? { scopes: "email" } : {}),
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      onError(error.message);
+      setBusy(false);
+    }
   }
   return (
     <main className="auth-scene">
@@ -401,13 +408,16 @@ function Auth({ recovery = false, onError }) {
         </p>
         {mode === "login" && (
           <div className="oauth-buttons">
-            <button className="btn" onClick={() => oauth("google")}>
+            <button className="btn" disabled={busy} onClick={() => oauth("google")}>
               Continue with Google
             </button>
-            <button className="btn" onClick={() => oauth("azure")}>
+            <button className="btn" disabled={busy} onClick={() => oauth("azure")}>
               Continue with Microsoft
             </button>
-            <small>Provider setup is required before first use.</small>
+            <button className="btn" disabled={busy} onClick={() => oauth("apple")}>
+              Continue with Apple
+            </button>
+            <small>Use an email authorized for your family.</small>
           </div>
         )}
         <form onSubmit={submit}>

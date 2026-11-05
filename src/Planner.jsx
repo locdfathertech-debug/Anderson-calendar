@@ -1109,7 +1109,7 @@ export default function Planner({
               <section className="surface connection-note">
                 <h2>Connected with care</h2>
                 <p>
-                  Google and Outlook sign-in require provider setup in Supabase.
+                  Google, Apple, and Microsoft sign-in require provider setup in Supabase.
                   Calendar export is available. Automatic calendar sync needs a separate integration.
                 </p>
                 <p>
