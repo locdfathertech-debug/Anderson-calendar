@@ -1,38 +1,37 @@
-# FamilyWall — Supabase-connected family calendar
+# Anderson Family Hub
 
-Responsive React/Vite family calendar with Supabase Auth and Postgres persistence. Routes include `/calendar`, `/tasks`, `/vacations`, `/grades`, and `/admin`.
+A responsive family planner built from the supplied calendar, budgeting, activity dashboard and wall-display references. React + Vite + Supabase, deployed through the existing Vercel project.
 
-## Supabase setup
+## Workspaces
 
-1. In the Supabase project `https://pxusdjpjsdzmrjgbobgp.supabase.co`, open **SQL Editor** and run `supabase/migrations/20261104000100_familywall.sql`.
-2. In **Authentication → Providers**, enable email/password sign-in and require email confirmation. Keep public sign-up disabled; create/invite only the two authorized accounts from the Supabase Dashboard:
-   - `Locdfathertech@gmail.com` — the database trigger assigns `super_admin`.
-   - `Kapreceh88@outlook.com` — the database trigger assigns `admin`.
-3. Set the project URL and publishable key as frontend environment variables (the publishable/anon key is intended for browser use; never use the service-role key in the client):
+Overview; color-coded day/week/month calendar with member filtering, holidays and ICS export; chores with completion, approval and manual payment records; meals, pantry and shopping; school assignments and parent-only grades; trips; monthly category budgets and transactions; family members, photo wall display, theme controls and account authorization.
 
-   ```sh
-   VITE_SUPABASE_URL=https://pxusdjpjsdzmrjgbobgp.supabase.co
-   VITE_SUPABASE_ANON_KEY=<your Supabase publishable key>
-   ```
+`/demo` is an explicit sample workspace. It never reads or writes family records; changes reset on reload. Live pages require Supabase authentication and a family profile. Existing `/calendar`, `/tasks`, `/vacations`, `/grades`, and `/admin` paths map to their corresponding workspaces.
 
-4. Add both variables to Vercel for the required deployment environments, then redeploy. Add your production domain to Supabase **Authentication → URL Configuration** as the site URL and redirect URL.
-5. Use password reset from the sign-in page if invited accounts need to set or recover their password.
+## Local development
 
-The database trigger rejects auth users outside the two-email allowlist. To authorize another person, update the protected trigger allowlist and role assignment through a reviewed database migration. The `set_family_role` RPC lets only the super admin change an existing family profile between `member` and `admin`; the client cannot write profile roles directly. RLS policies enforce family scoping and role checks even if someone bypasses the UI.
+Use Node 22 or newer. Run `npm ci`, copy `.env.example` to `.env.local`, set this project's URL and **publishable** key, then run `npm run dev`. `npm test` runs domain tests; `npm run build` creates the production bundle. Never put a service-role key in a VITE variable.
 
-## Run locally
+## Database and accounts
 
-Requires Node.js 18+.
+Migrations in `supabase/migrations` are applied in timestamp order to a new database. The existing FamilyWall tables are retained. Planner records and email authorizations are family-scoped under RLS. Membership helpers live in a private schema. Children can submit only their own open chores through `submit_planner_chore`; reward approval/payment edits require a parent. Only the super admin manages roles and authorizes registration emails.
 
-```sh
-cp .env.example .env.local
-# Put the project URL and publishable key in .env.local
-npm install
-npm run dev
-```
+The owner email `locdfathertech@gmail.com` and existing second parent `kapreceh88@outlook.com` are retained from the starter. Register an authorized email using the app; confirmation delivery depends on Supabase Auth configuration. Adding a member name does not create a login. Authorize additional emails in Parent portal → Family login access before signup. The account UUID displayed there can be assigned to a chore to enable that child's completion button.
 
-Build using `npm run build`. Vercel uses `npm run build` and `dist`; `vercel.json` sends app routes to the Vite entry point.
+### Social sign-in
 
-## Production security notes
+Enable Google and Apple in Supabase Auth under Sign In / Providers. Use the callback URL shown there, `https://kwaqscxveniaostnmonu.supabase.co/auth/v1/callback`, as the Google web OAuth redirect URI and Apple Services ID return URL. Apple also requires the Supabase project hostname as a website domain. Store the Google OAuth client ID and secret and the Apple Services ID and generated client secret in Supabase. Apple web client secrets must be renewed every six months.
 
-The frontend contains only the Supabase publishable key. Never expose a Supabase service-role/secret key in `VITE_*`, source code, GitHub, or browser settings. Database RLS is authoritative; the React role guards are only navigation UX. Grade records are restricted to admins. Supabase Auth, email confirmation, and provider-level rate limits should be configured before production use. Configure backups and review data-retention/privacy obligations before storing real student information.
+In Supabase Auth URL Configuration, allow the exact app URL (including the root path) for each deployment being tested, plus its `/update-password` URL for password recovery. Sign in with an email already authorized for the family. If Apple shares a private relay address, that address must be authorized before first sign-in, or choose Share My Email to use the existing authorized address.
+
+Microsoft uses its own provider credentials and requests the email scope. Social sign-in grants app access under the existing family rules. Calendar synchronization requires a separate integration.
+
+## Vercel
+
+Use the existing `vite-anderson-calendar` project in `locdfathertech-9238`. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to the public URL and publishable key for the relevant environment. The current implementation configures preview variables only. Vercel builds with `npm run build` and serves `dist`; `vercel.json` preserves SPA navigation. Feature branch deployment leaves production unchanged.
+
+## Integration limits
+
+Parents record chore payments manually. Calendars export to ICS; two-way sync is future work. No bank connection is configured. Photo display accepts HTTPS URLs; image uploads are future work. A service worker caches the app shell and static assets only; private family records and offline edits are not cached. See `tasks/verification.md` for verified behavior and current limits.
+
+SQL integration checks in `tests/rls.sql` use rollback-only test accounts and records and must be run against the intended project. They leave no users or records behind.
