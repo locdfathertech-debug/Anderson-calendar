@@ -1097,6 +1097,9 @@ export default function Planner({
                 <button className="btn primary" onClick={() => setWall(true)}>
                   <Monitor size={17} /> Start wall display
                 </button>
+                <a className="btn" href={demo ? "/demo/kiosk" : "/kiosk"}>
+                  <CalendarDays size={17} /> Calendar kiosk
+                </a>
                 <div className="photo-grid">
                   {get("photo").map((r) => (
                     <button
