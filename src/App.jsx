@@ -373,9 +373,9 @@ function Auth({ recovery = false, onError }) {
       <section className="auth-story">
         <p>ANDERSON FAMILY HUB</p>
         <h1>
-          More together.
+          Sync the schedule.
           <br />
-          Less to juggle.
+          Share the love
         </h1>
         <p>
           One home for the plans, meals, little wins,
