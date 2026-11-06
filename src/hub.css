@@ -86,8 +86,9 @@ small {
   color: var(--ink);
 }
 .hub.dark {
-  --bg: #121a19;
-  --surface: #1b2623;
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #141918;
   --ink: #f1f5ec;
   --muted: #a1b0a9;
   --border: #34433b;
@@ -350,6 +351,14 @@ small {
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
+}
+.hub .theme-toggle {
+  padding: 7px 9px;
+  min-height: 36px;
+}
+.hub .theme-toggle[aria-checked="true"] {
+  border-color: #087d79;
+  color: #70e1d7;
 }
 .btn.primary {
   background: #346853;
