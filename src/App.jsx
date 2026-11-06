@@ -389,9 +389,13 @@ function Auth({ recovery = false, onError }) {
         </div>
       </section>
       <section className="auth-box">
-        <span className="logo">
-          <CalendarDays />
-        </span>
+        <img
+          className="auth-brand"
+          src="/anderson-family-hub-logo.webp"
+          alt="Anderson Family Hub"
+          width="720"
+          height="216"
+        />
         <p className="eyebrow">WELCOME HOME</p>
         <h1>
           {
