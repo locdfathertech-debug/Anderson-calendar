@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { assignedMemberColors, nextMemberColor, memberColorForSave, isMemberColor, memberColorHex, memberColorInk, MEMBER_COLOR_LABELS, MEMBER_COLORS } from "../src/lib/memberColors.js";
+import { assignedMemberColors, nextMemberColor, memberColorForSave, isMemberColor, memberColorHex, memberColorInk, MEMBER_COLOR_LABELS, MEMBER_REFERENCE_PALETTE, MEMBER_COLORS } from "../src/lib/memberColors.js";
 import { kioskMemberStyle } from "../src/lib/kiosk.js";
 const member = (id, color) => ({ id, data: { color } });
 test("saved colors survive ordering and new assignments avoid them", () => {
@@ -65,4 +65,16 @@ test("new and custom colors match kiosk cards with readable contrasting ink", ()
     assert.ok((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) >= 4.5, color);
   }
   assert.deepEqual(kioskMemberStyle("constructor"), kioskMemberStyle("teal"));
+});
+
+test("automatic defaults avoid custom colors matching either legacy theme rendering", () => {
+  const palette = Object.keys(MEMBER_COLORS);
+  for (const [key, [referenceHex]] of Object.entries(MEMBER_REFERENCE_PALETTE)) {
+    const earlier = palette.slice(0, palette.indexOf(key)).map((color, index) => member(`earlier-${index}`, color));
+    const members = [...earlier, member("custom", referenceHex.toUpperCase())];
+    const next = nextMemberColor(members);
+    assert.notEqual(next, key, key);
+    assert.notEqual(kioskMemberStyle(next)["--member-color"], referenceHex, key);
+    assert.notEqual(assignedMemberColors([...members, member("unassigned")]).get("unassigned"), key, key);
+  }
 });

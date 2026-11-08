@@ -51,4 +51,6 @@ Production kiosk activation: main 3002ee8c4ab54be1e006360bf0060822cd94b913, Verc
 
 ## Full family profile choices
 
-30 tests/build pass. Palette tests cover 24 presets, custom #RRGGBB normalization/preservation, invalid values, stable defaults and readable new/custom ink contrast. Browser sample confirms 35 relationship options, custom Godchild persistence, custom #165dbe save/reopen, invalid hex rejection, and matching kiosk tile/timed event CSS; Month view retains the selected color. Relationship labels are display-only. No database or account permission changes.
+31 tests/build pass. Palette tests cover 24 presets, custom #RRGGBB normalization/preservation, invalid values, stable defaults and readable new/custom ink contrast. Browser sample confirms 35 relationship options, custom Godchild persistence, custom #165dbe save/reopen, invalid hex rejection, and matching kiosk tile/timed event CSS; Month view retains the selected color. Relationship labels are display-only. No database or account permission changes.
+
+Public production sample verified expanded family/type and color fields after release 1482f09659e57b0e8dd9d39b611c1e782e234482 (Vercel READY). Screenshot docs/family-profile-options-review.jpg. Regression covers default assignments avoiding custom colors matching both legacy light and kiosk palettes.

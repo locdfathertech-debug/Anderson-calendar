@@ -190,8 +190,10 @@ Applicable hardening released: 89fe936489d04ffc57dc3ec8819c4e737bb64c82 on main.
 ## All theme colors and family member types
 - [x] Offer 24 named presets plus any custom hex color; retain saved colors and readable text.
 - [x] Expand family profile types and allow custom relationship labels without changing login roles.
-- [ ] Verify profile saves, custom tile/event colors, tests/build, then publish to GitHub/Vercel.
+- [x] Verify profile saves, custom tile/event colors, tests/build, then publish to GitHub/Vercel.
 
 Spec: preserve existing named assignments, palette layout and kiosk protection. Custom #RRGGBB colors work across family tiles, avatars, filters and both calendar views. Relationship labels cover immediate, extended, blended and caregiving households; custom labels remain display-only. No permissions, schema or storage changes.
 
-Family controls review: 30 tests and production build pass. Browser sample saved/restored Godchild and custom #165dbe, blocked invalid hex via form validation, and showed matching custom tile/event styles plus the relationship label in the kiosk. 24 presets plus native color picker/hex input; 35 named household/family types plus custom relationships. Existing assignments and private Auth/Parent PIN permissions retained. No real family records were changed during sample QA.
+Family controls review: 31 tests and production build pass. Browser sample saved/restored Godchild and custom #165dbe, blocked invalid hex via form validation, and showed matching custom tile/event styles plus the relationship label in the kiosk. 24 presets plus native color picker/hex input; 35 named household/family types plus custom relationships. Existing assignments and private Auth/Parent PIN permissions retained. No real family records were changed during sample QA.
+
+Family choices released: main 1482f09659e57b0e8dd9d39b611c1e782e234482; production dpl_EmEZqU2URLqph71H7mWKbYX224LB READY. Public sample profile form verified all controls. Followup prevents automatic defaults duplicating custom colors matching legacy kiosk colors. All 31 tests/build pass.

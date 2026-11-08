@@ -1,5 +1,5 @@
 import { dateKey, shiftDate } from "./planner.js";
-import { isMemberColor, memberColorHex, memberColorInk } from "./memberColors.js";
+import { isMemberColor, memberColorHex, memberColorInk, MEMBER_REFERENCE_PALETTE as MEMBER_PALETTE } from "./memberColors.js";
 
 function firstOfMonth(month) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
@@ -47,15 +47,6 @@ export function upcomingEvents(events, now = new Date()) {
     || (a.data.time || "").localeCompare(b.data.time || "")
     || a.id.localeCompare(b.id));
 }
-
-const MEMBER_PALETTE = {
-  teal: ["#4bc88b", "#080808"],
-  pink: ["#f43d12", "#080808"],
-  purple: ["#ffffff", "#080808"],
-  amber: ["#ffd426", "#080808"],
-  blue: ["#666464", "#ffffff"],
-  orange: ["#d93916", "#ffffff"],
-};
 
 export function kioskMemberStyle(color) {
   const key = typeof color === "string" ? color.toLowerCase() : "";

@@ -26,6 +26,16 @@ export const MEMBER_COLORS = {
   black: "#111111",
 };
 
+// Existing reference-theme values stay separate from the light palette.
+export const MEMBER_REFERENCE_PALETTE = {
+  teal: ["#4bc88b", "#080808"],
+  pink: ["#f43d12", "#080808"],
+  purple: ["#ffffff", "#080808"],
+  amber: ["#ffd426", "#080808"],
+  blue: ["#666464", "#ffffff"],
+  orange: ["#d93916", "#ffffff"],
+};
+
 export const MEMBER_COLOR_LABELS = {
   teal: "Green", orange: "Deep red", purple: "White", pink: "Red", blue: "Gray", amber: "Yellow",
   turquoise: "Turquoise", sky: "Sky blue", violet: "Violet", rose: "Rose", lime: "Lime", coral: "Coral",
@@ -59,8 +69,18 @@ export function memberColorInk(value) {
   return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? "#000000" : "#ffffff";
 }
 
+function colorVariants(color) {
+  const reference = Object.prototype.hasOwnProperty.call(MEMBER_REFERENCE_PALETTE, color)
+    ? MEMBER_REFERENCE_PALETTE[color][0] : memberColorHex(color);
+  return [color, memberColorHex(color), reference];
+}
+
 function usedColors(assignments) {
-  return new Set([...assignments].flatMap(color => [color, memberColorHex(color)]));
+  return new Set([...assignments].flatMap(colorVariants));
+}
+
+function firstUnusedColor(used) {
+  return Object.keys(MEMBER_COLORS).find(color => colorVariants(color).every(value => !used.has(value)));
 }
 
 export function assignedMemberColors(members) {
@@ -71,24 +91,22 @@ export function assignedMemberColors(members) {
     const color = normalizeMemberColor(member.data.color);
     if (color) {
       assignments.set(member.id, color);
-      used.add(color);
-      used.add(memberColorHex(color));
+      colorVariants(color).forEach(value => used.add(value));
     }
   }
   for (const member of sorted) {
     if (assignments.has(member.id)) continue;
-    const next = Object.keys(MEMBER_COLORS).find(color => !used.has(color) && !used.has(MEMBER_COLORS[color]))
+    const next = firstUnusedColor(used)
       || Object.keys(MEMBER_COLORS)[assignments.size % Object.keys(MEMBER_COLORS).length];
     assignments.set(member.id, next);
-    used.add(next);
-    used.add(MEMBER_COLORS[next]);
+    colorVariants(next).forEach(value => used.add(value));
   }
   return assignments;
 }
 
 export function nextMemberColor(members) {
   const used = usedColors(assignedMemberColors(members).values());
-  return Object.keys(MEMBER_COLORS).find(color => !used.has(color) && !used.has(MEMBER_COLORS[color]))
+  return firstUnusedColor(used)
     || Object.keys(MEMBER_COLORS)[members.length % Object.keys(MEMBER_COLORS).length];
 }
 
