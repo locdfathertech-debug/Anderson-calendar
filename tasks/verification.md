@@ -40,3 +40,5 @@ Production: PR #7 merged as b28b4e30fcebc93532eeaa8987b88871505f9fa7. Vercel pro
 ## Weekly timeline verification
 
 27 unit tests and production build pass. New tests cover local DST, leap/year boundaries, exact date filtering, minute positioning, overlap lanes, all-day/malformed times and early/late events. Short events keep their real time labels while minimum 48px visual targets receive non-overlapping lanes. Browser sample flow verified weekly navigation/toggle, month-date→week preservation, family filter, event video action and retained Parent PIN screen. Both sidebars remain in place. Supabase schema, grant helpers and permissions are unchanged. Physical tablet and authenticated real-data acceptance remain pending.
+
+Weekly production release: commit 16b5228773bcf2ac26f2ddec3b53833d5e041db9 on main; Vercel production dpl_5DDuLgBy8X1ndXaDKTqFLRNc6im7 READY with custom domain aliases. Public /demo browser confirmed seven-day hourly timeline, Week/Month controls, member colors, all-day holiday, and both sidebars. Screenshot docs/weekly-timeline-review.jpg contains sample data only.
