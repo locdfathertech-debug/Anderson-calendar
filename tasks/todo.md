@@ -186,3 +186,12 @@ Finding: published main has HTTPS avatar URLs, no file picker/dropzone, handleFi
 Upload audit review: no uploader/dropzone in published main; no cancellation/reselection/upload changes claimed. Fixed supported-color validation and save fallback. 28 tests/build pass, including missing/invalid/prototype-name color values. Browser sample verified clearing Mia’s color preserves White, and a new profile with blank color saves Deep red (unused); photo URL and color controls remain present. Real family records and Supabase schema/storage are unchanged.
 
 Applicable hardening released: 89fe936489d04ffc57dc3ec8819c4e737bb64c82 on main. Vercel production dpl_73nRnQLDQgZpUbt1aX5CNfUSZggt READY. Upload-specific findings remain not applicable to the published URL-only avatar form; an uploader source/branch is needed to patch those handlers.
+
+## All theme colors and family member types
+- [x] Offer 24 named presets plus any custom hex color; retain saved colors and readable text.
+- [x] Expand family profile types and allow custom relationship labels without changing login roles.
+- [ ] Verify profile saves, custom tile/event colors, tests/build, then publish to GitHub/Vercel.
+
+Spec: preserve existing named assignments, palette layout and kiosk protection. Custom #RRGGBB colors work across family tiles, avatars, filters and both calendar views. Relationship labels cover immediate, extended, blended and caregiving households; custom labels remain display-only. No permissions, schema or storage changes.
+
+Family controls review: 30 tests and production build pass. Browser sample saved/restored Godchild and custom #165dbe, blocked invalid hex via form validation, and showed matching custom tile/event styles plus the relationship label in the kiosk. 24 presets plus native color picker/hex input; 35 named household/family types plus custom relationships. Existing assignments and private Auth/Parent PIN permissions retained. No real family records were changed during sample QA.

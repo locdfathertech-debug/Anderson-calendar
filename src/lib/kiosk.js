@@ -1,5 +1,5 @@
 import { dateKey, shiftDate } from "./planner.js";
-import { MEMBER_COLORS } from "./memberColors.js";
+import { isMemberColor, memberColorHex, memberColorInk } from "./memberColors.js";
 
 function firstOfMonth(month) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
@@ -58,7 +58,10 @@ const MEMBER_PALETTE = {
 };
 
 export function kioskMemberStyle(color) {
-  const [accent, ink] = Object.prototype.hasOwnProperty.call(MEMBER_PALETTE, color) ? MEMBER_PALETTE[color] : Object.prototype.hasOwnProperty.call(MEMBER_COLORS, color) ? [MEMBER_COLORS[color], "#080808"] : MEMBER_PALETTE.teal;
+  const key = typeof color === "string" ? color.toLowerCase() : "";
+  const [accent, ink] = Object.prototype.hasOwnProperty.call(MEMBER_PALETTE, key)
+    ? MEMBER_PALETTE[key]
+    : isMemberColor(key) ? [memberColorHex(key), memberColorInk(key)] : MEMBER_PALETTE.teal;
   return { "--member-color": accent, "--member-ink": ink };
 }
 

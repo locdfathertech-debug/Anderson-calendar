@@ -1,8 +1,9 @@
+import { ThemeColorField, FamilyTypeField } from "./MemberProfileFields.jsx";
 import MemberAvatar from "./MemberAvatar.jsx";
 import { safeAvatarUrl } from "./lib/avatar.js";
 import { kioskMemberStyle } from "./lib/kiosk.js";
 import { videoSource } from "./lib/video.js";
-import { MEMBER_COLORS, assignedMemberColors, nextMemberColor, memberColorForSave } from "./lib/memberColors.js";
+import { memberColorHex, memberColorInk, assignedMemberColors, nextMemberColor, memberColorForSave } from "./lib/memberColors.js";
 import { useEffect, useState } from "react";
 import {
   CalendarDays,
@@ -50,7 +51,6 @@ const NAV = [
   ["budget", "Family budget", Wallet],
   ["settings", "Parent portal", Settings],
 ];
-const COLORS = Object.keys(MEMBER_COLORS);
 const labelDate = (key, options = { month: "short", day: "numeric" }) =>
   new Date(`${key}T12:00:00`).toLocaleDateString("en-US", options);
 const isParent = (p) => ["admin", "super_admin"].includes(p?.role);
@@ -123,7 +123,7 @@ const FIELDS = {
   ],
   member: [
     ["title", "Name"],
-    ["role", "Family role", "memberrole"],
+    ["role", "Family member type", "memberrole"],
     ["avatar_url", "Avatar photo URL (optional)", "url"],
     ["color", "Theme color", "color"],
   ],
@@ -238,7 +238,7 @@ export default function Planner({
     const record = ["event", "meal"].includes(dialog.kind)
       ? { ...dialog, data: { ...dialog.data, video_url: video?.url || "" } }
       : dialog.kind === "member"
-        ? { ...dialog, data: { ...dialog.data, avatar_url: avatar || "", role: dialog.data.role || "Child", color: memberColorForSave(dialog, members) } }
+        ? { ...dialog, data: { ...dialog.data, avatar_url: avatar || "", role: typeof dialog.data.role === "string" && dialog.data.role.trim() || "Child", color: memberColorForSave(dialog, members) } }
         : dialog;
     if ((await onSave(record)) !== false) setDialog(null);
   }
@@ -259,6 +259,7 @@ export default function Planner({
       <article
         className={`item-card tint-${r.data.color || colorFor(r.data.member)}`}
         key={r.id}
+        style={r.data.color?.startsWith("#") ? { backgroundColor: r.data.color, color: memberColorInk(r.data.color) } : undefined}
       >
         <div className="card-top">
           {r.kind === "member" && <MemberAvatar name={r.data.title} url={r.data.avatar_url} style={kioskMemberStyle(r.data.color || memberColors.get(r.id))} />}
@@ -291,8 +292,10 @@ export default function Planner({
     const person = members.find(member => member.data.title === name);
     return person ? memberColors.get(person.id) : "teal";
   }
-  function calendarColor(name) {
-    return { "--member-accent": MEMBER_COLORS[colorFor(name)] };
+  function calendarColor(name, filled = true) {
+    const color = colorFor(name);
+    const hex = memberColorHex(color);
+    return { "--member-accent": hex, ...(filled && color.startsWith("#") ? { backgroundColor: hex, color: memberColorInk(hex) } : {}) };
   }
   const heading = NAV.find((n) => n[0] === tab)?.[1];
   return (
@@ -604,6 +607,7 @@ export default function Planner({
                     <div className="simple-row" key={r.id}>
                       <span
                         className={`person-avatar ${colorFor(r.data.member)}`}
+                        style={colorFor(r.data.member).startsWith("#") ? calendarColor(r.data.member) : undefined}
                       >
                         {r.data.member?.[0] || "F"}
                       </span>
@@ -685,7 +689,7 @@ export default function Planner({
                         key={name}
                         onClick={() => setMember(name)}
                         aria-pressed={member === name}
-                        style={i ? calendarColor(name) : undefined}
+                        style={i ? calendarColor(name, false) : undefined}
                         className={
                           member === name
                             ? "member-chip selected"
@@ -1271,16 +1275,18 @@ export default function Planner({
                     ["payment_reference", "Reference / note"],
                   ]
                 : FIELDS[dialog.kind] || []
-              ).map(([key, label, type = "text"], i) => (
+              ).map(([key, label, type = "text"], i) => type === "color" ? (
+                <ThemeColorField dark={dark} key={key} value={dialog.data[key] || ""} disabled={dialog.readOnly} onChange={value => setDialog({ ...dialog, data: { ...dialog.data, [key]: value } })} />
+              ) : type === "memberrole" ? (
+                <FamilyTypeField key={key} value={dialog.data[key] || ""} disabled={dialog.readOnly} onChange={value => setDialog({ ...dialog, data: { ...dialog.data, [key]: value } })} />
+              ) : (
                 <label key={key}>
                   {label}
                   {[
                     "member",
-                    "memberrole",
                     "category",
                     "mealtype",
                     "transactiontype",
-                    "color",
                     "budget",
                     "payment",
                   ].includes(type) ? (
@@ -1298,8 +1304,6 @@ export default function Planner({
                       <option value="">Choose…</option>
                       {(type === "member"
                         ? ["Family", ...members.map((m) => m.data.title)]
-                        : type === "memberrole"
-                          ? ["Child", "Parent"]
                         : type === "category"
                           ? [
                               "Family",
@@ -1314,8 +1318,6 @@ export default function Planner({
                             ? ["Breakfast", "Lunch", "Dinner", "Snack"]
                             : type === "transactiontype"
                               ? ["expense", "income"]
-                              : type === "color"
-                                ? COLORS.map(value => ({ value, label: ({ teal: "Green", orange: "Deep red", purple: "White", pink: "Red", blue: "Gray", amber: "Yellow", turquoise: "Turquoise", sky: "Sky blue", violet: "Violet", rose: "Rose", lime: "Lime", coral: "Coral" })[value] || value }))
                                 : type === "payment"
                                   ? [
                                       "Cash",
@@ -1374,7 +1376,7 @@ export default function Planner({
                 </label>
               ))}
               {dialog.kind === "member" && (
-                <p className="footnote">Child and Parent are planner profile labels. Login permissions are managed separately in family account access. Use a direct HTTPS image link for the optional photo.</p>
+                <p className="footnote">Family member types are planner profile labels. Login permissions are managed separately in family account access. Use a direct HTTPS image link for the optional photo.</p>
               )}
               {dialog.kind === "payment" && (
                 <p className="footnote">

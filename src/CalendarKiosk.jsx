@@ -175,7 +175,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
         <div className="kiosk-member-list">{members.map(r => {
           const count = events.filter(e => e.data.member === r.data.title && e.data.date === today).length;
           return <button key={r.id} className={`kiosk-member ${member === r.data.title ? "selected" : ""}`} style={memberStyle(r.data.title)} aria-pressed={member === r.data.title} onClick={() => setMember(member === r.data.title ? "" : r.data.title)}>
-            <MemberAvatar className="kiosk-avatar" name={r.data.title} url={r.data.avatar_url} /><span><strong>{r.data.title}</strong><small>{count ? `${count} plan${count === 1 ? "" : "s"} today` : "No plans today"}</small></span>
+            <MemberAvatar className="kiosk-avatar" name={r.data.title} url={r.data.avatar_url} /><span><strong>{r.data.title}</strong><small>{r.data.role || "Family member"} · {count ? `${count} plan${count === 1 ? "" : "s"} today` : "No plans today"}</small></span>
           </button>;
         })}</div>
         <div className="kiosk-family-bottom">

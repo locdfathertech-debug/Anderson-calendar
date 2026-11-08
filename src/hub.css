@@ -1590,3 +1590,25 @@ progress {
 .hub .rose, .hub .tint-rose, .hub.dark .rose, .hub.dark .tint-rose { background: #f472b6; color: #080808; --member-accent: #f472b6; }
 .hub .lime, .hub .tint-lime, .hub.dark .lime, .hub.dark .tint-lime { background: #a3e635; color: #080808; --member-accent: #a3e635; }
 .hub .coral, .hub .tint-coral, .hub.dark .coral, .hub.dark .tint-coral { background: #ff956b; color: #080808; --member-accent: #ff956b; }
+
+.profile-field-group{border:1px solid var(--border,#494646);border-radius:14px;margin:0;padding:14px;min-width:0;display:grid;gap:12px}
+.profile-field-group legend{font-weight:600;padding:0 6px}.profile-field-group label{display:grid;gap:7px}
+.profile-custom-color{display:grid;grid-template-columns:82px minmax(0,1fr) 48px;gap:10px;align-items:end}
+.profile-custom-color input[type=color]{min-height:48px;width:100%;padding:4px;cursor:pointer}.profile-custom-color input[type=text]{font-family:monospace;min-height:48px}
+.profile-color-preview{min-height:48px;display:grid;place-items:center;border:1px solid #888;border-radius:10px;font-weight:700}
+.hub.dark .profile-field-group{border-color:#494646}.profile-field-group .footnote{margin:0}
+
+/* Extended family palette, including dark colors with readable text. */
+.hub .ocean, .hub .tint-ocean, .hub.dark .ocean, .hub.dark .tint-ocean { background: #3b82f6; color: #000000; --member-accent: #3b82f6; }
+.hub .navy, .hub .tint-navy, .hub.dark .navy, .hub.dark .tint-navy { background: #1e3a8a; color: #ffffff; --member-accent: #1e3a8a; }
+.hub .indigo, .hub .tint-indigo, .hub.dark .indigo, .hub.dark .tint-indigo { background: #6366f1; color: #000000; --member-accent: #6366f1; }
+.hub .tangerine, .hub .tint-tangerine, .hub.dark .tangerine, .hub.dark .tint-tangerine { background: #fb923c; color: #000000; --member-accent: #fb923c; }
+.hub .emerald, .hub .tint-emerald, .hub.dark .emerald, .hub.dark .tint-emerald { background: #10b981; color: #000000; --member-accent: #10b981; }
+.hub .forest, .hub .tint-forest, .hub.dark .forest, .hub.dark .tint-forest { background: #166534; color: #ffffff; --member-accent: #166534; }
+.hub .lavender, .hub .tint-lavender, .hub.dark .lavender, .hub.dark .tint-lavender { background: #c4b5fd; color: #000000; --member-accent: #c4b5fd; }
+.hub .peach, .hub .tint-peach, .hub.dark .peach, .hub.dark .tint-peach { background: #fdba74; color: #000000; --member-accent: #fdba74; }
+.hub .brown, .hub .tint-brown, .hub.dark .brown, .hub.dark .tint-brown { background: #92400e; color: #ffffff; --member-accent: #92400e; }
+.hub .burgundy, .hub .tint-burgundy, .hub.dark .burgundy, .hub.dark .tint-burgundy { background: #881337; color: #ffffff; --member-accent: #881337; }
+.hub .slate, .hub .tint-slate, .hub.dark .slate, .hub.dark .tint-slate { background: #64748b; color: #ffffff; --member-accent: #64748b; }
+.hub .black, .hub .tint-black, .hub.dark .black, .hub.dark .tint-black { background: #111111; color: #ffffff; --member-accent: #111111; }
+.profile-field-group input,.profile-field-group select{min-height:48px}
