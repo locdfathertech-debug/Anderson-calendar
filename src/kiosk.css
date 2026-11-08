@@ -1,0 +1,62 @@
+.calendar-kiosk {
+  color-scheme: dark;
+  min-height: 100dvh;
+  background: #000;
+  color: #f5f7fa;
+  padding: clamp(16px, 3vw, 44px);
+}
+.kiosk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kiosk-header h1 { font-size: clamp(30px, 4vw, 56px); }
+.kiosk-brand { color: #70e1d7; font-size: 12px; letter-spacing: .16em; }
+.kiosk-controls { display: grid; gap: 8px; justify-items: end; }
+.kiosk-controls strong { color: #ff8a18; font-size: clamp(24px, 4vw, 44px); }
+.kiosk-controls > div { display: flex; flex-wrap: wrap; justify-content: end; gap: 8px; }
+.kiosk-controls .btn {
+  color: #f5f7fa;
+  background: #141918;
+  border-color: #087d79;
+  min-height: 44px;
+  text-decoration: none;
+}
+.kiosk-notice, .kiosk-controls small, .kiosk-day p, .kiosk-day li small { color: #b5bec8; }
+.kiosk-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.kiosk-day {
+  min-height: 48dvh;
+  background: #141918;
+  border: 1px solid #34433b;
+  border-radius: 12px;
+  padding: clamp(8px, 1.3vw, 16px);
+  overflow-wrap: anywhere;
+}
+.kiosk-day[aria-current="date"] { border-color: #ff8a18; }
+.kiosk-day h2 { font-size: clamp(16px, 2vw, 26px); color: #70e1d7; }
+.kiosk-day[aria-current="date"] h2 { color: #ff8a18; }
+.kiosk-day ul { list-style: none; margin: 0; padding: 0; }
+.kiosk-day li {
+  display: grid;
+  gap: 4px;
+  background: #163330;
+  border-inline-start: 3px solid #36c7bb;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  padding: 8px;
+}
+.kiosk-day li span { color: #70e1d7; font-size: 12px; }
+@media (max-width: 740px) {
+  .kiosk-week { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kiosk-day { min-height: 140px; }
+}
+@media (max-width: 400px) {
+  .kiosk-header { flex-wrap: wrap; }
+  .kiosk-controls { justify-items: start; }
+}

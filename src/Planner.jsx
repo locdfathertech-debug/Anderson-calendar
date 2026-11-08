@@ -152,9 +152,13 @@ export default function Planner({
     [member, setMember] = useState("All family"),
     [search, setSearch] = useState(""),
     [dialog, setDialog] = useState(null),
-    [dark, setDark] = useState(
-      () => localStorage.getItem("family-theme") === "dark",
-    ),
+    [dark, setDark] = useState(() => {
+      try {
+        return localStorage.getItem("family-theme-preference") !== "light";
+      } catch {
+        return true;
+      }
+    }),
     [wall, setWall] = useState(false),
     [clock, setClock] = useState(new Date()),
     [notice, setNotice] = useState("");
@@ -170,9 +174,15 @@ export default function Planner({
     chores = get("chore"),
     meals = get("meal"),
     budgets = budgetTotals(records, date.slice(0, 7));
-  useEffect(() => {
-    localStorage.setItem("family-theme", dark ? "dark" : "light");
-  }, [dark]);
+  function toggleTheme() {
+    const nextDark = !dark;
+    setDark(nextDark);
+    try {
+      localStorage.setItem("family-theme-preference", nextDark ? "dark" : "light");
+    } catch {
+      // The toggle still works for this session when storage is unavailable.
+    }
+  }
   useEffect(() => {
     if (!wall) return;
     const t = setInterval(() => setClock(new Date()), 1000);
@@ -332,13 +342,15 @@ export default function Planner({
               })}
             </span>
             <button
-              className="icon-btn"
-              aria-label={
-                dark ? "Switch to light theme" : "Switch to dark theme"
-              }
-              onClick={() => setDark(!dark)}
+              type="button"
+              className="btn theme-toggle"
+              role="switch"
+              aria-label="Dark mode"
+              aria-checked={dark}
+              onClick={toggleTheme}
             >
-              {dark ? <Sun size={19} /> : <Moon size={19} />}
+              {dark ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />}
+              <span>{dark ? "Dark mode" : "Light mode"}</span>
             </button>
             <button
               className="icon-btn"
@@ -1085,6 +1097,9 @@ export default function Planner({
                 <button className="btn primary" onClick={() => setWall(true)}>
                   <Monitor size={17} /> Start wall display
                 </button>
+                <a className="btn" href={demo ? "/demo/kiosk" : "/kiosk"}>
+                  <CalendarDays size={17} /> Calendar kiosk
+                </a>
                 <div className="photo-grid">
                   {get("photo").map((r) => (
                     <button

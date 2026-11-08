@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Planner from "./Planner.jsx";
+import CalendarKiosk from "./CalendarKiosk.jsx";
 import { supabase, isSupabaseConfigured } from "./lib/supabase.js";
 import { sampleRecords } from "./lib/planner.js";
 import { CalendarDays } from "lucide-react";
@@ -10,7 +11,9 @@ const emptyProfile = {
   email: "sample@example.com",
 };
 export default function App() {
-  const demo = window.location.pathname === "/demo";
+  const path = window.location.pathname.replace(/\/$/, "");
+  const demo = path === "/demo" || path === "/demo/kiosk";
+  const kiosk = path === "/kiosk" || path === "/demo/kiosk";
   const [session, setSession] = useState(null),
     [profile, setProfile] = useState(demo ? emptyProfile : null),
     [records, setRecords] = useState(demo ? sampleRecords : []),
@@ -37,7 +40,7 @@ export default function App() {
       if (e) throw e;
       if (current !== generation.current) return;
       setProfile(p);
-      if (p) {
+      if (p && !kiosk) {
         const result = await supabase
           .from("planner_records")
           .select("*")
@@ -90,9 +93,10 @@ export default function App() {
           setLoading(false);
         }
       });
-    const { data } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
       if (!active) return;
       setSession(s);
+      if (kiosk && event === "TOKEN_REFRESHED") return;
       setLoading(true);
       setTimeout(() => active && load(s?.user), 0);
     });
@@ -250,6 +254,8 @@ export default function App() {
         </main>
       ) : recovery && session ? (
         <Auth recovery onError={setError} />
+      ) : kiosk && (demo || (session && profile)) ? (
+        <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} />
       ) : demo || (session && profile) ? (
         <Planner
           records={records}
@@ -358,7 +364,7 @@ function Auth({ recovery = false, onError }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: window.location.origin + (window.location.pathname.startsWith("/kiosk") ? "/kiosk" : ""),
           ...(provider === "azure" ? { scopes: "email" } : {}),
         },
       });
@@ -373,9 +379,9 @@ function Auth({ recovery = false, onError }) {
       <section className="auth-story">
         <p>ANDERSON FAMILY HUB</p>
         <h1>
-          More together.
+          Sync the schedule.
           <br />
-          Less to juggle.
+          Share the love
         </h1>
         <p>
           One home for the plans, meals, little wins,

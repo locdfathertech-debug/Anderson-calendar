@@ -86,8 +86,9 @@ small {
   color: var(--ink);
 }
 .hub.dark {
-  --bg: #121a19;
-  --surface: #1b2623;
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #141918;
   --ink: #f1f5ec;
   --muted: #a1b0a9;
   --border: #34433b;
@@ -350,6 +351,14 @@ small {
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
+}
+.hub .theme-toggle {
+  padding: 7px 9px;
+  min-height: 36px;
+}
+.hub .theme-toggle[aria-checked="true"] {
+  border-color: #087d79;
+  color: #70e1d7;
 }
 .btn.primary {
   background: #346853;
@@ -1039,6 +1048,8 @@ progress {
   opacity: 0.7;
 }
 .auth-scene {
+  --auth-teal: #36c7bb;
+  --auth-orange: #ff8a18;
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1069,7 +1080,7 @@ progress {
   display: flex;
   gap: 35px;
   font-size: 75px;
-  color: #aa9273;
+  color: var(--auth-orange);
   margin-top: 50px;
 }
 .auth-box {
@@ -1091,15 +1102,24 @@ progress {
 .auth-scene .oauth-buttons small {
   color: #b5bec8;
 }
+.auth-story > p:first-child,
 .auth-scene .eyebrow,
 .auth-scene .sample-link {
-  color: #7bdeff;
+  color: var(--auth-teal);
 }
 .auth-box input,
 .auth-box .btn:not(.primary) {
   background: #000;
   color: #f5f7fa;
-  border-color: #69737e;
+  border-color: #087d79;
+}
+.auth-scene .btn.primary {
+  background: var(--auth-orange);
+  border-color: var(--auth-orange);
+  color: #000;
+}
+.auth-scene :is(button, input, a):focus-visible {
+  outline-color: var(--auth-teal);
 }
 .auth-box .eyebrow {
   margin-bottom: 10px;
