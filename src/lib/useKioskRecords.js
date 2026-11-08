@@ -26,7 +26,7 @@ export function useKioskRecords(familyId, sample) {
         while (!controller.signal.aborted) {
           const { data, error, status: code } = await supabase.from("planner_records")
             .select("id,kind,data").eq("family_id", familyId)
-            .in("kind", ["member", "event", "chore", "trip"])
+            .in("kind", ["member", "event", "chore", "trip", "meal"])
             .order("id").range(offset, offset + 499).abortSignal(controller.signal);
           if (error) {
             if (!controller.signal.aborted && (code === 401 || code === 403)) setRecords([]);

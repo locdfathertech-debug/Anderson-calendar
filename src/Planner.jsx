@@ -1,3 +1,4 @@
+import { videoSource } from "./lib/video.js";
 import { MEMBER_COLORS, assignedMemberColors, nextMemberColor } from "./lib/memberColors.js";
 import { useEffect, useState } from "react";
 import {
@@ -58,6 +59,7 @@ const FIELDS = {
     ["member", "Family member", "member"],
     ["category", "Category", "category"],
     ["location", "Location"],
+    ["video_url", "Video URL (optional)", "video"],
     ["notes", "Notes"],
   ],
   chore: [
@@ -72,6 +74,7 @@ const FIELDS = {
     ["date", "Date", "date"],
     ["type", "Meal type", "mealtype"],
     ["notes", "Ingredients / notes"],
+    ["video_url", "Recipe video URL (optional)", "video"],
   ],
   pantry: [
     ["title", "Item"],
@@ -208,7 +211,18 @@ export default function Planner({
   }
   async function save(e) {
     e.preventDefault();
-    if ((await onSave(dialog)) !== false) setDialog(null);
+    const rawVideo = typeof dialog.data.video_url === "string" ? dialog.data.video_url.trim() : "";
+    const video = videoSource(rawVideo);
+    if (["event", "meal"].includes(dialog.kind) && rawVideo && !video) {
+      const field = e.currentTarget.querySelector("[data-video-url]");
+      field?.setCustomValidity("Use an HTTPS YouTube, Vimeo, MP4, or WebM video link.");
+      field?.reportValidity();
+      return;
+    }
+    const record = ["event", "meal"].includes(dialog.kind)
+      ? { ...dialog, data: { ...dialog.data, video_url: video?.url || "" } }
+      : dialog;
+    if ((await onSave(record)) !== false) setDialog(null);
   }
   async function change(r, data) {
     return onSave({ ...r, data: { ...r.data, ...data } });
@@ -1259,6 +1273,8 @@ export default function Planner({
                           ? [
                               "Family",
                               "School",
+                              "Work",
+                              "Daycare",
                               "Activities",
                               "Appointments",
                               "Holidays",
@@ -1291,7 +1307,10 @@ export default function Planner({
                     <input
                       autoFocus={i === 0}
                       disabled={dialog.readOnly}
-                      type={type}
+                      type={type === "video" ? "text" : type}
+                      inputMode={type === "video" ? "url" : undefined}
+                      data-video-url={type === "video" ? "" : undefined}
+                      placeholder={type === "video" ? "https://…" : undefined}
                       min={type === "number" ? 0 : undefined}
                       step={type === "number" ? "0.01" : undefined}
                       maxLength={type === "text" ? 500 : undefined}
@@ -1303,7 +1322,8 @@ export default function Planner({
                         key === "url"
                       }
                       value={dialog.data[key] ?? ""}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        if (type === "video") e.target.setCustomValidity("");
                         setDialog({
                           ...dialog,
                           data: {
@@ -1315,8 +1335,8 @@ export default function Planner({
                                   : Number(e.target.value)
                                 : e.target.value,
                           },
-                        })
-                      }
+                        });
+                      }}
                     />
                   )}
                 </label>

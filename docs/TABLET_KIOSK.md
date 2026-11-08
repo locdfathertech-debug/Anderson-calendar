@@ -33,7 +33,7 @@ Parent-created records appear automatically. Use the regular parent workspace to
 
 ## Security and synchronization
 
-The display fetches only member/event/chore/trip records for the signed-in family. Existing database RLS remains authoritative. The shared display does not approve, pay, edit or claim chores. A child signed into their own account may submit only an open chore whose `assigned_user_id` matches their authenticated UUID, through `submit_planner_chore`.
+The display fetches only member/event/chore/trip/meal records for the signed-in family. Existing database RLS remains authoritative. The shared display does not approve, pay, edit or claim chores. A child signed into their own account may submit only an open chore whose `assigned_user_id` matches their authenticated UUID, through `submit_planner_chore`.
 
 The blueprint's local `1234` PIN is deliberately omitted. The Parent portal control explains access and opens the existing workspace, where the actual signed-in role governs editing. This is not a PIN-protected parent session: use a least-privilege family member account on a shared tablet. An admin session retains admin privileges outside the kiosk route.
 
@@ -58,3 +58,7 @@ Standalone mode hides normal browser chrome. It does not prevent exiting the app
 Existing Supabase advisories remain unchanged: four intentional authenticated security-definer RPC notices and disabled leaked-password protection. See [RPC advisory guidance](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) and [password protection guidance](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
 ![Sample kiosk browser review](kiosk-layout-review.jpg)
+
+## Recipe videos and calendar layers
+
+The kiosk also includes Dinner below chores, optional event/recipe videos in a bounded floating window, and Work/Daycare/Activities indicators. Existing sections remain present. See [VIDEO_RECIPES.md](VIDEO_RECIPES.md) for authoring, source validation, permissions, verification, and playback/device limits.
