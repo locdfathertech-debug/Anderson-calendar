@@ -88,11 +88,11 @@ small {
 .hub.dark {
   color-scheme: dark;
   --bg: #000;
-  --surface: #141918;
-  --ink: #f1f5ec;
-  --muted: #a1b0a9;
-  --border: #34433b;
-  --teal: #23483c;
+  --surface: #121212;
+  --ink: #f4f7f7;
+  --muted: #aab7b6;
+  --border: #303b3b;
+  --teal: #153a38;
   --pink: #4d3334;
   --purple: #37324f;
   --amber: #4c4229;
@@ -1467,3 +1467,24 @@ progress {
 .onboarding-scene { grid-template-columns: 1fr; }
 .onboarding-create { margin-top: 32px; }
 .onboarding-scene .text-btn { margin-right: 20px; }
+
+/* Shared sign-in branding; member colors remain distinct calendar identities. */
+.hub { --brand-teal: #087d79; --orange: #ffe4c7; }
+.hub.dark { --brand-teal: #36c7bb; --orange: #49301b; }
+.sidebar-brand-image { display: block; width: 100%; height: auto; border-radius: 10px; background: #000; }
+.hub .btn.primary { background: #ff8a18; border-color: #ff8a18; color: #101010; }
+.hub .btn.ink { background: #087d79; border-color: #087d79; color: #fff; }
+.hub .nav-item.active { box-shadow: inset 3px 0 #ff8a18; }
+.hub .sidebar-note > span, .hub .sun-art { color: #ff8a18; }
+.hub .eyebrow { color: var(--brand-teal); }
+.hub .welcome-card { background: var(--teal); color: var(--ink); border: 1px solid var(--border); }
+.hub .welcome-card > .pill { background: var(--surface); color: var(--brand-teal); }
+.hub .stat-icon { background: var(--teal); color: var(--brand-teal); }
+.hub .stat-card:nth-child(3) .stat-icon { background: var(--orange); color: #d66a00; }
+.hub.dark .stat-card:nth-child(3) .stat-icon { color: #ff9c3d; }
+.hub :focus-visible { outline-color: var(--brand-teal); }
+.orange, .tint-orange { background: var(--orange); }
+.hub .member-chip { font-size: 12px; min-height: 40px; border-bottom: 3px solid var(--member-accent, var(--brand-teal)); }
+.hub .member-chip.selected { border-color: var(--member-accent, var(--brand-teal)); box-shadow: 0 0 0 1px var(--member-accent, var(--brand-teal)); font-weight: 700; }
+.hub .member-chip .dot { background: var(--member-accent, var(--brand-teal)); }
+.hub .event-block, .hub .mini-event { border-left: 4px solid var(--member-accent, var(--brand-teal)); }
