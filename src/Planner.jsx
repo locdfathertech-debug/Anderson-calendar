@@ -140,6 +140,9 @@ export default function Planner({
   onSubmitChore,
   onSignOut,
   onLock,
+  kioskEnabled = false,
+  onStartKiosk,
+  onStopKiosk,
   accounts = [],
   access = [],
   onManageAccess,
@@ -399,6 +402,7 @@ export default function Planner({
             <button type="button" className={`btn ${tab === "home" ? "selected" : ""}`} aria-current={tab === "home" ? "page" : undefined} onClick={() => setTab("home")}><LayoutDashboard size={17} /> Dashboard</button>
             <button type="button" className={`btn ${tab === "settings" ? "selected" : ""}`} aria-current={tab === "settings" ? "page" : undefined} onClick={() => setTab("settings")}><Users size={17} /> Family</button>
             <button type="button" className={`btn ${tab === "chore" ? "selected" : ""}`} aria-current={tab === "chore" ? "page" : undefined} onClick={() => setTab("chore")}><CheckCheck size={17} /> Chores</button>
+            <button type="button" className="btn" onClick={kioskEnabled ? onStopKiosk : onStartKiosk}><Monitor size={17} /> {kioskEnabled ? "Stop Kiosk Mode" : "Start Kiosk Mode"}</button>
             <button type="button" className="btn danger" onClick={onLock}><LogOut size={17} /> Lock &amp; Exit</button>
           </nav>
         )}

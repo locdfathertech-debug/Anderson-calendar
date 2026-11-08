@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { LockKeyhole, X } from "lucide-react";
 
-export default function ParentGate({ status, demo, onUnlock, onClose, onSignOut }) {
+export default function ParentGate({ status, demo, onUnlock, onClose, onSignOut, allowAccountSwitch = true }) {
   const [pin, setPin] = useState(""), [confirmation, setConfirmation] = useState(""),
     [busy, setBusy] = useState(false), [error, setError] = useState("");
   const dialog = useRef(null), mounted = useRef(true);
@@ -45,7 +45,8 @@ export default function ParentGate({ status, demo, onUnlock, onClose, onSignOut 
         <p className="kiosk-hint">Parent access locks again after 15 minutes, when you reload, or when you select Lock &amp; Exit.</p>
         <button className="primary" disabled={busy} type="submit">{busy ? "Checking…" : setup ? "Set PIN & unlock" : "Unlock"}</button>
       </form>}
-      <footer><button type="button" onClick={onClose}>Back to calendar</button><button type="button" disabled={busy} onClick={onSignOut}>{demo ? "Leave sample" : "Switch account"}</button></footer>
+      {!allowAccountSwitch && <p className="kiosk-hint">Kiosk mode is active. A parent must unlock the portal to stop kiosk mode or sign out.</p>}
+      <footer><button type="button" onClick={onClose}>Back to calendar</button>{allowAccountSwitch && <button type="button" disabled={busy} onClick={onSignOut}>{demo ? "Leave sample" : "Switch account"}</button>}</footer>
     </section>
   </div>;
 }

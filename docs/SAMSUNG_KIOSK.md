@@ -2,6 +2,16 @@
 
 This is a device setup procedure, not a claim that the tablet has been configured. The app's `/kiosk` route provides the family display; Samsung app pinning keeps that installed app in the foreground. The Parent Portal separately controls access to editing.
 
+## Start calendar kiosk mode
+
+1. Sign in with the parent's account on the shared tablet and configure its Parent PIN using the gear. Keep child login accounts for personal devices; the shared calendar remains read-only until the parent unlocks it.
+2. Tap **Start Kiosk Mode** on the calendar or in the unlocked Parent Portal. If a PIN has not been set, the app opens PIN setup first; choose Start again afterward.
+3. The app immediately locks parent editing, requests fullscreen where available, keeps the live calendar visible without the idle clock, and remembers the display preference on this browser. Its wake-lock request depends on browser/device support.
+4. **Parent portal → enter PIN → Stop Kiosk Mode** restores ordinary display controls. Sign-out is available inside the unlocked parent workspace. Browser/system fullscreen exits are outside the app's control.
+5. Use **Kiosk setup** on the calendar for the device-level instructions below. The installed kiosk manifest prefers fullscreen with the browser's normal fallback to standalone; existing installations may need an update/reinstall to adopt manifest changes. [Manifest display behavior](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest/Reference/display).
+
+The saved preference is not a credential and cannot grant edit access. It does not pin Android, verify pinning, launch the app after reboot, or suppress system Home/Recents gestures. The sample PIN is temporary and resets on reload; live Parent PINs remain server-managed.
+
 ## Prepare the tablet
 
 1. Set a strong device PIN or password in Samsung Settings. Keep it private from children. Use a separate, non-default Parent Portal PIN; never use the blueprint's example `1234`.

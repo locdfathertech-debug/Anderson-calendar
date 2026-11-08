@@ -12,19 +12,20 @@ import { videoSource, categoryInfo } from "./lib/video.js";
 import { AnimatePresence } from "framer-motion";
 import "./kiosk.css";
 
-export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore, busy, onOpenParent, portalOpen = false }) {
+export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore, busy, onOpenParent, portalOpen = false, kioskEnabled = false, onStartKiosk, kioskNotice = "" }) {
   const [now, setNow] = useState(() => new Date());
   const [anchor, setAnchor] = useState(() => dateKey());
   const [calendarView, setCalendarView] = useState("week");
   const month = anchor.slice(0, 7);
   const [member, setMember] = useState("");
-  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(() => Boolean(document.fullscreenElement));
   const [screenMessage, setScreenMessage] = useState("");
   const [idle, setIdle] = useState(false);
   const [dialog, setDialog] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [video, setVideo] = useState(null);
   const activeVideo = video?.familyId === familyId ? video : null;
+  const installedFullscreen = window.matchMedia?.("(display-mode: fullscreen)").matches || false;
   const lastActivity = useRef(Date.now());
   const dialogRef = useRef(null);
   const alerted = useRef(new Set());
@@ -44,7 +45,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   const dayEvents = selectedDay ? events.filter(r => r.data.date === selectedDay && (dialog.alert ? dialog.ids.includes(r.id) : (!member || r.data.member === member || r.data.member === "Family")))
     .sort((a, b) => (a.data.time || "").localeCompare(b.data.time || "")) : [];
 
-  useEffect(() => { setIdle(false); lastActivity.current = Date.now(); }, [portalOpen]);
+  useEffect(() => { setIdle(false); lastActivity.current = Date.now(); }, [portalOpen, kioskEnabled]);
   function memberStyle(name) {
     const person = members.find(r => r.data.title === name);
     return kioskMemberStyle(person ? colors.get(person.id) : "teal");
@@ -53,7 +54,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
-      if (!dialog && !portalOpen && !activeVideo && Date.now() - lastActivity.current >= 15000) setIdle(true);
+      if (!kioskEnabled && !dialog && !portalOpen && !activeVideo && Date.now() - lastActivity.current >= 15000) setIdle(true);
     }, 1000);
     function activity() { lastActivity.current = Date.now(); }
     for (const type of ["pointerdown", "pointermove", "keydown", "wheel", "touchmove", "scroll"]) window.addEventListener(type, activity, { passive: true, capture: true });
@@ -61,7 +62,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
       clearInterval(timer);
       for (const type of ["pointerdown", "pointermove", "keydown", "wheel", "touchmove", "scroll"]) window.removeEventListener(type, activity, true);
     };
-  }, [dialog, activeVideo, portalOpen]);
+  }, [dialog, activeVideo, portalOpen, kioskEnabled]);
   useEffect(() => {
     const manifest = document.querySelector('link[rel="manifest"]');
     const previous = manifest?.getAttribute("href");
@@ -127,7 +128,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   }, []);
   async function toggleFullscreen() {
     try {
-      if (document.fullscreenElement) await document.exitFullscreen();
+      if (document.fullscreenElement && !kioskEnabled) await document.exitFullscreen();
       else await document.documentElement.requestFullscreen();
     } catch { setScreenMessage("Fullscreen unavailable. Open the installed app for a larger view."); }
   }
@@ -179,10 +180,14 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
         })}</div>
         <div className="kiosk-family-bottom">
           <p className="kiosk-sync" role="status">{status}</p>
-          {screenMessage && <p className="kiosk-notice">{screenMessage}</p>}
+          {kioskEnabled && <p className="kiosk-mode-status" role="status">Calendar kiosk active · Parent PIN required to stop</p>}
+          {kioskEnabled && <p className="kiosk-hint">Pin this app in Samsung Settings to lock Android Home and Recents.</p>}
+          {(kioskNotice || screenMessage) && <p className="kiosk-notice">{kioskNotice || screenMessage}</p>}
+          {!kioskEnabled && ["admin", "super_admin"].includes(profile?.role) && <button className="kiosk-control kiosk-start" onClick={onStartKiosk}><Maximize size={19} /> Start Kiosk Mode</button>}
+          <button className="kiosk-control" onClick={() => { wake(); setDialog({ setup: true }); }}><Settings size={19} /> Kiosk setup</button>
           <button className="kiosk-control" onClick={() => { wake(); onOpenParent?.(); }}><Settings size={19} /> Parent portal</button>
-          <button className="kiosk-control" onClick={toggleFullscreen}>{fullscreen ? <Minimize size={19} /> : <Maximize size={19} />}{fullscreen ? "Exit fullscreen" : "Fullscreen"}</button>
-          <button className="kiosk-control" disabled={Boolean(activeVideo)} title={activeVideo ? "Close the video to show the clock" : undefined} onClick={() => setIdle(true)}><Moon size={19} /> Clock display</button>
+          {!installedFullscreen && (!kioskEnabled || !fullscreen) && <button className="kiosk-control" onClick={toggleFullscreen}>{fullscreen ? <Minimize size={19} /> : <Maximize size={19} />}{fullscreen ? "Exit fullscreen" : kioskEnabled ? "Enter fullscreen" : "Fullscreen"}</button>}
+          {!kioskEnabled && <button className="kiosk-control" disabled={Boolean(activeVideo)} title={activeVideo ? "Close the video to show the clock" : undefined} onClick={() => setIdle(true)}><Moon size={19} /> Clock display</button>}
 
         </div>
       </aside>
@@ -215,11 +220,17 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
       </aside>
     </div>
     {dialog && <div className="kiosk-modal-backdrop"><section ref={dialogRef} className="kiosk-dialog" role="dialog" aria-modal="true" aria-labelledby="kiosk-dialog-title">
-      <header><h2 id="kiosk-dialog-title">{dialog.alert ? "Starting now" : new Date(`${selectedDay}T12:00:00`).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</h2><button className="kiosk-icon" aria-label="Close dialog" onClick={closeDialog}><X /></button></header>
-      {<>{dayEvents.length ? dayEvents.map(r => <article className="kiosk-event-detail" key={r.id} style={memberStyle(r.data.member)}><time>{r.data.time || "All day"}</time><h3>{r.data.title}</h3><p>{r.data.member}</p>{r.data.location && <p><MapPin size={16} /> {r.data.location}</p>}{r.data.notes && <p>{r.data.notes}</p>}{categoryInfo(r.data.category).icon && <p>{categoryInfo(r.data.category).icon} {categoryInfo(r.data.category).label}</p>}{videoSource(r.data.video_url) ? <button className="kiosk-control kiosk-play" onClick={() => playVideo(r)}><Play size={17} /> Play event video</button> : r.data.video_url ? <p className="kiosk-hint">Unsupported video link. Ask a parent to update it.</p> : null}</article>) : <p>No events on this date.</p>}</>}
+      <header><h2 id="kiosk-dialog-title">{dialog.setup ? "Samsung kiosk setup" : dialog.alert ? "Starting now" : new Date(`${selectedDay}T12:00:00`).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</h2><button className="kiosk-icon" aria-label="Close dialog" onClick={closeDialog}><X /></button></header>
+      {dialog.setup ? <div className="kiosk-setup">
+        <p>The app keeps the live calendar visible and requires your Parent PIN for management. Android device lockdown needs app pinning on your tablet.</p>
+        <ol><li>Sign in with a parent account on the shared tablet. Children can use its read-only calendar without knowing the Parent PIN.</li><li>Install this calendar with your browser’s <strong>Install app / Add to Home screen</strong> option, then open its icon.</li><li>In Samsung Settings, find <strong>Pin windows / Pin app</strong> under Security and privacy → More security settings (older versions: Biometrics and security → Other security settings).</li><li>Enable <strong>Use screen lock type to unpin / Ask for PIN before unpinning</strong>. Use a device PIN children do not know.</li><li>Open the calendar, open Recent apps, tap the calendar icon above its card, then <strong>Pin this app</strong>.</li></ol>
+        <p className="kiosk-notice">App pinning has not been verified by this website. Test that Home and Recents cannot leave the app and that unpinning requires your device PIN. Re-pin after a tablet restart if needed.</p>
+        <p>To change family plans or stop calendar kiosk mode, tap Parent portal and enter your Parent PIN. The device PIN separately controls Android unpinning.</p>
+        {!kioskEnabled && ["admin", "super_admin"].includes(profile?.role) && <button className="kiosk-control kiosk-start" onClick={() => { closeDialog(); onStartKiosk?.(); }}>Start Kiosk Mode</button>}
+      </div> : <>{dayEvents.length ? dayEvents.map(r => <article className="kiosk-event-detail" key={r.id} style={memberStyle(r.data.member)}><time>{r.data.time || "All day"}</time><h3>{r.data.title}</h3><p>{r.data.member}</p>{r.data.location && <p><MapPin size={16} /> {r.data.location}</p>}{r.data.notes && <p>{r.data.notes}</p>}{categoryInfo(r.data.category).icon && <p>{categoryInfo(r.data.category).icon} {categoryInfo(r.data.category).label}</p>}{videoSource(r.data.video_url) ? <button className="kiosk-control kiosk-play" onClick={() => playVideo(r)}><Play size={17} /> Play event video</button> : r.data.video_url ? <p className="kiosk-hint">Unsupported video link. Ask a parent to update it.</p> : null}</article>) : <p>No events on this date.</p>}</>}
     </section></div>}
     <AnimatePresence key={familyId || "sample"} mode="wait">{activeVideo && <KioskVideo key={`${activeVideo.id}-${activeVideo.url}`} video={activeVideo} onClose={closeVideo} hidden={Boolean(dialog || portalOpen)} />}</AnimatePresence>
-    {idle && !activeVideo && !portalOpen && <button className="kiosk-screensaver" onClick={wake} onKeyDown={e => { if (e.key !== "Tab") { e.preventDefault(); wake(); } }} autoFocus aria-label="Wake family calendar">
+    {idle && !kioskEnabled && !activeVideo && !portalOpen && <button className="kiosk-screensaver" onClick={wake} onKeyDown={e => { if (e.key !== "Tab") { e.preventDefault(); wake(); } }} autoFocus aria-label="Wake family calendar">
       <div className="kiosk-clock-glass"><p className="kiosk-eyebrow">ANDERSON FAMILY HUB</p><time className="kiosk-idle-time">{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time><p>{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</p><div className="kiosk-up-next"><h2>Up next</h2>{upcoming.length ? upcoming.map(r => <div key={r.id}><strong>{r.data.title}</strong><span>{r.data.date === today ? "Today" : r.data.date} · {r.data.time || "All day"}</span></div>) : <p>No upcoming plans.</p>}</div><small>Tap anywhere or press a key to wake</small></div>
     </button>}
   </main>;

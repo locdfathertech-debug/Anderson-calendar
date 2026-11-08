@@ -13,6 +13,41 @@ const isParent = p => ["admin", "super_admin"].includes(p?.role);
 export default function App() {
   const path = window.location.pathname.replace(/\/$/, "");
   const demo = path === "/demo" || path === "/demo/kiosk";
+  const kioskPreferenceKey = demo ? "family-kiosk-sample-enabled" : "family-kiosk-enabled";
+  const [kioskEnabled, setKioskEnabled] = useState(() => {
+    try { const saved = localStorage.getItem(kioskPreferenceKey); return saved === "true"; }
+    catch { return false; }
+  });
+  const [kioskNotice, setKioskNotice] = useState("");
+  function rememberKiosk(enabled) {
+    setKioskEnabled(enabled);
+    try { localStorage.setItem(kioskPreferenceKey, String(enabled)); }
+    catch { setKioskNotice("This browser cannot save the kiosk preference. Re-select the display mode after reloading."); }
+  }
+  function startKiosk() {
+    if (!isParent(profile)) { setError("Sign in with a parent account to configure this shared tablet."); return; }
+    if (!portalStatus?.configured) {
+      setKioskNotice("Create your Parent PIN, then choose Start Kiosk Mode from the parent workspace.");
+      void openParent();
+      return;
+    }
+    setKioskNotice("");
+    // Clear privileged state synchronously; request fullscreen in this same user gesture.
+    void lock();
+    rememberKiosk(true);
+    try {
+      if (!document.fullscreenElement && !window.matchMedia?.("(display-mode: fullscreen)").matches) {
+        if (!document.documentElement.requestFullscreen) throw new Error("unavailable");
+        Promise.resolve(document.documentElement.requestFullscreen()).catch(() => setKioskNotice("Fullscreen is unavailable. Open the installed calendar app, then pin it using Samsung Settings."));
+      }
+    } catch { setKioskNotice("Fullscreen is unavailable. Open the installed calendar app, then pin it using Samsung Settings."); }
+  }
+  function stopKiosk() {
+    if (!workspace.current || !isParent(profile)) return;
+    setKioskNotice("");
+    rememberKiosk(false);
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  }
   const [session, setSession] = useState(null),
     [profile, setProfile] = useState(demo ? emptyProfile : null),
     [records, setRecords] = useState(demo ? sampleRecords : []),
@@ -28,6 +63,7 @@ export default function App() {
     clearParentGrant(); setUnlocked(false); setExpiresAt(null); setGateOpen(false);
     if (!demo) setRecords([]);
     setAccounts([]); setAccess([]); setLoading(false); setBusy(false);
+    setPortalStatus(demo ? { is_parent: true, configured: Boolean(demoPin.current) } : null);
   }
   async function load(user) {
     const current = ++generation.current;
@@ -56,7 +92,7 @@ export default function App() {
         if (a.error) throw a.error; if (b.error) throw b.error;
         if (current === generation.current) { setAccounts(a.data || []); setAccess(b.data || []); }
       }
-    } catch (e) { if (current === generation.current) { setError(e.message); if (workspace.current) clearWorkspace(); } }
+    } catch (e) { if (current === generation.current) { setError(e.message); setPortalStatus(null); if (workspace.current) clearWorkspace(); } }
     finally { if (current === generation.current) setLoading(false); }
   }
   useEffect(() => {
@@ -186,16 +222,17 @@ export default function App() {
     } catch(e) { if (epoch === accessEpoch.current) setError(e.message); return false; }
     finally { if (epoch === accessEpoch.current) setBusy(false); }
   }
+  const activeKiosk = kioskEnabled && isParent(profile);
   const recovery = window.location.pathname === "/update-password";
   return <>
     {loading ? <main className="auth-scene"><div className="auth-box"><CalendarDays/><h1>Gathering your family plans…</h1></div></main>
       : recovery && session ? <Auth recovery onError={setError}/>
       : demo || (session && profile?.family_id) ? unlocked && isParent(profile)
-        ? <Planner records={records} profile={profile} accounts={accounts} access={access} onManageAccess={manageAccess} onSave={save} onDelete={remove} onSubmitChore={submitChore} onSignOut={signOut} onLock={lock} demo={demo} busy={busy}/>
-        : <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} profile={profile} onSubmitChore={submitChore} busy={busy} onOpenParent={openParent} portalOpen={gateOpen}/>
+        ? <Planner records={records} profile={profile} accounts={accounts} access={access} onManageAccess={manageAccess} onSave={save} onDelete={remove} onSubmitChore={submitChore} onSignOut={signOut} onLock={lock} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} onStopKiosk={stopKiosk} demo={demo} busy={busy}/>
+        : <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} profile={profile} onSubmitChore={submitChore} busy={busy} onOpenParent={openParent} portalOpen={gateOpen} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} kioskNotice={kioskNotice}/>
       : session ? <FamilyOnboarding email={session.user.email} onComplete={() => load(session.user)} onSignOut={signOut}/>
       : <Auth onError={setError}/>}
-    {gateOpen && <ParentGate status={portalStatus} demo={demo} onUnlock={unlock} onClose={closeGate} onSignOut={signOut}/>}
+    {gateOpen && <ParentGate status={portalStatus} demo={demo} onUnlock={unlock} onClose={closeGate} onSignOut={signOut} allowAccountSwitch={!activeKiosk}/>}
     {error && <div className="error-toast" role="alert">{error}<button aria-label="Dismiss error" onClick={() => setError("")}>×</button></div>}
   </>;
 }

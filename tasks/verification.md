@@ -6,7 +6,7 @@
 - Supabase: migrations applied to kwaqscxveniaostnmonu. All eight public tables have RLS. Transactional integration tests passed for child chore submission, no reward editing, finance privacy, cross-family isolation, role escalation rejection, and parent approval. All synthetic users and records rolled back; zero QA users remain.
 - Security advisor: two intentional warnings remain for authenticated SECURITY DEFINER RPCs (set_family_role and submit_planner_chore). Both check caller identity/authorization, use fixed search paths, deny anon/PUBLIC execution, and are covered by authorization tests. Other membership helpers moved to private schema.
 - Preview-only Vercel VITE_SUPABASE_URL and publishable key configured. Existing production environment untouched.
-- No real family account exists yet in this Supabase project. Owner registers with locdfathertech@gmail.com. Existing approved second parent email retained from the repository. Additional accounts must first be authorized in the parent portal.
+- No real family account exists yet in this Supabase project. Owner registers with [account email omitted]. Existing approved second parent email retained from the repository. Additional accounts must first be authorized in the parent portal.
 - Google/Microsoft provider credentials and redirect allowlists require setup in Supabase; OAuth UI exists but no provider login was verified. Signup/email-confirmation delivery has not been exercised.
 - Calendar export is supported. Provider calendar sync remains pending.
 - PWA shell caching contains no family records. Offline edits and background synchronization are not implemented.
@@ -42,3 +42,7 @@ Production: PR #7 merged as b28b4e30fcebc93532eeaa8987b88871505f9fa7. Vercel pro
 27 unit tests and production build pass. New tests cover local DST, leap/year boundaries, exact date filtering, minute positioning, overlap lanes, all-day/malformed times and early/late events. Short events keep their real time labels while minimum 48px visual targets receive non-overlapping lanes. Browser sample flow verified weekly navigation/toggle, month-date→week preservation, family filter, event video action and retained Parent PIN screen. Both sidebars remain in place. Supabase schema, grant helpers and permissions are unchanged. Physical tablet and authenticated real-data acceptance remain pending.
 
 Weekly production release: commit 16b5228773bcf2ac26f2ddec3b53833d5e041db9 on main; Vercel production dpl_5DDuLgBy8X1ndXaDKTqFLRNc6im7 READY with custom domain aliases. Public /demo browser confirmed seven-day hourly timeline, Week/Month controls, member colors, all-day holiday, and both sidebars. Screenshot docs/weekly-timeline-review.jpg contains sample data only.
+
+## Kiosk activation
+
+27 existing tests and production build pass. Browser sample tested Start from parent toolbar, immediate lock, wrong-PIN denial, Stop after unlock, preference reload, no idle screensaver while active, PIN setup prerequisite, and Samsung instructions. Cloud browser denied Fullscreen API; fallback displayed and no fullscreen success claimed. Native app pinning and fullscreen/wake lock need testing on the actual Tab S7. Installed kiosk manifest prefers fullscreen (standard standalone fallback). No Auth/RLS/schema changes; server elevation remains enforced.

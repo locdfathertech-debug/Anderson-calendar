@@ -170,3 +170,7 @@
 .kiosk-timeline-event time{font-size:10px;font-variant-numeric:tabular-nums}.kiosk-timeline-event strong{font-size:11px;line-height:1.35;overflow-wrap:anywhere}.kiosk-timeline-event small{display:flex;align-items:center;gap:4px;font-size:10px}
 @media(max-width:1000px){.kiosk-calendar-actions{gap:4px}.kiosk-month-header{align-items:flex-start}.kiosk-month-header h1{font-size:20px}.kiosk-view-toggle button{padding:8px 12px}}
 @media(max-width:740px){.kiosk-week-scroll{height:650px;flex:auto}.kiosk-month-header{flex-wrap:wrap}}
+
+.kiosk-mode-status{font-size:11px;line-height:1.6;color:#4bc88b;border:1px solid #4bc88b66;background:#10261b;border-radius:10px;padding:10px;margin:0}
+.kiosk-start{background:#ffd426;color:#080808;border-color:#ffd426;font-weight:700}
+.kiosk-setup ol{padding-left:22px}.kiosk-setup li{line-height:1.7;margin-bottom:14px}.kiosk-setup strong{color:#ffd426}
