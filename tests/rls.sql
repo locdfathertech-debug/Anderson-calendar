@@ -3,11 +3,12 @@ create temp table qa_ids as select gen_random_uuid() family,gen_random_uuid() pa
 grant select on qa_ids to authenticated;
 insert into public.families(id,name) select family,'Rollback-only QA' from qa_ids;
 insert into public.family_access(email,family_id,role) select 'qa-parent-'||parent||'@example.invalid',family,'admin' from qa_ids union all select 'qa-child-'||child||'@example.invalid',family,'member' from qa_ids;
-insert into auth.users(id,email) select parent,'qa-parent-'||parent||'@example.invalid' from qa_ids union all select child,'qa-child-'||child||'@example.invalid' from qa_ids;
+insert into auth.users(id,email,email_confirmed_at) select parent,'qa-parent-'||parent||'@example.invalid',now() from qa_ids union all select child,'qa-child-'||child||'@example.invalid',now() from qa_ids;
 insert into public.planner_records(id,family_id,kind,data) select chore,family,'chore',jsonb_build_object('title','QA chore','assigned_user_id',child::text,'status','open','amount',5) from qa_ids union all select budget,family,'budget','{"title":"Private budget","amount":100}'::jsonb from qa_ids;
 set local role authenticated;
 select set_config('request.jwt.claim.sub',(select child::text from qa_ids),true);
 do $$ declare n int; begin
+ perform public.accept_family_authorization();
  select count(*) into n from public.planner_records; if n<>1 then raise exception 'Child must see shared chore only'; end if;
  update public.planner_records set data='{"title":"Tampered","amount":999}' where id=(select chore from qa_ids);get diagnostics n=row_count;if n<>0 then raise exception 'Child edited reward';end if;
  perform public.submit_planner_chore((select chore from qa_ids));
@@ -20,7 +21,7 @@ do $$ begin if exists(select 1 from public.planner_records) then raise exception
 begin perform public.submit_planner_chore((select chore from qa_ids));raise exception 'Outsider submitted chore';exception when insufficient_privilege then null;end;
 end $$;
 select set_config('request.jwt.claim.sub',(select parent::text from qa_ids),true);
-do $$ declare n int;begin select count(*) into n from public.planner_records;if n<>2 then raise exception 'Parent record read failed';end if;
+do $$ declare n int;begin perform public.accept_family_authorization(); select count(*) into n from public.planner_records;if n<>2 then raise exception 'Parent record read failed';end if;
 update public.planner_records set data=jsonb_set(data,'{status}','"approved"') where id=(select chore from qa_ids);get diagnostics n=row_count;if n<>1 then raise exception 'Parent approval failed';end if;
 end $$;
 reset role;

@@ -1427,7 +1427,7 @@ function AccessPanel({ accounts, access, profile, onManage, busy }) {
     <section className="surface connection-note">
       <h2>Family login access</h2>
       <p>
-        Authorize an email before that person creates an account. Member
+        Authorize the email a person uses to sign in, then ask them to choose Join my family. Member
         accounts can submit their assigned chores; admin accounts can manage
         family plans. This does not send an invitation.
       </p>
@@ -1467,7 +1467,7 @@ function AccessPanel({ accounts, access, profile, onManage, busy }) {
         <div className="simple-row" key={a.email}>
           <div>
             <strong>{a.email}</strong>
-            <small>Authorized to register · {a.role}</small>
+            <small>Authorized to join · {a.role}</small>
           </div>
           <button
             className="text-btn"

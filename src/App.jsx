@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Planner from "./Planner.jsx";
+import FamilyOnboarding from "./FamilyOnboarding.jsx";
 import CalendarKiosk from "./CalendarKiosk.jsx";
 import { supabase, isSupabaseConfigured } from "./lib/supabase.js";
 import { sampleRecords } from "./lib/planner.js";
@@ -40,7 +41,7 @@ export default function App() {
       if (e) throw e;
       if (current !== generation.current) return;
       setProfile(p);
-      if (p && !kiosk) {
+      if (p?.family_id && !kiosk) {
         const result = await supabase
           .from("planner_records")
           .select("*")
@@ -254,9 +255,9 @@ export default function App() {
         </main>
       ) : recovery && session ? (
         <Auth recovery onError={setError} />
-      ) : kiosk && (demo || (session && profile)) ? (
+      ) : kiosk && (demo || (session && profile?.family_id)) ? (
         <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} />
-      ) : demo || (session && profile) ? (
+      ) : demo || (session && profile?.family_id) ? (
         <Planner
           records={records}
           profile={profile}
@@ -271,21 +272,11 @@ export default function App() {
           busy={busy}
         />
       ) : session ? (
-        <main className="auth-scene">
-          <div className="auth-box">
-            <h1>Your family profile needs setup</h1>
-            <p>
-              Your login is valid, but it has not been linked to this family.
-              Contact the family administrator.
-            </p>
-            <button className="btn" onClick={() => load(session.user)}>
-              Retry
-            </button>
-            <button className="btn" onClick={signOut}>
-              Sign out
-            </button>
-          </div>
-        </main>
+        <FamilyOnboarding
+          email={session.user.email}
+          onComplete={() => load(session.user)}
+          onSignOut={signOut}
+        />
       ) : (
         <Auth onError={setError} />
       )}{" "}
@@ -343,7 +334,7 @@ function Auth({ recovery = false, onError }) {
       }
       if (mode === "signup")
         setMessage(
-          "Check your email to confirm your account. Only authorized family accounts receive access.",
+          "Check your email to confirm your account. Then sign in to create or join your family.",
         );
       if (mode === "reset")
         setMessage("If your account exists, a reset link is on its way.");
@@ -416,7 +407,7 @@ function Auth({ recovery = false, onError }) {
         <p className="muted">
           A little planning makes room for a lot more living.
         </p>
-        {mode === "login" && (
+        {(mode === "login" || mode === "signup") && (
           <div className="oauth-buttons">
             <button className="btn" disabled={busy} onClick={() => oauth("google")}>
               Continue with Google
@@ -427,7 +418,7 @@ function Auth({ recovery = false, onError }) {
             <button className="btn" disabled={busy} onClick={() => oauth("apple")}>
               Continue with Apple
             </button>
-            <small>Use an email authorized for your family.</small>
+            <small>Sign in to create or join your family.</small>
           </div>
         )}
         <form onSubmit={submit}>
@@ -481,7 +472,7 @@ function Auth({ recovery = false, onError }) {
             >
               {mode === "signup"
                 ? "Back to sign in"
-                : "Create an authorized family account"}
+                : "Create an account"}
             </button>
             <button
               className="text-btn"
