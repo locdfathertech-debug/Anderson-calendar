@@ -1488,3 +1488,97 @@ progress {
 .hub .member-chip.selected { border-color: var(--member-accent, var(--brand-teal)); box-shadow: 0 0 0 1px var(--member-accent, var(--brand-teal)); font-weight: 700; }
 .hub .member-chip .dot { background: var(--member-accent, var(--brand-teal)); }
 .hub .event-block, .hub .mini-event { border-left: 4px solid var(--member-accent, var(--brand-teal)); }
+
+/* Reference theme: black, charcoal, vermilion, yellow, white and green.
+   Paint only: existing component dimensions and layout are preserved. */
+.hub.dark {
+  --bg: #080808;
+  --surface: #131111;
+  --border: #3c3b3b;
+  --ink: #ffffff;
+  --muted: #b6b4b4;
+  --brand-teal: #4bc88b;
+  --teal: #4bc88b;
+  --pink: #f43d12;
+  --purple: #ffffff;
+  --amber: #ffd426;
+  --blue: #666464;
+  --orange: #d93916;
+}
+.hub.dark .hub-sidebar, .hub.dark .hub-top { background: #0c0b0b; border-color: #343232; }
+.hub.dark .hub-brand { outline: 1px solid #3c3b3b; border-radius: 11px; }
+.hub.dark .nav-item.active { background: #292727; color: #fff; box-shadow: inset 3px 0 #ffd426; }
+.hub.dark .nav-item:hover { background: #242222; color: #fff; }
+.hub.dark .heading-dot, .hub.dark .sidebar-note > span { color: #ffd426; }
+.hub.dark .eyebrow, .hub.dark .section-title h2 { color: #d0cece; }
+.hub.dark .btn.primary { background: #f43d12; border-color: #f43d12; color: #080808; box-shadow: inset 0 1px #ffffff20; }
+.hub.dark .btn.primary:hover { background: #ff5125; }
+.hub.dark .btn.ink { background: #ffd426; color: #080808; border-color: #ffd426; }
+.hub.dark .btn:not(.primary):not(.ink):not(.danger) { color: #fff; border-color: #444242; background: linear-gradient(160deg,#262424,#141212); box-shadow: inset 0 1px #ffffff0c,0 3px 8px #0003; }
+.hub.dark .btn.theme-toggle { color: #fff; border-color: #5b5858; }
+.hub.dark .welcome-card { background: #131111; border-color: #494646; box-shadow: inset 0 1px #ffffff16; }
+.hub.dark .welcome-card > .pill { background: #292727; color: #d0cece; }
+.hub.dark .sun-art { color: #ffd426; opacity: 0.9; }
+.hub.dark .stat-card { border-top: 2px solid #4bc88b; box-shadow: inset 0 1px #ffffff12; }
+.hub.dark .stat-card:nth-child(3) { border-top-color: #ffd426; }
+.hub.dark .stat-icon { background: #4bc88b; color: #080808; }
+.hub.dark .stat-card:nth-child(3) .stat-icon { background: #ffd426; color: #080808; }
+.hub.dark .preview-day.current { border-color: #ffd426; }
+.hub.dark .is-today .day-heading { background: #292727; box-shadow: inset 0 3px #ffd426; }
+.hub.dark .is-today .day-heading strong { color: #ffd426; }
+.hub.dark .modal { border: 1px solid #494646; }
+.hub.dark .modal-backdrop { background: #000b; }
+.hub.dark .inline-notice, .hub.dark .sample-banner { background: #252323; color: #dedcdc; border-color: #494646; }
+.hub.dark .person-avatar { color: #080808; }
+.hub.dark .segmented { background: #252323; }
+.hub.dark .segmented .selected { background: #fff; color: #080808; }
+/* Keep saved member identities while rendering them in the reference palette. */
+.hub.dark .teal, .hub.dark .tint-teal { --member-accent: #4bc88b !important; color: #080808; }
+.hub.dark .pink, .hub.dark .tint-pink { --member-accent: #f43d12 !important; color: #080808; }
+.hub.dark .purple, .hub.dark .tint-purple { --member-accent: #fff !important; color: #080808; }
+.hub.dark .amber, .hub.dark .tint-amber { --member-accent: #ffd426 !important; color: #080808; }
+.hub.dark .blue, .hub.dark .tint-blue { --member-accent: #b6b4b4 !important; color: #fff; }
+.hub.dark .orange, .hub.dark .tint-orange { --member-accent: #d93916 !important; color: #fff; }
+.hub.dark .member-chip:has(.dot.teal) { --member-accent: #4bc88b !important; }
+.hub.dark .member-chip:has(.dot.pink) { --member-accent: #f43d12 !important; }
+.hub.dark .member-chip:has(.dot.purple) { --member-accent: #fff !important; }
+.hub.dark .member-chip:has(.dot.amber) { --member-accent: #ffd426 !important; }
+.hub.dark .member-chip:has(.dot.blue) { --member-accent: #b6b4b4 !important; }
+.hub.dark .member-chip:has(.dot.orange) { --member-accent: #d93916 !important; }
+.hub.dark .event-block small, .hub.dark .mini-event small { color: inherit; opacity: 1; }
+.hub.dark .item-card .muted { color: inherit; opacity: 1; }
+.hub.dark .pill { background: #00000014; color: inherit; }
+.hub.dark .progress, .hub.dark progress { background: repeating-linear-gradient(145deg,#1a1818 0 4px,#2c2929 4px 6px); }
+
+.hub.dark .inline-notice { border: 1px solid #494646; }
+
+/* Glossy black backdrop: soft reflected light over a true black base. */
+.hub.dark {
+  --bg: #000;
+  background-color: #000;
+  background-image:
+    radial-gradient(ellipse at 65% 0%, #ffffff0a, transparent 52%),
+    linear-gradient(115deg, #000 12%, #141414 32%, #040404 46%, #000 70%);
+  background-attachment: fixed;
+}
+.hub.dark .hub-sidebar, .hub.dark .hub-top {
+  background: linear-gradient(145deg, #171717 0%, #080808 24%, #000 65%);
+  box-shadow: inset 0 1px 0 #ffffff14;
+}
+
+/* Shared-display parent controls use the existing glossy black palette. */
+.member-avatar{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:48px;height:48px;border-radius:50%;overflow:hidden;background:var(--member-color,#4bc88b);color:var(--member-ink,#080808);font-weight:700;border:1px solid #ffffff30}
+.member-avatar img{width:100%;height:100%;object-fit:cover}
+.member-avatar.kiosk-avatar{width:38px;height:38px}
+.portal-toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 0}
+.portal-toolbar button{min-height:48px;padding:10px 18px;border:1px solid #ffffff30;border-radius:14px;background:linear-gradient(#262626,#111);color:#fff;cursor:pointer}
+.portal-toolbar button:last-child{margin-left:auto;color:#ff603b}
+.parent-gate-backdrop{position:fixed;inset:0;z-index:150;display:grid;place-items:center;padding:24px;background:#000d;backdrop-filter:blur(12px)}
+.parent-gate{width:min(100%,480px);max-height:90dvh;overflow:auto;padding:32px;border:1px solid #ffffff38;border-radius:28px;color:#fff;background:linear-gradient(145deg,#292929,#101010 65%);box-shadow:inset 0 1px #ffffff20,0 24px 70px #000}
+.parent-gate h2{margin:0 0 16px}.parent-gate p{color:#bbb;line-height:1.6}.parent-gate label{display:block;margin:16px 0 8px}
+.parent-gate input{width:100%;min-height:56px;border:1px solid #666;border-radius:12px;background:#080808;color:#fff;font-size:24px;padding:12px;box-sizing:border-box;letter-spacing:.2em}
+.parent-gate button{min-height:48px;border-radius:12px;padding:12px 18px;border:1px solid #555;background:#202020;color:#fff;cursor:pointer}.parent-gate button[type=submit]{background:#ffda28;color:#080808;border-color:#ffda28;font-weight:700}
+.parent-gate-actions{display:flex;gap:12px;margin-top:24px}.parent-gate-actions>*{flex:1}.parent-gate [role=alert]{color:#ff8060}
+.parent-gate header{display:flex;align-items:center;gap:12px}.parent-gate header h2{flex:1;margin:0}.parent-gate footer{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.parent-gate form>button{margin-top:16px;width:100%}
+.parent-gate :focus-visible{outline-color:#ffd426}
+@media(max-width:760px){.member-avatar.kiosk-avatar{width:28px;height:28px}.parent-gate{padding:24px}}

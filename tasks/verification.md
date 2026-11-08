@@ -13,3 +13,24 @@
 - Photo memories use user-supplied HTTPS URLs, not uploads. Wall mode is manually activated.
 - Browser: light/dark modes and wall display verified. Fixed wall agenda to omit timed events that have already passed today.
 - Publication blocker: automatic approval review rejected public GitHub upload because the payload contains family email addresses and explicit publishing authorization was absent. No remote branch, PR, or Vercel deployment was created. Existing main and production deployment are unchanged. Review approval is needed for the public source upload and preview deployment.
+
+
+## Open registration verification
+
+- Auth and Postgres logs confirmed the old invite-only trigger raised SQLSTATE 42501 while saving users.
+- Applied open_registration migration at remote version 20261108005052. New users get an unattached member profile.
+- Rollback-only tests passed for arbitrary signup, forged metadata isolation, unverified/anonymous denial, verified family creation, duplicate rejection, joining, invitation consumption, and cross-family isolation. Existing chore RLS regression suite passed.
+- The connector cannot SET ROLE supabase_auth_admin, so direct Auth-role impersonation was unavailable. Trigger insertion was verified through auth.users using the available database role. Actual email invitation delivery and provider login were not executed.
+- Provider authorize endpoints report Google, Apple, and Azure disabled. Provider credentials remain required.
+- Database advisories report four intentionally exposed authenticated SECURITY DEFINER RPCs. Authorization checks and fixed search paths are covered by SQL review and the suites.
+- One family per account and one pending family authorization per email. Joining uses the verified provider email, including Apple relay addresses.
+
+## Dual-layer parent portal review — November 8, 2026
+
+- 22 Node tests pass; production build passes. Token routing tests cover exact Supabase REST origin, preservation of request headers, no Auth/third-party token transmission, lock/expiry, and invalid receipts.
+- Browser sample acceptance: default monthly read-only calendar, first PIN setup, Dashboard/Family navigation, add child with optional HTTPS avatar URL, Lock & Exit, and wrong-PIN rejection. Sample profile additions are browser-only and no real family was modified by browser tests.
+- Parent form keeps the reference black/red/yellow/white/green palette and existing calendar, Dinner, Chores, Bounty Board, Vacations and video capabilities. Photos fall back to initials on invalid or failed image loads.
+- CORS preflight to the linked Supabase REST endpoint permits x-parent-unlock with apikey/authorization.
+- Review deployment 15f4504 is READY. Browser inspection of that protected preview requires Vercel access. Auto-review rejected the authenticated-fetch tool because it creates a temporary share link; protection settings were not changed. Local UI was reviewed instead.
+- Database acceptance: rollback-only Parent PIN suite, existing child chore/privacy suite, and meal/video suite all PASS. First run caught a PL/pgSQL counter qualification error; renamed the variable and reran successfully. Migration 20261108154017_parent_portal_session_grants applied. No disposable fixtures remain. Production release verification follows below.
+- Physical Tab S7 app pinning, unpin credential check, fullscreen/wake lock, and external video provider playback remain device acceptance tasks. No physical tablet configuration is claimed.

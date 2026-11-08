@@ -1,3 +1,7 @@
+import MemberAvatar from "./MemberAvatar.jsx";
+import { safeAvatarUrl } from "./lib/avatar.js";
+import { kioskMemberStyle } from "./lib/kiosk.js";
+import { videoSource } from "./lib/video.js";
 import { MEMBER_COLORS, assignedMemberColors, nextMemberColor } from "./lib/memberColors.js";
 import { useEffect, useState } from "react";
 import {
@@ -58,6 +62,7 @@ const FIELDS = {
     ["member", "Family member", "member"],
     ["category", "Category", "category"],
     ["location", "Location"],
+    ["video_url", "Video URL (optional)", "video"],
     ["notes", "Notes"],
   ],
   chore: [
@@ -72,6 +77,7 @@ const FIELDS = {
     ["date", "Date", "date"],
     ["type", "Meal type", "mealtype"],
     ["notes", "Ingredients / notes"],
+    ["video_url", "Recipe video URL (optional)", "video"],
   ],
   pantry: [
     ["title", "Item"],
@@ -117,8 +123,9 @@ const FIELDS = {
   ],
   member: [
     ["title", "Name"],
-    ["role", "Role label"],
-    ["color", "Color", "color"],
+    ["role", "Family role", "memberrole"],
+    ["avatar_url", "Avatar photo URL (optional)", "url"],
+    ["color", "Theme color", "color"],
   ],
   photo: [
     ["title", "Caption"],
@@ -132,6 +139,7 @@ export default function Planner({
   onDelete,
   onSubmitChore,
   onSignOut,
+  onLock,
   accounts = [],
   access = [],
   onManageAccess,
@@ -208,7 +216,28 @@ export default function Planner({
   }
   async function save(e) {
     e.preventDefault();
-    if ((await onSave(dialog)) !== false) setDialog(null);
+    const rawAvatar = typeof dialog.data.avatar_url === "string" ? dialog.data.avatar_url.trim() : "";
+    const avatar = safeAvatarUrl(rawAvatar);
+    if (dialog.kind === "member" && rawAvatar && !avatar) {
+      const field = e.currentTarget.querySelector("[data-avatar-url]");
+      field?.setCustomValidity("Use a direct HTTPS photo link without account credentials.");
+      field?.reportValidity();
+      return;
+    }
+    const rawVideo = typeof dialog.data.video_url === "string" ? dialog.data.video_url.trim() : "";
+    const video = videoSource(rawVideo);
+    if (["event", "meal"].includes(dialog.kind) && rawVideo && !video) {
+      const field = e.currentTarget.querySelector("[data-video-url]");
+      field?.setCustomValidity("Use an HTTPS YouTube, Vimeo, MP4, or WebM video link.");
+      field?.reportValidity();
+      return;
+    }
+    const record = ["event", "meal"].includes(dialog.kind)
+      ? { ...dialog, data: { ...dialog.data, video_url: video?.url || "" } }
+      : dialog.kind === "member"
+        ? { ...dialog, data: { ...dialog.data, avatar_url: avatar || "", role: dialog.data.role || "Child" } }
+        : dialog;
+    if ((await onSave(record)) !== false) setDialog(null);
   }
   async function change(r, data) {
     return onSave({ ...r, data: { ...r.data, ...data } });
@@ -229,6 +258,7 @@ export default function Planner({
         key={r.id}
       >
         <div className="card-top">
+          {r.kind === "member" && <MemberAvatar name={r.data.title} url={r.data.avatar_url} style={kioskMemberStyle(r.data.color || memberColors.get(r.id))} />}
           <span className="pill">{r.data.member || r.data.type || r.kind}</span>
           {parent && (
             <button
@@ -364,6 +394,14 @@ export default function Planner({
             <span className="person-avatar pink">AF</span>
           </div>
         </header>
+        {parent && onLock && (
+          <nav className="parent-portal-toolbar" aria-label="Parent portal sections">
+            <button type="button" className={`btn ${tab === "home" ? "selected" : ""}`} aria-current={tab === "home" ? "page" : undefined} onClick={() => setTab("home")}><LayoutDashboard size={17} /> Dashboard</button>
+            <button type="button" className={`btn ${tab === "settings" ? "selected" : ""}`} aria-current={tab === "settings" ? "page" : undefined} onClick={() => setTab("settings")}><Users size={17} /> Family</button>
+            <button type="button" className={`btn ${tab === "chore" ? "selected" : ""}`} aria-current={tab === "chore" ? "page" : undefined} onClick={() => setTab("chore")}><CheckCheck size={17} /> Chores</button>
+            <button type="button" className="btn danger" onClick={onLock}><LogOut size={17} /> Lock &amp; Exit</button>
+          </nav>
+        )}
         {demo && (
           <div className="sample-banner">
             Sample workspace · changes stay in this browser session.{" "}
@@ -1234,6 +1272,7 @@ export default function Planner({
                   {label}
                   {[
                     "member",
+                    "memberrole",
                     "category",
                     "mealtype",
                     "transactiontype",
@@ -1255,10 +1294,14 @@ export default function Planner({
                       <option value="">Choose…</option>
                       {(type === "member"
                         ? ["Family", ...members.map((m) => m.data.title)]
+                        : type === "memberrole"
+                          ? ["Child", "Parent"]
                         : type === "category"
                           ? [
                               "Family",
                               "School",
+                              "Work",
+                              "Daycare",
                               "Activities",
                               "Appointments",
                               "Holidays",
@@ -1268,7 +1311,7 @@ export default function Planner({
                             : type === "transactiontype"
                               ? ["expense", "income"]
                               : type === "color"
-                                ? COLORS
+                                ? COLORS.map(value => ({ value, label: ({ teal: "Green", orange: "Deep red", purple: "White", pink: "Red", blue: "Gray", amber: "Yellow" })[value] || value }))
                                 : type === "payment"
                                   ? [
                                       "Cash",
@@ -1291,7 +1334,11 @@ export default function Planner({
                     <input
                       autoFocus={i === 0}
                       disabled={dialog.readOnly}
-                      type={type}
+                      type={type === "video" ? "text" : type}
+                      inputMode={type === "video" ? "url" : undefined}
+                      data-video-url={type === "video" ? "" : undefined}
+                      data-avatar-url={key === "avatar_url" ? "" : undefined}
+                      placeholder={type === "video" ? "https://…" : undefined}
                       min={type === "number" ? 0 : undefined}
                       step={type === "number" ? "0.01" : undefined}
                       maxLength={type === "text" ? 500 : undefined}
@@ -1303,7 +1350,8 @@ export default function Planner({
                         key === "url"
                       }
                       value={dialog.data[key] ?? ""}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        if (type === "video" || key === "avatar_url") e.target.setCustomValidity("");
                         setDialog({
                           ...dialog,
                           data: {
@@ -1315,12 +1363,15 @@ export default function Planner({
                                   : Number(e.target.value)
                                 : e.target.value,
                           },
-                        })
-                      }
+                        });
+                      }}
                     />
                   )}
                 </label>
               ))}
+              {dialog.kind === "member" && (
+                <p className="footnote">Child and Parent are planner profile labels. Login permissions are managed separately in family account access. Use a direct HTTPS image link for the optional photo.</p>
+              )}
               {dialog.kind === "payment" && (
                 <p className="footnote">
                   Record only after sending payment yourself. This does not
