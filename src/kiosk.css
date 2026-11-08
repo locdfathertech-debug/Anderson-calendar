@@ -1,62 +1,121 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Space+Grotesk:wght@500;600&display=swap");
 .calendar-kiosk {
+  --member-color: #4bc88b;
+  --member-ink: #080808;
   color-scheme: dark;
-  min-height: 100dvh;
-  background: #000;
-  color: #f5f7fa;
-  padding: clamp(16px, 3vw, 44px);
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+  background: radial-gradient(ellipse at 60% 0%,#ffffff09,transparent 55%),linear-gradient(115deg,#000 12%,#141414 32%,#040404 46%,#000 70%);
+  color: #fff;
+  font: 14px Inter,sans-serif;
 }
-.kiosk-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  gap: 16px;
-  margin-bottom: 24px;
+.calendar-kiosk h1,.calendar-kiosk h2,.calendar-kiosk h3 { font-family: Poppins,sans-serif; }
+.calendar-kiosk button,.calendar-kiosk a { min-width: 48px; min-height: 48px; touch-action: manipulation; }
+.calendar-kiosk button:focus-visible,.calendar-kiosk a:focus-visible { outline: 3px solid #ffd426; outline-offset: -3px; }
+.kiosk-layout { display: grid; grid-template-columns: 20fr 60fr 20fr; height: 100%; }
+.kiosk-family,.kiosk-activities { padding: clamp(12px,1.5vw,30px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: #0c0b0bc9; }
+.kiosk-family { display: flex; flex-direction: column; border-right: 1px solid #3c3b3b; }
+.kiosk-family > img { width: 100%; height: auto; }
+.kiosk-tagline { color: #b6b4b4; font-size: 12px; line-height: 1.7; margin: 18px 0 24px; }
+.kiosk-section-heading { display: flex; align-items: center; justify-content: space-between; }
+.kiosk-section-heading h2 { font-size: 17px; margin-bottom: 12px; }
+.kiosk-section-heading > span { color: #b6b4b4; }
+.kiosk-member-list { display: grid; gap: 10px; margin: 10px 0 20px; }
+.kiosk-member { display: flex; align-items: center; gap: 10px; padding: 10px; background: #181616; border: 1px solid #383535; border-left: 4px solid var(--member-color); border-radius: 12px; text-align: left; width: 100%; color: #fff; }
+.kiosk-member.selected { background: #2a2727; border-color: var(--member-color); }
+.kiosk-member strong { font-size: 15px; }
+.kiosk-member small { display: block; color: #b6b4b4; margin-top: 4px; font-size: 11px; }
+.kiosk-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; background: var(--member-color); color: var(--member-ink); font-weight: 700; }
+.kiosk-family-bottom { margin-top: auto; display: grid; gap: 8px; }
+.kiosk-sync,.kiosk-notice { color: #b6b4b4; font-size: 10px; line-height: 1.6; margin-bottom: 3px; overflow-wrap: anywhere; }
+.kiosk-notice { color: #ffd426; }
+.kiosk-control,.kiosk-icon { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #494646; border-radius: 12px; background: linear-gradient(145deg,#282626,#121010); color: #fff; text-decoration: none; font: inherit; padding: 10px; }
+.kiosk-control:hover,.kiosk-icon:hover { border-color: #ffd426; }
+.kiosk-family-bottom .kiosk-control { justify-content: flex-start; font-size: 12px; }
+.kiosk-calendar { padding: clamp(12px,1.6vw,32px); min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.kiosk-month-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.kiosk-eyebrow { font-size: 10px; color: #b6b4b4; letter-spacing: .18em; margin-bottom: 8px; }
+.kiosk-month-header h1 { font-size: clamp(24px,2.5vw,48px); letter-spacing: -.04em; margin-bottom: 6px; }
+.kiosk-month-header time { color: #b6b4b4; font-size: 12px; }
+.kiosk-month-controls { display: flex; gap: 6px; }
+.kiosk-month-controls .kiosk-icon { padding: 8px; }
+.kiosk-weekdays { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); text-align: center; color: #b6b4b4; padding: 10px 0; font-size: 11px; }
+.kiosk-month-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); grid-template-rows: repeat(var(--week-count),minmax(0,1fr)); gap: 6px; }
+.kiosk-date { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 6px; border: 1px solid #383535; border-radius: 10px; background: #131111; color: #fff; overflow: hidden; min-width: 0; }
+.kiosk-date.outside { background: #090909; }
+.kiosk-date.outside .kiosk-date-number { color: #777; }
+.kiosk-date[aria-current="date"] { border-color: #ffd426; box-shadow: inset 0 2px #ffd426; }
+.kiosk-date-number { align-self: flex-end; font-weight: 600; font-size: 13px; }
+.kiosk-date[aria-current="date"] .kiosk-date-number { color: #ffd426; }
+.kiosk-event { display: grid; gap: 2px; border-radius: 5px; padding: 4px 5px; width: 100%; background: var(--member-color); color: var(--member-ink); }
+.kiosk-event small { font-size: clamp(8px,.65vw,12px); }
+.kiosk-event strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: clamp(9px,.8vw,15px); font-weight: 600; overflow-wrap: anywhere; }
+.kiosk-more { font-size: 10px; color: #b6b4b4; }
+.kiosk-calendar-footer { display: flex; align-items: center; justify-content: space-between; color: #b6b4b4; font-size: 10px; padding-top: 12px; }
+.kiosk-calendar-footer span { display: inline-flex; align-items: center; gap: 6px; }
+.kiosk-calendar-footer time { font-variant-numeric: tabular-nums; }
+.kiosk-activities { border-left: 1px solid #3c3b3b; }
+.kiosk-activities section + section { margin-top: 26px; }
+.kiosk-activities h2 { font-size: clamp(13px,1.15vw,22px); display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.kiosk-activities h2 svg { color: #4bc88b; flex-shrink: 0; }
+.kiosk-activities ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.kiosk-chore { display: flex; gap: 6px; align-items: center; justify-content: space-between; background: #1d1a1a; padding: 12px 10px; border: 1px solid #383535; border-radius: 12px; }
+.kiosk-chore strong { font-size: 12px; line-height: 1.5; display: block; }
+.kiosk-chore small { display: block; margin-top: 4px; color: #b6b4b4; font-size: 10px; }
+.kiosk-reward { color: #ffd426; font-size: 12px; white-space: nowrap; }
+.kiosk-hint,.kiosk-empty { font-size: 12px; color: #b6b4b4; line-height: 1.7; }
+.kiosk-trip { background: #2b2828; border: 1px solid #494646; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.kiosk-trip strong { font-size: 13px; }
+.kiosk-trip p { margin: 8px 0; font-size: 12px; color: #d0cece; }
+.kiosk-trip time { font-size: 10px; color: #b6b4b4; overflow-wrap: anywhere; }
+.kiosk-modal-backdrop { position: fixed; inset: 0; z-index: 60; background: #000b; backdrop-filter: blur(10px); display: grid; place-items: center; padding: 20px; }
+.kiosk-dialog { background: linear-gradient(145deg,#242222,#101010); border: 1px solid #555; border-radius: 24px; padding: 24px; width: min(560px,100%); max-height: 90dvh; overflow: auto; }
+.kiosk-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+.kiosk-dialog header h2 { margin: 0; font-size: 21px; }
+.kiosk-dialog p { line-height: 1.7; }
+.kiosk-event-detail { background: #111; border-left: 4px solid var(--member-color); border-radius: 10px; padding: 18px; margin-bottom: 12px; }
+.kiosk-event-detail h3 { margin: 10px 0; }
+.kiosk-event-detail time { color: #ffd426; }
+.kiosk-event-detail p { color: #c2bfbf; margin-bottom: 6px; }
+.calendar-kiosk .kiosk-screensaver { position: fixed; z-index: 80; inset: 0; width: 100%; height: 100%; display: grid; place-items: center; cursor: pointer; color: #fff; border: none; border-radius: 0; background: radial-gradient(ellipse at 25% 25%,#4bc88b24,transparent 48%),radial-gradient(ellipse at 85% 80%,#ffd42614,transparent 55%),linear-gradient(135deg,#030303,#171717 45%,#000); padding: 20px; animation: kiosk-fade .4s ease-out; }
+.kiosk-clock-glass { max-width: 760px; width: min(85vw,760px); background: #ffffff06; border: 1px solid #ffffff20; border-radius: 28px; padding: clamp(24px,4vw,60px); box-shadow: inset 0 1px #ffffff15,0 30px 100px #0008; backdrop-filter: blur(24px); text-align: center; }
+.kiosk-idle-time { font-family: 'Space Grotesk',monospace; font-size: clamp(40px,7vw,110px); font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: -.04em; }
+.kiosk-clock-glass > p:not(.kiosk-eyebrow) { color: #c2bfbf; margin-top: 12px; font-size: 18px; }
+.kiosk-clock-glass > small { display: block; color: #b6b4b4; margin-top: 26px; }
+.kiosk-up-next { margin-top: 28px; background: #0006; border: 1px solid #ffffff10; border-radius: 16px; padding: 20px; text-align: left; }
+.kiosk-up-next h2 { font-size: 14px; color: #ffd426; }
+.kiosk-up-next > div { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 10px 0; }
+.kiosk-up-next strong { font-size: 15px; }
+.kiosk-up-next span { font-size: 12px; color: #c2bfbf; }
+@keyframes kiosk-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .calendar-kiosk .kiosk-screensaver { animation: none; } }
+@media (max-width: 1000px) {
+  .kiosk-layout { grid-template-columns: 20fr 60fr 20fr; }
+  .kiosk-month-header { flex-wrap: wrap; margin-bottom: 8px; }
+  .kiosk-month-header h1 { font-size: 24px; }
+  .kiosk-month-header time { display: none; }
+  .kiosk-family,.kiosk-activities { padding: 10px; }
+  .kiosk-member { gap: 6px; padding: 8px; }
+  .kiosk-avatar { width: 28px; height: 28px; }
+  .kiosk-member small { font-size: 10px; }
 }
-.kiosk-header h1 { font-size: clamp(30px, 4vw, 56px); }
-.kiosk-brand { color: #70e1d7; font-size: 12px; letter-spacing: .16em; }
-.kiosk-controls { display: grid; gap: 8px; justify-items: end; }
-.kiosk-controls strong { color: #ff8a18; font-size: clamp(24px, 4vw, 44px); }
-.kiosk-controls > div { display: flex; flex-wrap: wrap; justify-content: end; gap: 8px; }
-.kiosk-controls .btn {
-  color: #f5f7fa;
-  background: #141918;
-  border-color: #087d79;
-  min-height: 44px;
-  text-decoration: none;
-}
-.kiosk-notice, .kiosk-controls small, .kiosk-day p, .kiosk-day li small { color: #b5bec8; }
-.kiosk-week {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
-}
-.kiosk-day {
-  min-height: 48dvh;
-  background: #141918;
-  border: 1px solid #34433b;
-  border-radius: 12px;
-  padding: clamp(8px, 1.3vw, 16px);
-  overflow-wrap: anywhere;
-}
-.kiosk-day[aria-current="date"] { border-color: #ff8a18; }
-.kiosk-day h2 { font-size: clamp(16px, 2vw, 26px); color: #70e1d7; }
-.kiosk-day[aria-current="date"] h2 { color: #ff8a18; }
-.kiosk-day ul { list-style: none; margin: 0; padding: 0; }
-.kiosk-day li {
-  display: grid;
-  gap: 4px;
-  background: #163330;
-  border-inline-start: 3px solid #36c7bb;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  padding: 8px;
-}
-.kiosk-day li span { color: #70e1d7; font-size: 12px; }
 @media (max-width: 740px) {
-  .kiosk-week { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .kiosk-day { min-height: 140px; }
-}
-@media (max-width: 400px) {
-  .kiosk-header { flex-wrap: wrap; }
-  .kiosk-controls { justify-items: start; }
+  .calendar-kiosk { height: auto; min-height: 100dvh; overflow: auto; }
+  .kiosk-layout { grid-template-columns: 1fr; height: auto; }
+  .kiosk-family { border-right: 0; }
+  .kiosk-family > img { width: 200px; }
+  .kiosk-tagline { margin: 10px 0; }
+  .kiosk-member-list { display: flex; flex-wrap: wrap; }
+  .kiosk-member-list .kiosk-member { width: auto; }
+  .kiosk-family-bottom { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .kiosk-sync,.kiosk-notice { grid-column: 1/-1; }
+  .kiosk-calendar { min-height: 720px; }
+  .kiosk-month-header { flex-wrap: nowrap; }
+  .kiosk-month-grid { min-height: 550px; }
+  .kiosk-activities { border-left: 0; display: grid; gap: 20px; }
+  .kiosk-activities section + section { margin-top: 0; }
+  .kiosk-up-next > div { flex-direction: column; align-items: flex-start; gap: 6px; }
 }

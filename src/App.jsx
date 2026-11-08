@@ -256,7 +256,7 @@ export default function App() {
       ) : recovery && session ? (
         <Auth recovery onError={setError} />
       ) : kiosk && (demo || (session && profile?.family_id)) ? (
-        <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} />
+        <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} profile={profile} onSubmitChore={submitChore} busy={busy} />
       ) : demo || (session && profile?.family_id) ? (
         <Planner
           records={records}
