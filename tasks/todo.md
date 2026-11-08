@@ -168,8 +168,10 @@ Family colors released: 2945d475830ad213256136c040c67d1a1a7a6722 on main; Vercel
 - [x] Keep live calendar visible without idle screensaver; request fullscreen and retain wake-lock recovery.
 - [x] Restrict stop/sign-out controls to unlocked Parent Portal; report fullscreen/device-lock limits honestly.
 - [x] Add on-screen Samsung app-pinning instructions; verify activation, reload, PIN gate and stop flow.
-- [ ] Run existing tests/build and publish selected changes to GitHub/Vercel.
+- [x] Run existing tests/build and publish selected changes to GitHub/Vercel.
 
 Spec: kiosk preference is a local display setting, never an authorization grant. Admin writes remain protected by existing server PIN grants. Kiosk activation locks parent workspace before asynchronous work; fullscreen is requested only from a user gesture, with actionable fallback. Browser cannot lock Android Home/Recents; Samsung credential-protected app pinning or managed-device kiosk is required for hardware lockdown. No fake OS-lock status.
 
 Kiosk activation review: 27 tests/build pass. Browser sample verified activation from unlocked parent toolbar immediately returns to the locked calendar, Stop is parent-only, wrong PIN rejection, hidden sign-out/manual clock/fullscreen-exit controls, persisted mode after reload, live calendar beyond idle timeout, setup guide, and fullscreen unsupported fallback. First activation requires configured Parent PIN. Preferences do not grant roles or edit access. Physical Samsung pinning, installed fullscreen and hardware wake lock remain device acceptance checks, not claimed remotely configured.
+
+Kiosk activation released: main 3002ee8c4ab54be1e006360bf0060822cd94b913; Vercel production dpl_9hUgxhbTy7SjSxqW4mp6icWsA2pD READY. Public /demo verified setup-first→parent Start→active calendar. Fullscreen unsupported fallback observed. Review notes were sanitized to remove account email details after automatic publication review blocked those details. No physical tablet lock is claimed.
