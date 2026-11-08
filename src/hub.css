@@ -1580,4 +1580,5 @@ progress {
 .parent-gate button{min-height:48px;border-radius:12px;padding:12px 18px;border:1px solid #555;background:#202020;color:#fff;cursor:pointer}.parent-gate button[type=submit]{background:#ffda28;color:#080808;border-color:#ffda28;font-weight:700}
 .parent-gate-actions{display:flex;gap:12px;margin-top:24px}.parent-gate-actions>*{flex:1}.parent-gate [role=alert]{color:#ff8060}
 .parent-gate header{display:flex;align-items:center;gap:12px}.parent-gate header h2{flex:1;margin:0}.parent-gate footer{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.parent-gate form>button{margin-top:16px;width:100%}
+.parent-gate :focus-visible{outline-color:#ffd426}
 @media(max-width:760px){.member-avatar.kiosk-avatar{width:28px;height:28px}.parent-gate{padding:24px}}

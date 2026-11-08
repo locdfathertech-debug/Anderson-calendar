@@ -8,6 +8,9 @@ test('unlock token only accompanies this project REST requests and expires on lo
   await fetcher('https://family.supabase.co/rest/v1/planner_records', { headers: { authorization: 'Bearer jwt' } });
   assert.equal(requests[0].get('x-parent-unlock'), 'a'.repeat(64));
   assert.equal(requests[0].get('authorization'), 'Bearer jwt');
+  await fetcher(new Request('https://family.supabase.co/rest/v1/rpc/parent_portal_status', { headers: { apikey: 'public-test-key' } }));
+  assert.equal(requests.at(-1).get('apikey'), 'public-test-key');
+  assert.equal(requests.at(-1).get('x-parent-unlock'), 'a'.repeat(64));
   for (const url of ['https://family.supabase.co/auth/v1/user', 'https://other.supabase.co/rest/v1/data', 'https://example.com/video']) {
     await fetcher(url, { headers: { 'x-parent-unlock': 'forged' } });
     assert.equal(requests.at(-1).get('x-parent-unlock'), null);

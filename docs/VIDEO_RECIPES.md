@@ -14,7 +14,7 @@ The idle screensaver and manual Clock display are suppressed while the window is
 
 No SQL schema migration is required. Existing family-scoped `planner_records` already supports `meal` and `event`. Both store optional `data.video_url`; events already store `data.category`. The kiosk's authorized snapshot now includes `meal`. The existing planner Realtime publication covers those records automatically, including edits; 15-second reconciliation still handles deletions and reconnects.
 
-Parents retain write access through existing RLS. Children have read-only meal/video access and cannot change recipe links, categories or assignments. No new public meals table or client PIN is introduced.
+Parents can write only after a server-verified Parent Portal unlock; RLS enforces the session-bound grant. Children have read-only meal/video access and cannot change recipe links, categories or assignments. Meals stay in existing family-scoped planner records. No default or client-only PIN is used.
 
 `react-player` is pinned to **2.16.1**, compatible with the project's React 18 and `react-player/lazy`/`url` API. Framer Motion was already installed. Provider player modules load lazily. Preserve the lockfile with `npm ci`; an unpinned upgrade to ReactPlayer v3 requires an API migration. The existing Speed Insights dependency and locked package are preserved.
 
