@@ -157,6 +157,8 @@ Weekly release: main commit 16b5228773bcf2ac26f2ddec3b53833d5e041db9; Vercel pro
 ## More family tile colors
 - [x] Add six distinct colors while preserving saved assignments and current layout.
 - [x] Match new colors across profile choices, tiles, filters and calendar events.
-- [ ] Verify palette assignment, build, browser appearance and publish to GitHub/Vercel.
+- [x] Verify palette assignment, build, browser appearance and publish to GitHub/Vercel.
 
 Family color review: added Turquoise, Sky blue, Violet, Rose, Lime and Coral (12 total choices). 27 existing tests and production build pass. Direct assertions confirm 12 distinct automatic assignments and all six new kiosk colors match the shared palette. Browser sample changed Mia to Violet through the parent form and verified matching tile/event CSS and visible violet events. Real family assignments were not changed.
+
+Family colors released: 2945d475830ad213256136c040c67d1a1a7a6722 on main; Vercel production dpl_9ekD6Eqs1XckymBc1NwzGx5zRa5t READY with www.anderfamcalendar.app alias.
