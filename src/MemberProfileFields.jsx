@@ -1,5 +1,4 @@
-import { kioskMemberStyle } from "./lib/kiosk.js";
-import { MEMBER_COLORS, MEMBER_COLOR_LABELS, memberColorHex, memberColorInk, isMemberColor } from "./lib/memberColors.js";
+import { MEMBER_COLORS, MEMBER_COLOR_LABELS, memberColorInk, isMemberColor, memberTileStyle } from "./lib/memberColors.js";
 
 const FAMILY_TYPES = ["Child", "Parent", "Adult", "Teen", "Toddler", "Baby", "Mother", "Father", "Daughter", "Son", "Sibling", "Sister", "Brother", "Grandparent", "Grandmother", "Grandfather", "Grandchild", "Step-parent", "Stepchild", "Half-sibling", "Guardian", "Foster parent", "Foster child", "Spouse", "Partner", "Aunt", "Uncle", "Cousin", "Niece", "Nephew", "In-law", "Caregiver", "Household member", "Pet", "Other family member"];
 
@@ -18,7 +17,7 @@ export function FamilyTypeField({ value = "", onChange, disabled }) {
 export function ThemeColorField({ value = "", onChange, disabled, dark = true }) {
   value = typeof value === "string" ? value : "";
   const custom = value.startsWith("#");
-  const hex = isMemberColor(value) ? dark ? kioskMemberStyle(value)["--member-color"] : memberColorHex(value) : "#4bc88b";
+  const hex = isMemberColor(value) ? memberTileStyle(value)["--member-color"] : "#4bc88b";
   return <fieldset className="profile-field-group"><legend>Theme color</legend>
     <label>Preset color<select disabled={disabled} value={value} onChange={e => onChange(e.target.value)}>
       <option value="">Choose automatically</option>{Object.keys(MEMBER_COLORS).map(key => <option key={key} value={key}>{MEMBER_COLOR_LABELS[key] || key}</option>)}

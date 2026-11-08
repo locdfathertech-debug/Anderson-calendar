@@ -208,3 +208,12 @@ Spec: JPEG/PNG/WebP up to 5 MB; re-encode a small JPEG thumbnail (384px max, 200
 Photo review: 35 tests/build pass. Final browser sample verifies 384px JPEG preview, Save/reopen, invalid JPEG error and recovery, same-file reselect/input reset, existing HTTPS alternative and profile tile image. Original files remain local; only the re-encoded thumbnail saves in existing member JSON under family/Parent PIN RLS. No public storage, schema or permission changes. Screenshot docs/profile-photo-upload-form-review.jpg. Physical tablet picker remains device acceptance.
 
 Database verification limit: read-only policy inspection confirms existing family-scoped SELECT and parent-elevated write predicates. Additional rollback-only photo write test was not executed: Supabase confirmation expired (INVALID_ARGUMENT), so no live authenticated DB roundtrip is claimed. No schema/permission changes were made. Native picker cancellation is guarded by empty file selection; corrupt-file and reselection recovery were browser-tested.
+
+## Direct family tile editing
+- [x] Add visible preset/custom color controls directly inside each family tile, with live preview and Save tile.
+- [x] Put native photo selection inside the tile and preview the picture in its avatar; retain detailed Edit form.
+- [x] Verify color/photo save and return, explicit save feedback and kiosk restrictions, then publish selected files.
+
+Spec: existing family grid and account authorization remain intact. Changes are staged until Save tile. Explicit controls remove reliance on the small arrow and long modal. No schema/permission changes.
+
+Direct tile review: 36 tests/build pass. Browser sample changed Mia White→Violet and custom#165dbe, Dad Green→Navy, saved and returned to Family with retained choices. Native picker inside Mia tile saved a generated photo (384px) and displayed it in avatar. Navy color stayed exact in light/dark. Lock & Exit removes upload/edit controls. Failed saves retain drafts with error feedback by implementation; no live authenticated DB write test claimed. Root cause: legacy preset tint CSS differed from picker hex; inline tile style now resolves exact kiosk palette, presets and custom hex without tint class overrides.

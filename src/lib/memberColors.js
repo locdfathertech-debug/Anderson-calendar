@@ -116,3 +116,20 @@ export function memberColorForSave(record, members) {
   return color || assignedMemberColors(members).get(record.id)
     || nextMemberColor(members.filter(member => member.id !== record.id));
 }
+
+// Tile identity colors stay exact in both light and dark layouts. Using inline
+// paint avoids the old tint classes' theme-specific pastel substitutions.
+export function memberTileStyle(value) {
+  const color = normalizeMemberColor(value) || "teal";
+  const reference = Object.prototype.hasOwnProperty.call(MEMBER_REFERENCE_PALETTE, color)
+    ? MEMBER_REFERENCE_PALETTE[color] : null;
+  const hex = reference ? reference[0] : memberColorHex(color);
+  const ink = reference ? reference[1] : memberColorInk(hex);
+  return {
+    backgroundColor: hex,
+    color: ink,
+    "--member-color": hex,
+    "--member-ink": ink,
+    "--member-accent": hex,
+  };
+}

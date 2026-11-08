@@ -1618,3 +1618,16 @@ progress {
 .member-photo-field input[type="file"] { padding: 8px; cursor: pointer; }
 .member-photo-field input::file-selector-button { min-height: 40px; padding: 8px 14px; margin-right: 12px; border: 1px solid currentColor; border-radius: 8px; cursor: pointer; background: #4bc88b; color: #080808; font: inherit; }
 .member-photo-field [role="alert"] { color: #f43d12; font-size: 14px; }
+
+.family-tile .member-avatar { width: 72px; height: 72px; font-size: 24px; }
+.family-tile .pill { color: inherit; background: #00000016; }
+.family-tile-controls { display: grid; gap: 12px; margin-top: 18px; }
+.family-tile-controls label { display: grid; gap: 6px; font-size: 12px; font-weight: 600; }
+.family-tile-color-row { display: grid; grid-template-columns: minmax(0,1fr) 76px; gap: 10px; }
+.family-tile-controls input, .family-tile-controls select { width: 100%; min-height: 48px; min-width: 0; border: 1px solid #777; border-radius: 8px; background: #101010; color: #fff; padding: 8px; }
+.family-tile-controls input[type="color"] { padding: 4px; }
+.family-tile-controls .footnote, .family-tile-status { color: inherit; font-size: 12px; line-height: 1.5; }
+.family-tile-status { margin: 0; min-height: 36px; }
+.family-tile-controls .btn { min-height: 48px; }
+.family-tile-controls .family-tile-save { background: #111; color: #fff; border-color: #666; }
+.family-tile-controls button:disabled { opacity: .6; }

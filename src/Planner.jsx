@@ -1,5 +1,6 @@
 import { ThemeColorField, FamilyTypeField } from "./MemberProfileFields.jsx";
 import MemberAvatar from "./MemberAvatar.jsx";
+import MemberTile from "./MemberTile.jsx";
 import MemberPhotoField from "./MemberPhotoField.jsx";
 import { safeAvatarUrl } from "./lib/avatar.js";
 import { kioskMemberStyle } from "./lib/kiosk.js";
@@ -258,6 +259,7 @@ export default function Planner({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function itemCard(r, extra) {
+    if (r.kind === "member") return <MemberTile key={r.id} record={r} members={members} dark={dark} editable={parent} busy={busy} onSave={onSave} onEdit={() => setDialog({ ...r, data: { ...r.data } })} />;
     return (
       <article
         className={`item-card tint-${r.data.color || colorFor(r.data.member)}`}

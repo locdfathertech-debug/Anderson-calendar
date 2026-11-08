@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { assignedMemberColors, nextMemberColor, memberColorForSave, isMemberColor, memberColorHex, memberColorInk, MEMBER_COLOR_LABELS, MEMBER_REFERENCE_PALETTE, MEMBER_COLORS } from "../src/lib/memberColors.js";
+import { assignedMemberColors, nextMemberColor, memberColorForSave, memberTileStyle, isMemberColor, memberColorHex, memberColorInk, MEMBER_COLOR_LABELS, MEMBER_REFERENCE_PALETTE, MEMBER_COLORS } from "../src/lib/memberColors.js";
 import { kioskMemberStyle } from "../src/lib/kiosk.js";
 const member = (id, color) => ({ id, data: { color } });
 test("saved colors survive ordering and new assignments avoid them", () => {
@@ -77,4 +77,21 @@ test("automatic defaults avoid custom colors matching either legacy theme render
     assert.notEqual(kioskMemberStyle(next)["--member-color"], referenceHex, key);
     assert.notEqual(assignedMemberColors([...members, member("unassigned")]).get("unassigned"), key, key);
   }
+});
+
+test("family tiles use exact selected colors across themes without relying on tint classes", () => {
+  assert.equal(memberTileStyle("teal").backgroundColor, "#4bc88b");
+  assert.equal(memberTileStyle("purple").backgroundColor, "#ffffff");
+  assert.equal(memberTileStyle("blue").backgroundColor, "#666464");
+  assert.equal(memberTileStyle("navy").backgroundColor, "#1e3a8a");
+  assert.equal(memberTileStyle("#Ab12Ef").backgroundColor, "#ab12ef");
+  assert.equal(memberTileStyle("#000000").color, "#ffffff");
+  assert.equal(memberTileStyle("#ffffff").color, "#000000");
+  for (const key of [...Object.keys(MEMBER_COLORS), "#Ab12Ef"]) {
+    const style = memberTileStyle(key);
+    assert.equal(style.backgroundColor, kioskMemberStyle(key)["--member-color"]);
+    assert.equal(style["--member-accent"], style.backgroundColor);
+    assert.equal(style["--member-color"], style.backgroundColor);
+  }
+  assert.deepEqual(memberTileStyle("constructor"), memberTileStyle("teal"));
 });
