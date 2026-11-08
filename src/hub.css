@@ -1551,3 +1551,17 @@ progress {
 .hub.dark .progress, .hub.dark progress { background: repeating-linear-gradient(145deg,#1a1818 0 4px,#2c2929 4px 6px); }
 
 .hub.dark .inline-notice { border: 1px solid #494646; }
+
+/* Glossy black backdrop: soft reflected light over a true black base. */
+.hub.dark {
+  --bg: #000;
+  background-color: #000;
+  background-image:
+    radial-gradient(ellipse at 65% 0%, #ffffff0a, transparent 52%),
+    linear-gradient(115deg, #000 12%, #141414 32%, #040404 46%, #000 70%);
+  background-attachment: fixed;
+}
+.hub.dark .hub-sidebar, .hub.dark .hub-top {
+  background: linear-gradient(145deg, #171717 0%, #080808 24%, #000 65%);
+  box-shadow: inset 0 1px 0 #ffffff14;
+}
