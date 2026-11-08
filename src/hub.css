@@ -1464,3 +1464,6 @@ progress {
 .connection-note .simple-row small {
   overflow-wrap: anywhere;
 }
+.onboarding-scene { grid-template-columns: 1fr; }
+.onboarding-create { margin-top: 32px; }
+.onboarding-scene .text-btn { margin-right: 20px; }
