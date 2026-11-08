@@ -179,8 +179,10 @@ Kiosk activation released: main 3002ee8c4ab54be1e006360bf0060822cd94b913; Vercel
 ## Audit supplied upload hardening patch
 - [x] Compare requested handlers against published main and current avatar controls.
 - [x] Harden missing/invalid profile color at save while retaining selected or existing supported colors.
-- [ ] Verify tests/build and publish the applicable fix.
+- [x] Verify tests/build and publish the applicable fix.
 
 Finding: published main has HTTPS avatar URLs, no file picker/dropzone, handleFileUpload, avatars bucket integration, or CalendarApp.jsx. Native cancellation/reselection handlers cannot be patched in code that is absent. New profiles already choose an unused palette color; randomizing every save would overwrite explicit colors and may create collisions. Preserve chosen colors and assign an unused fallback only when the saved value is missing/invalid. Do not introduce unscoped public child-photo uploads from the supplied snippet.
 
 Upload audit review: no uploader/dropzone in published main; no cancellation/reselection/upload changes claimed. Fixed supported-color validation and save fallback. 28 tests/build pass, including missing/invalid/prototype-name color values. Browser sample verified clearing Mia’s color preserves White, and a new profile with blank color saves Deep red (unused); photo URL and color controls remain present. Real family records and Supabase schema/storage are unchanged.
+
+Applicable hardening released: 89fe936489d04ffc57dc3ec8819c4e737bb64c82 on main. Vercel production dpl_73nRnQLDQgZpUbt1aX5CNfUSZggt READY. Upload-specific findings remain not applicable to the published URL-only avatar form; an uploader source/branch is needed to patch those handlers.
