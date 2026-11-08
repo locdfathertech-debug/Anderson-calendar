@@ -1,5 +1,6 @@
 import { ThemeColorField, FamilyTypeField } from "./MemberProfileFields.jsx";
 import MemberAvatar from "./MemberAvatar.jsx";
+import MemberPhotoField from "./MemberPhotoField.jsx";
 import { safeAvatarUrl } from "./lib/avatar.js";
 import { kioskMemberStyle } from "./lib/kiosk.js";
 import { videoSource } from "./lib/video.js";
@@ -149,6 +150,7 @@ export default function Planner({
   demo = false,
   busy = false,
 }) {
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [tab, setTab] = useState(
       () =>
         ({
@@ -219,6 +221,7 @@ export default function Planner({
   }
   async function save(e) {
     e.preventDefault();
+    if (photoBusy) return;
     const rawAvatar = typeof dialog.data.avatar_url === "string" ? dialog.data.avatar_url.trim() : "";
     const avatar = safeAvatarUrl(rawAvatar);
     if (dialog.kind === "member" && rawAvatar && !avatar) {
@@ -1277,6 +1280,8 @@ export default function Planner({
                 : FIELDS[dialog.kind] || []
               ).map(([key, label, type = "text"], i) => type === "color" ? (
                 <ThemeColorField dark={dark} key={key} value={dialog.data[key] || ""} disabled={dialog.readOnly} onChange={value => setDialog({ ...dialog, data: { ...dialog.data, [key]: value } })} />
+              ) : key === "avatar_url" ? (
+                <MemberPhotoField key={dialog.id || "new-photo"} value={dialog.data.avatar_url || ""} disabled={dialog.readOnly || busy} onBusyChange={setPhotoBusy} onChange={value => setDialog(current => current ? { ...current, data: { ...current.data, avatar_url: value } } : current)} />
               ) : type === "memberrole" ? (
                 <FamilyTypeField key={key} value={dialog.data[key] || ""} disabled={dialog.readOnly} onChange={value => setDialog({ ...dialog, data: { ...dialog.data, [key]: value } })} />
               ) : (
@@ -1376,7 +1381,7 @@ export default function Planner({
                 </label>
               ))}
               {dialog.kind === "member" && (
-                <p className="footnote">Family member types are planner profile labels. Login permissions are managed separately in family account access. Use a direct HTTPS image link for the optional photo.</p>
+                <p className="footnote">Family member types are planner profile labels. Login permissions are managed separately in family account access. Upload a photo or use a direct HTTPS image link. Photos save with this family profile.</p>
               )}
               {dialog.kind === "payment" && (
                 <p className="footnote">
@@ -1409,7 +1414,7 @@ export default function Planner({
                   Cancel
                 </button>
                 {!dialog.readOnly && (
-                  <button className="btn primary" disabled={busy}>
+                  <button className="btn primary" disabled={busy || photoBusy}>
                     {busy
                       ? "Saving…"
                       : dialog.kind === "payment"

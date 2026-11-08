@@ -1612,3 +1612,9 @@ progress {
 .hub .slate, .hub .tint-slate, .hub.dark .slate, .hub.dark .tint-slate { background: #64748b; color: #ffffff; --member-accent: #64748b; }
 .hub .black, .hub .tint-black, .hub.dark .black, .hub.dark .tint-black { background: #111111; color: #ffffff; --member-accent: #111111; }
 .profile-field-group input,.profile-field-group select{min-height:48px}
+
+.member-photo-field { display: grid; gap: 12px; }
+.member-photo-field label { display: grid; gap: 8px; }
+.member-photo-field input[type="file"] { padding: 8px; cursor: pointer; }
+.member-photo-field input::file-selector-button { min-height: 40px; padding: 8px 14px; margin-right: 12px; border: 1px solid currentColor; border-radius: 8px; cursor: pointer; background: #4bc88b; color: #080808; font: inherit; }
+.member-photo-field [role="alert"] { color: #f43d12; font-size: 14px; }

@@ -197,3 +197,14 @@ Spec: preserve existing named assignments, palette layout and kiosk protection. 
 Family controls review: 31 tests and production build pass. Browser sample saved/restored Godchild and custom #165dbe, blocked invalid hex via form validation, and showed matching custom tile/event styles plus the relationship label in the kiosk. 24 presets plus native color picker/hex input; 35 named household/family types plus custom relationships. Existing assignments and private Auth/Parent PIN permissions retained. No real family records were changed during sample QA.
 
 Family choices released: main 1482f09659e57b0e8dd9d39b611c1e782e234482; production dpl_EmEZqU2URLqph71H7mWKbYX224LB READY. Public sample profile form verified all controls. Followup prevents automatic defaults duplicating custom colors matching legacy kiosk colors. All 31 tests/build pass.
+
+## Family photo uploads
+- [x] Add native photo selection, compressed preview, replace/remove and optional HTTPS link.
+- [x] Save bounded JPEG thumbnails with existing family-scoped profile records and Parent PIN authorization.
+- [x] Verify input reset/cancel guard, reselection, invalid files, save/reopen and profile display; tests/build and publish.
+
+Spec: JPEG/PNG/WebP up to 5 MB; re-encode a small JPEG thumbnail (384px max, 200 KB binary cap) before saving. No public bucket, new permissions, or layout changes. Save plan is the persistence action; original files are never uploaded.
+
+Photo review: 35 tests/build pass. Final browser sample verifies 384px JPEG preview, Save/reopen, invalid JPEG error and recovery, same-file reselect/input reset, existing HTTPS alternative and profile tile image. Original files remain local; only the re-encoded thumbnail saves in existing member JSON under family/Parent PIN RLS. No public storage, schema or permission changes. Screenshot docs/profile-photo-upload-form-review.jpg. Physical tablet picker remains device acceptance.
+
+Database verification limit: read-only policy inspection confirms existing family-scoped SELECT and parent-elevated write predicates. Additional rollback-only photo write test was not executed: Supabase confirmation expired (INVALID_ARGUMENT), so no live authenticated DB roundtrip is claimed. No schema/permission changes were made. Native picker cancellation is guarded by empty file selection; corrupt-file and reselection recovery were browser-tested.

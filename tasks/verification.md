@@ -54,3 +54,9 @@ Production kiosk activation: main 3002ee8c4ab54be1e006360bf0060822cd94b913, Verc
 31 tests/build pass. Palette tests cover 24 presets, custom #RRGGBB normalization/preservation, invalid values, stable defaults and readable new/custom ink contrast. Browser sample confirms 35 relationship options, custom Godchild persistence, custom #165dbe save/reopen, invalid hex rejection, and matching kiosk tile/timed event CSS; Month view retains the selected color. Relationship labels are display-only. No database or account permission changes.
 
 Public production sample verified expanded family/type and color fields after release 1482f09659e57b0e8dd9d39b611c1e782e234482 (Vercel READY). Screenshot docs/family-profile-options-review.jpg. Regression covers default assignments avoiding custom colors matching both legacy light and kiosk palettes.
+
+## Family photo uploads
+
+35 tests/build pass. Native picker supports PNG/JPEG/WebP up to5MB, resizes to384px JPEG with200KB cap, clears input for reselection, handles decoding failure, and cancels stale async updates on unmount. Browser sample verifies file selection, compressed preview, save/reopen, corrupt image error/recovery, repeated same file selection, HTTPS alternative and the family profile tile. Thumbnails save using existing family-scoped member records; no public bucket or permissions/schema changes. Screenshots docs/profile-photo-upload-form-review.jpg and docs/profile-photo-upload-review.jpg use a generated nonpersonal test avatar.
+
+Read-only policy inspection confirms family-member shared reads and private.can_manage_family write protection remain unchanged. tests/profile-photo-rls.sql is prepared but NOT confirmed run: Supabase returned expired confirmation/INVALID_ARGUMENT, with no SQL result. No authenticated live photo DB write is claimed; existing save path/RLS are reused. Native cancellation guard reviewed; unsaved Remove then Cancel restores saved thumbnail.

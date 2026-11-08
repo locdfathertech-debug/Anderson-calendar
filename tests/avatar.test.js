@@ -12,3 +12,8 @@ test("avatars reject executable schemes, insecure links, credentials and nonstan
     assert.equal(safeAvatarUrl(value), null, String(value));
   }
 });
+
+test("only bounded JPEG thumbnails can use data URLs", () => {
+  assert.equal(safeAvatarUrl("data:image/jpeg;base64,/9j/AAAA"), "data:image/jpeg;base64,/9j/AAAA");
+  for (const value of ["data:text/html;base64,/9j/AAAA", "data:image/png;base64,AAAA", "data:image/jpeg;base64,AAAA", "data:image/jpeg;base64,/9j/<svg>", "data:image/jpeg;base64,/9j/" + "A".repeat(280000)]) assert.equal(safeAvatarUrl(value), null);
+});
