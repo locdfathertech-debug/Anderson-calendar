@@ -140,3 +140,14 @@ Spec: PIN is chosen by a parent (6–12 digits), never 1234. Display profile lab
 Review: 22 Node tests and production build passed. Rollback-only Parent PIN/RLS, existing chore/privacy, and meal/video suites passed. Direct locked CRUD, header/session/family replay, role RPC, throttling, rotation, expiry and revoked-session checks passed. Migration 20261108154017 applied to linked Supabase. Browser sample first setup, family add/photo URL, lock, wrong PIN and theme verified. Hardware steps remain physical-device acceptance; no real account PIN was set by the agent.
 
 Release: PR #7 merged as b28b4e30fcebc93532eeaa8987b88871505f9fa7. Vercel production dpl_4gbpbSXVAy6E8vYk8RP26bLt4PBp is READY and aliases www.anderfamcalendar.app. Public /demo browser displayed the monthly kiosk and new Parent PIN gate. Live authenticated account/PIN setup remains for the parent; no real credential was created during testing.
+
+## Weekly kiosk timeline
+- [x] Add Week/Month pill toggle, default Week, preserving both sidebars and current palette.
+- [x] Anchor Sunday–Saturday navigation to local calendar dates; keep selected date when switching views.
+- [x] Position timed events by minute, handle overlapping blocks and all-day events, include early/late plans.
+- [x] Verify date boundaries, member filters, event details/video, PIN gate preservation, layout and build.
+- [ ] Publish selected changes to GitHub/main and verify Vercel production.
+
+Spec: use existing family-scoped planner records and protected Parent Portal. Timeline has a time gutter and seven day columns, scrollable hours (07:00–20:00 by default), member-colored event blocks, and all-day row. Missing event durations default to one hour; explicit valid end_time is supported. All dates match YYYY-MM-DD directly to avoid UTC date shifts. Preserve Dinner, chores, bounty board, vacations, idle clock, videos, and read-only behavior.
+
+Weekly review: 27 Node tests and Vite production build pass. Browser verified default Week, 07:30 minute placement, Today/next-week, Month toggle, Nov26→Nov22–28 week preservation, Mia-only filter, all-day holiday, event video action, and Parent PIN gate. Current black/red/yellow/white/green theme and both sidebars retained. Pure display change; no database migration or Auth/RLS changes. Physical Tab S7 acceptance and authenticated live-data acceptance remain outside desktop/sample verification.

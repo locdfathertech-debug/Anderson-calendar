@@ -5,6 +5,8 @@ import { monthDays, shiftMonth, upcomingEvents, kioskMemberStyle, isBounty } fro
 import { assignedMemberColors } from "./lib/memberColors.js";
 import { useKioskRecords } from "./lib/useKioskRecords.js";
 import KioskVideo from "./KioskVideo.jsx";
+import WeekTimeline from "./WeekTimeline.jsx";
+import { weekDays, shiftWeek } from "./lib/weekTimeline.js";
 import MemberAvatar from "./MemberAvatar.jsx";
 import { videoSource, categoryInfo } from "./lib/video.js";
 import { AnimatePresence } from "framer-motion";
@@ -12,7 +14,9 @@ import "./kiosk.css";
 
 export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore, busy, onOpenParent, portalOpen = false }) {
   const [now, setNow] = useState(() => new Date());
-  const [month, setMonth] = useState(() => dateKey().slice(0, 7));
+  const [anchor, setAnchor] = useState(() => dateKey());
+  const [calendarView, setCalendarView] = useState("week");
+  const month = anchor.slice(0, 7);
   const [member, setMember] = useState("");
   const [fullscreen, setFullscreen] = useState(false);
   const [screenMessage, setScreenMessage] = useState("");
@@ -27,7 +31,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   const { records, status, refresh } = useKioskRecords(familyId, sample);
   useEffect(() => { setVideo(null); lastActivity.current = Date.now(); }, [familyId]);
   const today = dateKey(now);
-  const days = monthDays(month);
+  const days = calendarView === "week" ? weekDays(anchor) : monthDays(month);
   const members = records.filter(r => r.kind === "member");
   const colors = assignedMemberColors(members);
   const events = [...records.filter(r => r.kind === "event"), ...[...new Set(days.map(day => Number(day.slice(0, 4))))].flatMap(holidays)];
@@ -52,10 +56,10 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
       if (!dialog && !portalOpen && !activeVideo && Date.now() - lastActivity.current >= 15000) setIdle(true);
     }, 1000);
     function activity() { lastActivity.current = Date.now(); }
-    for (const type of ["pointerdown", "pointermove", "keydown"]) window.addEventListener(type, activity, { passive: true });
+    for (const type of ["pointerdown", "pointermove", "keydown", "wheel", "touchmove", "scroll"]) window.addEventListener(type, activity, { passive: true, capture: true });
     return () => {
       clearInterval(timer);
-      for (const type of ["pointerdown", "pointermove", "keydown"]) window.removeEventListener(type, activity);
+      for (const type of ["pointerdown", "pointermove", "keydown", "wheel", "touchmove", "scroll"]) window.removeEventListener(type, activity, true);
     };
   }, [dialog, activeVideo, portalOpen]);
   useEffect(() => {
@@ -127,6 +131,9 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
       else await document.documentElement.requestFullscreen();
     } catch { setScreenMessage("Fullscreen unavailable. Open the installed app for a larger view."); }
   }
+  function navigate(offset) {
+    setAnchor(calendarView === "week" ? shiftWeek(anchor, offset) : `${shiftMonth(month, offset)}-01`);
+  }
   function closeDialog() { setDialog(null); lastActivity.current = Date.now(); }
   function wake() { lastActivity.current = Date.now(); setIdle(false); }
   function closeVideo() { setVideo(null); lastActivity.current = Date.now(); }
@@ -179,16 +186,17 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
 
         </div>
       </aside>
-      <section className="kiosk-calendar" aria-label="Monthly family calendar">
-        <header className="kiosk-month-header"><div><p className="kiosk-eyebrow">FAMILY CALENDAR</p><h1>{new Date(`${month}-01T12:00:00`).toLocaleDateString([], { month: "long", year: "numeric" })}</h1><time dateTime={today}>{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</time></div>
-          <div className="kiosk-month-controls"><button className="kiosk-icon" aria-label="Previous month" onClick={() => setMonth(shiftMonth(month, -1))}><ChevronLeft /></button><button className="kiosk-control" onClick={() => setMonth(today.slice(0, 7))}>Today</button><button className="kiosk-icon" aria-label="Next month" onClick={() => setMonth(shiftMonth(month, 1))}><ChevronRight /></button></div>
+      <section className="kiosk-calendar" aria-label={`${calendarView === "week" ? "Weekly" : "Monthly"} family calendar`}>
+        <header className="kiosk-month-header"><div><p className="kiosk-eyebrow">FAMILY CALENDAR</p><h1>{calendarView === "week" ? `${new Date(`${days[0]}T12:00:00`).toLocaleDateString([], { month: "short", day: "numeric" })} – ${new Date(`${days[6]}T12:00:00`).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}` : new Date(`${month}-01T12:00:00`).toLocaleDateString([], { month: "long", year: "numeric" })}</h1><time dateTime={today}>{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</time></div>
+          <div className="kiosk-calendar-actions"><div className="kiosk-view-toggle" role="group" aria-label="Calendar view">{["week", "month"].map(view => <button key={view} aria-pressed={calendarView === view} onClick={() => setCalendarView(view)}>{view === "week" ? "Week" : "Month"}</button>)}</div><div className="kiosk-month-controls"><button className="kiosk-icon" aria-label={`Previous ${calendarView}`} onClick={() => navigate(-1)}><ChevronLeft /></button><button className="kiosk-control" onClick={() => setAnchor(today)}>Today</button><button className="kiosk-icon" aria-label={`Next ${calendarView}`} onClick={() => navigate(1)}><ChevronRight /></button></div></div>
         </header>
+        {calendarView === "week" ? <WeekTimeline anchor={anchor} today={today} events={events.filter(r => !member || r.data.member === member || r.data.member === "Family")} memberStyle={memberStyle} onSelectDay={day => { setAnchor(day); setDialog({ day }); }} /> : <>
         <div className="kiosk-weekdays">{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => <span key={d}>{d}</span>)}</div>
         <div className="kiosk-month-grid" style={{ "--week-count": days.length / 7 }}>
           {days.map(day => {
             const plans = events.filter(r => r.data.date === day && (!member || r.data.member === member || r.data.member === "Family"))
               .sort((a, b) => (a.data.time || "").localeCompare(b.data.time || ""));
-            return <button key={day} className={`kiosk-date ${day.startsWith(month) ? "" : "outside"}`} aria-current={day === today ? "date" : undefined} aria-label={`${new Date(`${day}T12:00:00`).toLocaleDateString([], { month: "long", day: "numeric" })}, ${plans.length} events`} onClick={() => setDialog({ day })}>
+            return <button key={day} className={`kiosk-date ${day.startsWith(month) ? "" : "outside"}`} aria-current={day === today ? "date" : undefined} aria-label={`${new Date(`${day}T12:00:00`).toLocaleDateString([], { month: "long", day: "numeric" })}, ${plans.length} events`} onClick={() => { setAnchor(day); setDialog({ day }); }}>
               <span className="kiosk-date-number">{Number(day.slice(-2))}</span>
               <span className="kiosk-day-layers">{[...new Set(plans.map(r => categoryInfo(r.data.category).key))].filter(key => key !== "general").map(key => { const info = categoryInfo(key); return <span key={key} role="img" aria-label={info.label} title={info.label}>{info.icon}</span>; })}</span>
               {plans.slice(0, 2).map(r => <span key={r.id} className="kiosk-event" style={memberStyle(r.data.member)}><small>{r.data.time || "All day"}</small><strong>{categoryInfo(r.data.category).icon && <span aria-hidden="true">{categoryInfo(r.data.category).icon} </span>}{r.data.title}{videoSource(r.data.video_url) && <Play size={10} aria-label="Video attached" />}</strong></span>)}
@@ -196,6 +204,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
             </button>;
           })}
         </div>
+        </>}
         <footer className="kiosk-calendar-footer"><span><Bell size={15} /> Tap a date to see all events</span><time>{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></footer>
       </section>
       <aside className="kiosk-activities">
