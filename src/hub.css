@@ -1488,3 +1488,44 @@ progress {
 .hub .member-chip.selected { border-color: var(--member-accent, var(--brand-teal)); box-shadow: 0 0 0 1px var(--member-accent, var(--brand-teal)); font-weight: 700; }
 .hub .member-chip .dot { background: var(--member-accent, var(--brand-teal)); }
 .hub .event-block, .hub .mini-event { border-left: 4px solid var(--member-accent, var(--brand-teal)); }
+
+/* Deep-black signed-in theme, with bright brand detail. */
+.hub.dark {
+  --bg: #000000;
+  --surface: #070909;
+  --border: #193332;
+  --ink: #ffffff;
+  --muted: #b3c2c1;
+  --brand-teal: #26e6d3;
+  --teal: #082b28;
+  --orange: #351a06;
+}
+.hub.dark .hub-sidebar, .hub.dark .hub-top { background: #000; }
+.hub.dark .hub-sidebar { border-right-color: #12635c; }
+.hub.dark .hub-top { border-bottom-color: #12635c; }
+.hub.dark .hub-brand { outline: 1px solid #164540; border-radius: 11px; }
+.hub.dark .nav-item.active {
+  background: #062622;
+  color: #26e6d3;
+  box-shadow: inset 3px 0 #ff8a18, 0 0 14px #00c9b315;
+}
+.hub.dark .nav-item:hover { background: #08201e; color: #26e6d3; }
+.hub.dark .heading-dot, .hub.dark .sun-art, .hub.dark .sidebar-note > span { color: #ff8a18; }
+.hub.dark .btn.primary { background: #ff8a18; border-color: #ff9b3d; color: #000; box-shadow: 0 3px 16px #ff8a181c; }
+.hub.dark .btn.primary:hover { background: #ffa13e; }
+.hub.dark .btn.ink { background: #26e6d3; color: #001310; border-color: #26e6d3; }
+.hub.dark .btn:not(.primary):not(.ink):not(.danger) { color: #26e6d3; border-color: #185f57; }
+.hub.dark .btn.theme-toggle { color: #26e6d3; border-color: #26e6d3; }
+.hub.dark .welcome-card { background: #020c0b; border-color: #168c7f; box-shadow: inset 0 2px #26e6d3; }
+.hub.dark .welcome-card > .pill { background: #05211d; color: #26e6d3; }
+.hub.dark .stat-card { border-top: 2px solid #26e6d3; }
+.hub.dark .stat-card:nth-child(3) { border-top-color: #ff8a18; }
+.hub.dark .stat-icon { background: #03231f; color: #26e6d3; }
+.hub.dark .stat-card:nth-child(3) .stat-icon { background: #2a1303; color: #ff8a18; }
+.hub.dark .section-title h2 { color: #26e6d3; }
+.hub.dark .preview-day.current { border-color: #ff8a18; }
+.hub.dark .is-today .day-heading { background: #04211d; box-shadow: inset 0 3px #ff8a18; }
+.hub.dark .is-today .day-heading strong { color: #26e6d3; }
+.hub.dark .modal { border: 1px solid #168c7f; }
+.hub.dark .modal-backdrop { background: #000b; }
+.hub.dark .inline-notice { background: #021b17; border: 1px solid #12635c; }
