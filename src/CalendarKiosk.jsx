@@ -5,11 +5,12 @@ import { monthDays, shiftMonth, upcomingEvents, kioskMemberStyle, isBounty } fro
 import { assignedMemberColors } from "./lib/memberColors.js";
 import { useKioskRecords } from "./lib/useKioskRecords.js";
 import KioskVideo from "./KioskVideo.jsx";
+import MemberAvatar from "./MemberAvatar.jsx";
 import { videoSource, categoryInfo } from "./lib/video.js";
 import { AnimatePresence } from "framer-motion";
 import "./kiosk.css";
 
-export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore, busy }) {
+export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore, busy, onOpenParent, portalOpen = false }) {
   const [now, setNow] = useState(() => new Date());
   const [month, setMonth] = useState(() => dateKey().slice(0, 7));
   const [member, setMember] = useState("");
@@ -38,7 +39,8 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   const selectedDay = dialog?.day;
   const dayEvents = selectedDay ? events.filter(r => r.data.date === selectedDay && (dialog.alert ? dialog.ids.includes(r.id) : (!member || r.data.member === member || r.data.member === "Family")))
     .sort((a, b) => (a.data.time || "").localeCompare(b.data.time || "")) : [];
-  const home = sample ? "/demo" : "/";
+
+  useEffect(() => { setIdle(false); lastActivity.current = Date.now(); }, [portalOpen]);
   function memberStyle(name) {
     const person = members.find(r => r.data.title === name);
     return kioskMemberStyle(person ? colors.get(person.id) : "teal");
@@ -47,7 +49,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
-      if (!dialog && !activeVideo && Date.now() - lastActivity.current >= 15000) setIdle(true);
+      if (!dialog && !portalOpen && !activeVideo && Date.now() - lastActivity.current >= 15000) setIdle(true);
     }, 1000);
     function activity() { lastActivity.current = Date.now(); }
     for (const type of ["pointerdown", "pointermove", "keydown"]) window.addEventListener(type, activity, { passive: true });
@@ -55,7 +57,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
       clearInterval(timer);
       for (const type of ["pointerdown", "pointermove", "keydown"]) window.removeEventListener(type, activity);
     };
-  }, [dialog, activeVideo]);
+  }, [dialog, activeVideo, portalOpen]);
   useEffect(() => {
     const manifest = document.querySelector('link[rel="manifest"]');
     const previous = manifest?.getAttribute("href");
@@ -69,14 +71,14 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
     };
   }, []);
   useEffect(() => {
-    if (dialog || idle || activeVideo) return;
+    if (dialog || portalOpen || idle || activeVideo) return;
     const minute = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
     const due = records.filter(r => r.kind === "event" && r.data.date === today && r.data.time === minute && (!member || r.data.member === member || r.data.member === "Family") && !alerted.current.has(`${r.id}-${today}-${minute}`));
     if (due.length) {
       due.forEach(r => alerted.current.add(`${r.id}-${today}-${minute}`));
       setDialog({ day: today, alert: true, ids: due.map(r => r.id) });
     }
-  }, [now, today, records, dialog, idle, member, activeVideo]);
+  }, [now, today, records, dialog, idle, member, activeVideo, portalOpen]);
   useEffect(() => {
     if (!dialog) return;
     const previous = document.activeElement;
@@ -156,7 +158,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
     </li>;
   }
   return <main className="calendar-kiosk">
-    <div className="kiosk-layout" inert={idle || dialog ? "" : undefined}>
+    <div className="kiosk-layout" inert={idle || dialog || portalOpen ? "" : undefined}>
       <aside className="kiosk-family">
         <img src="/anderson-family-hub-logo.webp" alt="Anderson Family Hub" width="720" height="216" />
         <p className="kiosk-tagline">Sync the schedule.<br />Share the love.</p>
@@ -165,16 +167,16 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
         <div className="kiosk-member-list">{members.map(r => {
           const count = events.filter(e => e.data.member === r.data.title && e.data.date === today).length;
           return <button key={r.id} className={`kiosk-member ${member === r.data.title ? "selected" : ""}`} style={memberStyle(r.data.title)} aria-pressed={member === r.data.title} onClick={() => setMember(member === r.data.title ? "" : r.data.title)}>
-            <span className="kiosk-avatar">{r.data.title?.slice(0, 1)}</span><span><strong>{r.data.title}</strong><small>{count ? `${count} plan${count === 1 ? "" : "s"} today` : "No plans today"}</small></span>
+            <MemberAvatar className="kiosk-avatar" name={r.data.title} url={r.data.avatar_url} /><span><strong>{r.data.title}</strong><small>{count ? `${count} plan${count === 1 ? "" : "s"} today` : "No plans today"}</small></span>
           </button>;
         })}</div>
         <div className="kiosk-family-bottom">
           <p className="kiosk-sync" role="status">{status}</p>
           {screenMessage && <p className="kiosk-notice">{screenMessage}</p>}
-          <button className="kiosk-control" onClick={() => setDialog({ portal: true })}><Settings size={19} /> Parent portal</button>
+          <button className="kiosk-control" onClick={() => { wake(); onOpenParent?.(); }}><Settings size={19} /> Parent portal</button>
           <button className="kiosk-control" onClick={toggleFullscreen}>{fullscreen ? <Minimize size={19} /> : <Maximize size={19} />}{fullscreen ? "Exit fullscreen" : "Fullscreen"}</button>
           <button className="kiosk-control" disabled={Boolean(activeVideo)} title={activeVideo ? "Close the video to show the clock" : undefined} onClick={() => setIdle(true)}><Moon size={19} /> Clock display</button>
-          <a className="kiosk-control" href={home}>Exit kiosk</a>
+
         </div>
       </aside>
       <section className="kiosk-calendar" aria-label="Monthly family calendar">
@@ -204,11 +206,11 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
       </aside>
     </div>
     {dialog && <div className="kiosk-modal-backdrop"><section ref={dialogRef} className="kiosk-dialog" role="dialog" aria-modal="true" aria-labelledby="kiosk-dialog-title">
-      <header><h2 id="kiosk-dialog-title">{dialog.portal ? "Parent portal" : dialog.alert ? "Starting now" : new Date(`${selectedDay}T12:00:00`).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</h2><button className="kiosk-icon" aria-label="Close dialog" onClick={closeDialog}><X /></button></header>
-      {dialog.portal ? <><p>The shared display keeps family plans read-only. Manage events, chores, bounties, and vacations in the regular workspace with a parent account.</p><p className="kiosk-hint">A family member’s color tab does not change account permissions.</p><a className="kiosk-control" href={home}>Open {sample ? "sample" : "family"} workspace</a></> : <>{dayEvents.length ? dayEvents.map(r => <article className="kiosk-event-detail" key={r.id} style={memberStyle(r.data.member)}><time>{r.data.time || "All day"}</time><h3>{r.data.title}</h3><p>{r.data.member}</p>{r.data.location && <p><MapPin size={16} /> {r.data.location}</p>}{r.data.notes && <p>{r.data.notes}</p>}{categoryInfo(r.data.category).icon && <p>{categoryInfo(r.data.category).icon} {categoryInfo(r.data.category).label}</p>}{videoSource(r.data.video_url) ? <button className="kiosk-control kiosk-play" onClick={() => playVideo(r)}><Play size={17} /> Play event video</button> : r.data.video_url ? <p className="kiosk-hint">Unsupported video link. Ask a parent to update it.</p> : null}</article>) : <p>No events on this date.</p>}</>}
+      <header><h2 id="kiosk-dialog-title">{dialog.alert ? "Starting now" : new Date(`${selectedDay}T12:00:00`).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</h2><button className="kiosk-icon" aria-label="Close dialog" onClick={closeDialog}><X /></button></header>
+      {<>{dayEvents.length ? dayEvents.map(r => <article className="kiosk-event-detail" key={r.id} style={memberStyle(r.data.member)}><time>{r.data.time || "All day"}</time><h3>{r.data.title}</h3><p>{r.data.member}</p>{r.data.location && <p><MapPin size={16} /> {r.data.location}</p>}{r.data.notes && <p>{r.data.notes}</p>}{categoryInfo(r.data.category).icon && <p>{categoryInfo(r.data.category).icon} {categoryInfo(r.data.category).label}</p>}{videoSource(r.data.video_url) ? <button className="kiosk-control kiosk-play" onClick={() => playVideo(r)}><Play size={17} /> Play event video</button> : r.data.video_url ? <p className="kiosk-hint">Unsupported video link. Ask a parent to update it.</p> : null}</article>) : <p>No events on this date.</p>}</>}
     </section></div>}
-    <AnimatePresence key={familyId || "sample"} mode="wait">{activeVideo && <KioskVideo key={`${activeVideo.id}-${activeVideo.url}`} video={activeVideo} onClose={closeVideo} hidden={Boolean(dialog)} />}</AnimatePresence>
-    {idle && !activeVideo && <button className="kiosk-screensaver" onClick={wake} onKeyDown={e => { if (e.key !== "Tab") { e.preventDefault(); wake(); } }} autoFocus aria-label="Wake family calendar">
+    <AnimatePresence key={familyId || "sample"} mode="wait">{activeVideo && <KioskVideo key={`${activeVideo.id}-${activeVideo.url}`} video={activeVideo} onClose={closeVideo} hidden={Boolean(dialog || portalOpen)} />}</AnimatePresence>
+    {idle && !activeVideo && !portalOpen && <button className="kiosk-screensaver" onClick={wake} onKeyDown={e => { if (e.key !== "Tab") { e.preventDefault(); wake(); } }} autoFocus aria-label="Wake family calendar">
       <div className="kiosk-clock-glass"><p className="kiosk-eyebrow">ANDERSON FAMILY HUB</p><time className="kiosk-idle-time">{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time><p>{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</p><div className="kiosk-up-next"><h2>Up next</h2>{upcoming.length ? upcoming.map(r => <div key={r.id}><strong>{r.data.title}</strong><span>{r.data.date === today ? "Today" : r.data.date} · {r.data.time || "All day"}</span></div>) : <p>No upcoming plans.</p>}</div><small>Tap anywhere or press a key to wake</small></div>
     </button>}
   </main>;

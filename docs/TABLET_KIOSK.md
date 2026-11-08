@@ -35,7 +35,7 @@ Parent-created records appear automatically. Use the regular parent workspace to
 
 The display fetches only member/event/chore/trip/meal records for the signed-in family. Existing database RLS remains authoritative. The shared display does not approve, pay, edit or claim chores. A child signed into their own account may submit only an open chore whose `assigned_user_id` matches their authenticated UUID, through `submit_planner_chore`.
 
-The blueprint's local `1234` PIN is deliberately omitted. The Parent portal control explains access and opens the existing workspace, where the actual signed-in role governs editing. This is not a PIN-protected parent session: use a least-privilege family member account on a shared tablet. An admin session retains admin privileges outside the kiosk route.
+The shared display is read-only by default. The gear opens a server-verified Parent PIN gate; the first verified parent chooses a 6–12 digit PIN. Admin writes require an expiring session grant and an in-memory unlock token. Lock & Exit or reloading clears the local token. A child profile label does not grant account permissions. See [Samsung setup](SAMSUNG_KIOSK.md) for device-level app pinning, which must be enabled on the tablet.
 
 Migration `20261108114844_enable_planner_kiosk_realtime.sql` adds only the existing planner table to `supabase_realtime`. No grants or RLS policies change. Family-filtered INSERT/UPDATE notifications trigger a fresh authorized snapshot. Reconciliation every 15 seconds handles deletions and missed/disconnected changes; reconnect and visibility changes refresh the snapshot. Failed sync retains only the same family's last snapshot with a visible warning. Records are not cached offline by the service worker.
 
