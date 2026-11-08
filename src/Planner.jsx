@@ -1,3 +1,4 @@
+import { MEMBER_COLORS, assignedMemberColors, nextMemberColor } from "./lib/memberColors.js";
 import { useEffect, useState } from "react";
 import {
   CalendarDays,
@@ -45,7 +46,7 @@ const NAV = [
   ["budget", "Family budget", Wallet],
   ["settings", "Parent portal", Settings],
 ];
-const COLORS = ["teal", "pink", "purple", "amber", "blue"];
+const COLORS = Object.keys(MEMBER_COLORS);
 const labelDate = (key, options = { month: "short", day: "numeric" }) =>
   new Date(`${key}T12:00:00`).toLocaleDateString("en-US", options);
 const isParent = (p) => ["admin", "super_admin"].includes(p?.role);
@@ -197,7 +198,8 @@ export default function Planner({
         member: members[0]?.data.title || "Family",
         amount: 0,
         quantity: 1,
-        color: "teal",
+        color: kind === "member" ? nextMemberColor(members) : "teal",
+        ...(kind === "member" ? { role: "Child" } : {}),
         type: kind === "transaction" ? "expense" : "Dinner",
         status: "open",
         ...initial,
@@ -251,8 +253,13 @@ export default function Planner({
       </article>
     );
   }
+  const memberColors = assignedMemberColors(members);
   function colorFor(name) {
-    return members.find((m) => m.data.title === name)?.data.color || "teal";
+    const person = members.find(member => member.data.title === name);
+    return person ? memberColors.get(person.id) : "teal";
+  }
+  function calendarColor(name) {
+    return { "--member-accent": MEMBER_COLORS[colorFor(name)] };
   }
   const heading = NAV.find((n) => n[0] === tab)?.[1];
   return (
@@ -266,12 +273,7 @@ export default function Planner({
             setTab("home");
           }}
         >
-          <span className="logo">
-            <CalendarDays />
-          </span>
-          <span>
-            Anderson<span className="brand-sub">FAMILY HUB</span>
-          </span>
+          <img className="sidebar-brand-image" src="/anderson-family-hub-logo.webp" alt="Anderson Family Hub" width="720" height="216" />
         </a>
         <div className="family-home">
           <span>🏡</span>
@@ -303,9 +305,9 @@ export default function Planner({
         <div className="sidebar-note">
           <span>✦</span>
           <strong>
-            Small plans.
+            Sync the schedule.
             <br />
-            Beautiful memories.
+            Share the love.
           </strong>
           <p>Make space for what matters.</p>
         </div>
@@ -517,6 +519,7 @@ export default function Planner({
                         <span
                           key={r.id}
                           className={`mini-event tint-${colorFor(r.data.member)}`}
+                          style={calendarColor(r.data.member)}
                         >
                           {r.data.title}
                         </span>
@@ -639,6 +642,8 @@ export default function Planner({
                       <button
                         key={name}
                         onClick={() => setMember(name)}
+                        aria-pressed={member === name}
+                        style={i ? calendarColor(name) : undefined}
                         className={
                           member === name
                             ? "member-chip selected"
@@ -699,6 +704,7 @@ export default function Planner({
                         .map((r) => (
                           <button
                             className={`event-block tint-${colorFor(r.data.member)}`}
+                            style={calendarColor(r.data.member)}
                             key={r.id}
                             onClick={() =>
                               setDialog({
