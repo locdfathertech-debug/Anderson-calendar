@@ -19,7 +19,7 @@ export function assignedMemberColors(members) {
   const used = new Set();
   const sorted = [...members].sort((a, b) => a.id.localeCompare(b.id));
   for (const member of sorted) {
-    if (MEMBER_COLORS[member.data.color]) {
+    if (Object.prototype.hasOwnProperty.call(MEMBER_COLORS, member.data.color)) {
       assignments.set(member.id, member.data.color);
       used.add(member.data.color);
     }
@@ -38,4 +38,11 @@ export function nextMemberColor(members) {
   const used = new Set(assignedMemberColors(members).values());
   return Object.keys(MEMBER_COLORS).find(color => !used.has(color))
     || Object.keys(MEMBER_COLORS)[members.length % Object.keys(MEMBER_COLORS).length];
+}
+
+// Keep an explicit choice or a legacy member's visible fallback stable on save.
+export function memberColorForSave(record, members) {
+  if (Object.prototype.hasOwnProperty.call(MEMBER_COLORS, record.data.color)) return record.data.color;
+  return assignedMemberColors(members).get(record.id)
+    || nextMemberColor(members.filter(member => member.id !== record.id));
 }

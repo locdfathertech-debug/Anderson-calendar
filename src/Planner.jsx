@@ -2,7 +2,7 @@ import MemberAvatar from "./MemberAvatar.jsx";
 import { safeAvatarUrl } from "./lib/avatar.js";
 import { kioskMemberStyle } from "./lib/kiosk.js";
 import { videoSource } from "./lib/video.js";
-import { MEMBER_COLORS, assignedMemberColors, nextMemberColor } from "./lib/memberColors.js";
+import { MEMBER_COLORS, assignedMemberColors, nextMemberColor, memberColorForSave } from "./lib/memberColors.js";
 import { useEffect, useState } from "react";
 import {
   CalendarDays,
@@ -238,7 +238,7 @@ export default function Planner({
     const record = ["event", "meal"].includes(dialog.kind)
       ? { ...dialog, data: { ...dialog.data, video_url: video?.url || "" } }
       : dialog.kind === "member"
-        ? { ...dialog, data: { ...dialog.data, avatar_url: avatar || "", role: dialog.data.role || "Child" } }
+        ? { ...dialog, data: { ...dialog.data, avatar_url: avatar || "", role: dialog.data.role || "Child", color: memberColorForSave(dialog, members) } }
         : dialog;
     if ((await onSave(record)) !== false) setDialog(null);
   }

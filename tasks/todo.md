@@ -175,3 +175,12 @@ Spec: kiosk preference is a local display setting, never an authorization grant.
 Kiosk activation review: 27 tests/build pass. Browser sample verified activation from unlocked parent toolbar immediately returns to the locked calendar, Stop is parent-only, wrong PIN rejection, hidden sign-out/manual clock/fullscreen-exit controls, persisted mode after reload, live calendar beyond idle timeout, setup guide, and fullscreen unsupported fallback. First activation requires configured Parent PIN. Preferences do not grant roles or edit access. Physical Samsung pinning, installed fullscreen and hardware wake lock remain device acceptance checks, not claimed remotely configured.
 
 Kiosk activation released: main 3002ee8c4ab54be1e006360bf0060822cd94b913; Vercel production dpl_9hUgxhbTy7SjSxqW4mp6icWsA2pD READY. Public /demo verified setup-first→parent Start→active calendar. Fullscreen unsupported fallback observed. Review notes were sanitized to remove account email details after automatic publication review blocked those details. No physical tablet lock is claimed.
+
+## Audit supplied upload hardening patch
+- [x] Compare requested handlers against published main and current avatar controls.
+- [x] Harden missing/invalid profile color at save while retaining selected or existing supported colors.
+- [ ] Verify tests/build and publish the applicable fix.
+
+Finding: published main has HTTPS avatar URLs, no file picker/dropzone, handleFileUpload, avatars bucket integration, or CalendarApp.jsx. Native cancellation/reselection handlers cannot be patched in code that is absent. New profiles already choose an unused palette color; randomizing every save would overwrite explicit colors and may create collisions. Preserve chosen colors and assign an unused fallback only when the saved value is missing/invalid. Do not introduce unscoped public child-photo uploads from the supplied snippet.
+
+Upload audit review: no uploader/dropzone in published main; no cancellation/reselection/upload changes claimed. Fixed supported-color validation and save fallback. 28 tests/build pass, including missing/invalid/prototype-name color values. Browser sample verified clearing Mia’s color preserves White, and a new profile with blank color saves Deep red (unused); photo URL and color controls remain present. Real family records and Supabase schema/storage are unchanged.

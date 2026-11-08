@@ -58,7 +58,7 @@ const MEMBER_PALETTE = {
 };
 
 export function kioskMemberStyle(color) {
-  const [accent, ink] = MEMBER_PALETTE[color] || (MEMBER_COLORS[color] ? [MEMBER_COLORS[color], "#080808"] : MEMBER_PALETTE.teal);
+  const [accent, ink] = Object.prototype.hasOwnProperty.call(MEMBER_PALETTE, color) ? MEMBER_PALETTE[color] : Object.prototype.hasOwnProperty.call(MEMBER_COLORS, color) ? [MEMBER_COLORS[color], "#080808"] : MEMBER_PALETTE.teal;
   return { "--member-color": accent, "--member-ink": ink };
 }
 
