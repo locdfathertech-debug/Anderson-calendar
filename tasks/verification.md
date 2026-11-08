@@ -32,5 +32,5 @@
 - Parent form keeps the reference black/red/yellow/white/green palette and existing calendar, Dinner, Chores, Bounty Board, Vacations and video capabilities. Photos fall back to initials on invalid or failed image loads.
 - CORS preflight to the linked Supabase REST endpoint permits x-parent-unlock with apikey/authorization.
 - Review deployment 15f4504 is READY. Browser inspection of that protected preview requires Vercel access. Auto-review rejected the authenticated-fetch tool because it creates a temporary share link; protection settings were not changed. Local UI was reviewed instead.
-- Database grant/RLS acceptance and production release results follow below when complete.
+- Database acceptance: rollback-only Parent PIN suite, existing child chore/privacy suite, and meal/video suite all PASS. First run caught a PL/pgSQL counter qualification error; renamed the variable and reran successfully. Migration 20261108154017_parent_portal_session_grants applied. No disposable fixtures remain. Production release verification follows below.
 - Physical Tab S7 app pinning, unpin credential check, fullscreen/wake lock, and external video provider playback remain device acceptance tasks. No physical tablet configuration is claimed.

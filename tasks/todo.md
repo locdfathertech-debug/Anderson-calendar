@@ -128,11 +128,13 @@ Review: 19 unit tests, clean dependency install, production build, and rollback-
 Pushed video update 86a504f8b7075890f125a266c94dcf552c3c4c73 to draft PR #7. No production website release and no video schema migration.
 
 ## Dual-layer kiosk and family management
-- [ ] Design server-enforced PIN grants bound to authenticated sessions, with private hashes and throttling.
-- [ ] Make signed-in main screen read-only kiosk; require PIN to enter parent workspace; lock clears grants/tokens.
-- [ ] Add parent Dashboard/Family/Chores navigation and child/parent display profiles with photo URLs/colors.
-- [ ] Verify PIN/API bypass denial, account/family isolation, grant expiry, photo fallback, browser flows and build.
-- [ ] Document verified Samsung app-pinning paths and physical-device acceptance.
+- [x] Design server-enforced PIN grants bound to authenticated sessions, with private hashes and throttling.
+- [x] Make signed-in main screen read-only kiosk; require PIN to enter parent workspace; lock clears grants/tokens.
+- [x] Add parent Dashboard/Family/Chores navigation and child/parent display profiles with photo URLs/colors.
+- [x] Verify PIN/API bypass denial, account/family isolation, grant expiry, photo fallback, browser flows and build.
+- [x] Document verified Samsung app-pinning paths and physical-device acceptance.
 - [ ] Publish tested changes to main/Vercel as requested, then verify deployment.
 
 Spec: PIN is chosen by a parent (6–12 digits), never 1234. Display profile labels cannot grant real account permissions. Admin API writes require an expiring server grant and an unpredictable in-memory token, not client state. The normal planner remains the unlocked parent workspace. Existing video/meal/calendar and child-owned chore workflow remain. Avatar URL support matches the supplied form; no public child-photo bucket.
+
+Review: 22 Node tests and production build passed. Rollback-only Parent PIN/RLS, existing chore/privacy, and meal/video suites passed. Direct locked CRUD, header/session/family replay, role RPC, throttling, rotation, expiry and revoked-session checks passed. Migration 20261108154017 applied to linked Supabase. Browser sample first setup, family add/photo URL, lock, wrong PIN and theme verified. Hardware steps remain physical-device acceptance; no real account PIN was set by the agent.
