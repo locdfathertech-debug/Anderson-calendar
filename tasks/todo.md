@@ -153,3 +153,10 @@ Spec: use existing family-scoped planner records and protected Parent Portal. Ti
 Weekly review: 27 Node tests and Vite production build pass. Browser verified default Week, 07:30 minute placement, Today/next-week, Month toggle, Nov26→Nov22–28 week preservation, Mia-only filter, all-day holiday, event video action, and Parent PIN gate. Current black/red/yellow/white/green theme and both sidebars retained. Pure display change; no database migration or Auth/RLS changes. Physical Tab S7 acceptance and authenticated live-data acceptance remain outside desktop/sample verification.
 
 Weekly release: main commit 16b5228773bcf2ac26f2ddec3b53833d5e041db9; Vercel production dpl_5DDuLgBy8X1ndXaDKTqFLRNc6im7 READY, www.anderfamcalendar.app alias assigned. Public /demo browser confirmed Week default, colored timeline events and unchanged sidebars. Screenshot docs/weekly-timeline-review.jpg.
+
+## More family tile colors
+- [x] Add six distinct colors while preserving saved assignments and current layout.
+- [x] Match new colors across profile choices, tiles, filters and calendar events.
+- [ ] Verify palette assignment, build, browser appearance and publish to GitHub/Vercel.
+
+Family color review: added Turquoise, Sky blue, Violet, Rose, Lime and Coral (12 total choices). 27 existing tests and production build pass. Direct assertions confirm 12 distinct automatic assignments and all six new kiosk colors match the shared palette. Browser sample changed Mia to Violet through the parent form and verified matching tile/event CSS and visible violet events. Real family assignments were not changed.

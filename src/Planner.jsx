@@ -1311,7 +1311,7 @@ export default function Planner({
                             : type === "transactiontype"
                               ? ["expense", "income"]
                               : type === "color"
-                                ? COLORS.map(value => ({ value, label: ({ teal: "Green", orange: "Deep red", purple: "White", pink: "Red", blue: "Gray", amber: "Yellow" })[value] || value }))
+                                ? COLORS.map(value => ({ value, label: ({ teal: "Green", orange: "Deep red", purple: "White", pink: "Red", blue: "Gray", amber: "Yellow", turquoise: "Turquoise", sky: "Sky blue", violet: "Violet", rose: "Rose", lime: "Lime", coral: "Coral" })[value] || value }))
                                 : type === "payment"
                                   ? [
                                       "Cash",

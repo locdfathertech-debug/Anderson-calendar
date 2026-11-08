@@ -6,6 +6,12 @@ export const MEMBER_COLORS = {
   pink: "#f591be",
   blue: "#71b9ff",
   amber: "#f4ce64",
+  turquoise: "#2dd4bf",
+  sky: "#38bdf8",
+  violet: "#a78bfa",
+  rose: "#f472b6",
+  lime: "#a3e635",
+  coral: "#ff956b",
 };
 
 export function assignedMemberColors(members) {

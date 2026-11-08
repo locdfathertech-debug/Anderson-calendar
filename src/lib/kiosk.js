@@ -1,4 +1,5 @@
 import { dateKey, shiftDate } from "./planner.js";
+import { MEMBER_COLORS } from "./memberColors.js";
 
 function firstOfMonth(month) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
@@ -57,7 +58,7 @@ const MEMBER_PALETTE = {
 };
 
 export function kioskMemberStyle(color) {
-  const [accent, ink] = MEMBER_PALETTE[color] || MEMBER_PALETTE.teal;
+  const [accent, ink] = MEMBER_PALETTE[color] || (MEMBER_COLORS[color] ? [MEMBER_COLORS[color], "#080808"] : MEMBER_PALETTE.teal);
   return { "--member-color": accent, "--member-ink": ink };
 }
 

@@ -1582,3 +1582,11 @@ progress {
 .parent-gate header{display:flex;align-items:center;gap:12px}.parent-gate header h2{flex:1;margin:0}.parent-gate footer{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.parent-gate form>button{margin-top:16px;width:100%}
 .parent-gate :focus-visible{outline-color:#ffd426}
 @media(max-width:760px){.member-avatar.kiosk-avatar{width:28px;height:28px}.parent-gate{padding:24px}}
+
+/* Additional family identity colors, shared with the tablet palette. */
+.hub .turquoise, .hub .tint-turquoise, .hub.dark .turquoise, .hub.dark .tint-turquoise { background: #2dd4bf; color: #080808; --member-accent: #2dd4bf; }
+.hub .sky, .hub .tint-sky, .hub.dark .sky, .hub.dark .tint-sky { background: #38bdf8; color: #080808; --member-accent: #38bdf8; }
+.hub .violet, .hub .tint-violet, .hub.dark .violet, .hub.dark .tint-violet { background: #a78bfa; color: #080808; --member-accent: #a78bfa; }
+.hub .rose, .hub .tint-rose, .hub.dark .rose, .hub.dark .tint-rose { background: #f472b6; color: #080808; --member-accent: #f472b6; }
+.hub .lime, .hub .tint-lime, .hub.dark .lime, .hub.dark .tint-lime { background: #a3e635; color: #080808; --member-accent: #a3e635; }
+.hub .coral, .hub .tint-coral, .hub.dark .coral, .hub.dark .tint-coral { background: #ff956b; color: #080808; --member-accent: #ff956b; }
