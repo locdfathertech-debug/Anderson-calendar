@@ -48,6 +48,7 @@ export default function App() {
     rememberKiosk(false);
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
   }
+  const [eventRequest, setEventRequest] = useState(null);
   const [session, setSession] = useState(null),
     [profile, setProfile] = useState(demo ? emptyProfile : null),
     [records, setRecords] = useState(demo ? sampleRecords : []),
@@ -57,9 +58,9 @@ export default function App() {
     [unlocked, setUnlocked] = useState(false), [expiresAt, setExpiresAt] = useState(null),
     [portalStatus, setPortalStatus] = useState(demo ? { is_parent: true, configured: false } : null);
   const generation = useRef(0), accessEpoch = useRef(0), workspace = useRef(false), demoPin = useRef(null), currentUser = useRef(null), locking = useRef(Promise.resolve());
-  const closeGate = useCallback(() => { accessEpoch.current++; setGateOpen(false); }, []);
+  const closeGate = useCallback(() => { accessEpoch.current++; setGateOpen(false); setEventRequest(null); }, []);
   function clearWorkspace() {
-    generation.current++; accessEpoch.current++; workspace.current = false;
+    generation.current++; accessEpoch.current++; workspace.current = false; setEventRequest(null);
     clearParentGrant(); setUnlocked(false); setExpiresAt(null); setGateOpen(false);
     if (!demo) setRecords([]);
     setAccounts([]); setAccess([]); setLoading(false); setBusy(false);
@@ -153,6 +154,10 @@ export default function App() {
       await locking.current;
     }
   }
+  function requestNewEvent(day) {
+    if (!isParent(profile)) return;
+    setEventRequest({date:day}); void openParent();
+  }
   async function openParent() {
     setGateOpen(true);
     if (!demo) {
@@ -228,8 +233,8 @@ export default function App() {
     {loading ? <main className="auth-scene"><div className="auth-box"><CalendarDays/><h1>Gathering your family plans…</h1></div></main>
       : recovery && session ? <Auth recovery onError={setError}/>
       : demo || (session && profile?.family_id) ? unlocked && isParent(profile)
-        ? <Planner records={records} profile={profile} accounts={accounts} access={access} onManageAccess={manageAccess} onSave={save} onDelete={remove} onSubmitChore={submitChore} onSignOut={signOut} onLock={lock} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} onStopKiosk={stopKiosk} demo={demo} busy={busy}/>
-        : <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} profile={profile} onSubmitChore={submitChore} busy={busy} onOpenParent={openParent} portalOpen={gateOpen} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} kioskNotice={kioskNotice}/>
+        ? <Planner eventRequest={eventRequest} onEventRequestHandled={() => setEventRequest(null)} records={records} profile={profile} accounts={accounts} access={access} onManageAccess={manageAccess} onSave={save} onDelete={remove} onSubmitChore={submitChore} onSignOut={signOut} onLock={lock} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} onStopKiosk={stopKiosk} demo={demo} busy={busy}/>
+        : <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} profile={profile} onSubmitChore={submitChore} busy={busy} onOpenParent={openParent} onRequestEvent={requestNewEvent} portalOpen={gateOpen} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} kioskNotice={kioskNotice}/>
       : session ? <FamilyOnboarding email={session.user.email} onComplete={() => load(session.user)} onSignOut={signOut}/>
       : <Auth onError={setError}/>}
     {gateOpen && <ParentGate status={portalStatus} demo={demo} onUnlock={unlock} onClose={closeGate} onSignOut={signOut} allowAccountSwitch={!activeKiosk}/>}

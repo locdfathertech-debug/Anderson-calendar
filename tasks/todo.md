@@ -217,3 +217,13 @@ Database verification limit: read-only policy inspection confirms existing famil
 Spec: existing family grid and account authorization remain intact. Changes are staged until Save tile. Explicit controls remove reliance on the small arrow and long modal. No schema/permission changes.
 
 Direct tile review: 36 tests/build pass. Browser sample changed Mia White→Violet and custom#165dbe, Dad Green→Navy, saved and returned to Family with retained choices. Native picker inside Mia tile saved a generated photo (384px) and displayed it in avatar. Navy color stayed exact in light/dark. Lock & Exit removes upload/edit controls. Failed saves retain drafts with error feedback by implementation; no live authenticated DB write test claimed. Root cause: legacy preset tint CSS differed from picker hex; inline tile style now resolves exact kiosk palette, presets and custom hex without tint class overrides.
+
+## Calendar reference additions
+- [x] Add real12-month Year view with correct month selection and year navigation.
+- [x] Add working calendar search and PIN-protected New Event shortcut to the calendar header.
+- [x] Retain family tile uploads/colors, PiP, idle display, existing chore/bounty flows and sidebar order.
+- [x] Verify date math, search, quick-add gate and browser layout; test/build and publish selected changes.
+
+Spec: adapt reference features to current tenant-aware components, never replace with pasted CalendarApp/default PIN/unscoped tables. Calendar search filters displayed events and offers cross-date results. New Event enters existing server-protected parent flow then opens predated event form. Existing brand palette/layout retained. Uploaded notes mark drag/drop and chore templates complete, but current shipped capabilities must be verified rather than assumed.
+
+Reference additions review:39 tests/build pass. Browser sample verified12monthYear views in kiosk and parent calendar;2027→February selects February2027; cross-year Homework search finds November2026 results, opens correct day; empty search feedback; NewEvent→PIN→dated November9 form→sample save; wrongPIN rejection; cancel clears pending add intent. Existing sidebars, palette, PiP, chore/bounty controls and direct tile editors retained. No schema/Auth/RLS changes or real family data writes. Pasted default1234PIN and public avatar bucket were not introduced. Screenshot docs/year-calendar-review.jpg.

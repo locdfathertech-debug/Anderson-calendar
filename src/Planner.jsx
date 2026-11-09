@@ -1,6 +1,7 @@
 import { ThemeColorField, FamilyTypeField } from "./MemberProfileFields.jsx";
 import MemberAvatar from "./MemberAvatar.jsx";
 import MemberTile from "./MemberTile.jsx";
+import YearCalendar from "./YearCalendar.jsx";
 import MemberPhotoField from "./MemberPhotoField.jsx";
 import { safeAvatarUrl } from "./lib/avatar.js";
 import { kioskMemberStyle } from "./lib/kiosk.js";
@@ -135,6 +136,7 @@ const FIELDS = {
   ],
 };
 export default function Planner({
+  eventRequest, onEventRequestHandled,
   records,
   profile,
   onSave,
@@ -220,6 +222,12 @@ export default function Planner({
       },
     });
   }
+  useEffect(() => {
+    if (!eventRequest || !parent) return;
+    setTab("calendar"); setDate(eventRequest.date);
+    add("event", { date: eventRequest.date });
+    onEventRequestHandled?.();
+  }, [eventRequest, parent]);
   async function save(e) {
     e.preventDefault();
     if (photoBusy) return;
@@ -643,11 +651,11 @@ export default function Planner({
                     className="icon-btn"
                     aria-label="Previous period"
                     onClick={() => {
-                      if (view === "month") {
+                      if (view === "month" || view === "year") {
                         const d = new Date(date + "T12:00:00");
                         setDate(
                           dateKey(
-                            new Date(d.getFullYear(), d.getMonth() - 1, 1),
+                            new Date(d.getFullYear(), d.getMonth() - (view === "year" ? 12 : 1), 1),
                           ),
                         );
                       } else
@@ -660,11 +668,11 @@ export default function Planner({
                     className="icon-btn"
                     aria-label="Next period"
                     onClick={() => {
-                      if (view === "month") {
+                      if (view === "month" || view === "year") {
                         const d = new Date(date + "T12:00:00");
                         setDate(
                           dateKey(
-                            new Date(d.getFullYear(), d.getMonth() + 1, 1),
+                            new Date(d.getFullYear(), d.getMonth() + (view === "year" ? 12 : 1), 1),
                           ),
                         );
                       } else setDate(shiftDate(date, view === "week" ? 7 : 1));
@@ -675,7 +683,7 @@ export default function Planner({
                   <h2>{labelDate(date, { month: "long", year: "numeric" })}</h2>
                 </div>
                 <div className="segmented">
-                  {["day", "week", "month"].map((v) => (
+                  {["day", "week", "month", "year"].map((v) => (
                     <button
                       className={view === v ? "selected" : ""}
                       onClick={() => setView(v)}
@@ -717,7 +725,7 @@ export default function Planner({
                   />
                 </label>
               </div>
-              <div className={`schedule ${view}`}>
+              {view === "year" ? <YearCalendar year={Number(date.slice(0,4))} today={today} events={events} onSelectMonth={month => { setDate(`${month}-01`); setView("month"); }} /> : <div className={`schedule ${view}`}>
                 {(view === "month"
                   ? (() => {
                       const d = new Date(date + "T12:00:00");
@@ -785,7 +793,7 @@ export default function Planner({
                     </div>
                   </section>
                 ))}
-              </div>
+              </div>}
             </>
           )}
           {tab === "chore" && (

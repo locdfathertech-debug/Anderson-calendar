@@ -64,3 +64,7 @@ Read-only policy inspection confirms family-member shared reads and private.can_
 ## Direct family tile controls
 
 36 tests/build pass. Exact selected preset/custom colors render inline instead of legacy tint CSS; helper test covers24 presets/custom values. Browser sample verifies Violet and custom#165dbe saves, Navy light/dark consistency, native in-tile upload with384px avatar, navigation away/back persistence and hidden controls after lock. Detailed profile editor remains available. Existing family/PIN authorization unchanged; no new DB write acceptance is claimed. Screenshots docs/direct-family-tiles-review.jpg and docs/direct-family-tiles-dark-review.jpg contain generated sample photo only.
+
+## Calendar reference additions
+
+39 tests/build pass. New year helper tests cover12months/leapdays, full cross-year date keys and valid event counts without mutation. Browser sample verifies kiosk/parent Year views, year arrow and correct month selection, cross-year query results/emptyquery feedback, PIN-protected quickadd with selecteddate, sampleeventsave, wrongPIN denial and canceledintentclearing. Screenshot docs/year-calendar-review.jpg. Existing family tile source and storage/data permissions unchanged. No live authenticated real-data save or physicaltablet validation is claimed. No claim is made that the pasted legacy drag/drop or chore generator sample exists unchanged in this different codebase; existing uploader/chore/bounty flows are retained.

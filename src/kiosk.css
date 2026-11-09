@@ -174,3 +174,15 @@
 .kiosk-mode-status{font-size:11px;line-height:1.6;color:#4bc88b;border:1px solid #4bc88b66;background:#10261b;border-radius:10px;padding:10px;margin:0}
 .kiosk-start{background:#ffd426;color:#080808;border-color:#ffd426;font-weight:700}
 .kiosk-setup ol{padding-left:22px}.kiosk-setup li{line-height:1.7;margin-bottom:14px}.kiosk-setup strong{color:#ffd426}
+
+.kiosk-header-utilities { display:flex; align-items:center; gap:12px; margin-bottom:14px; flex-shrink:0; }
+.kiosk-search { display:flex; align-items:center; gap:8px; flex:1; min-width:0; border:1px solid #494646; border-radius:12px; padding:0 12px; background:#111; color:#b6b4b4; }
+.kiosk-search input { width:100%; min-width:0; min-height:48px; font:inherit; color:#fff; background:transparent; border:0; outline:none; }
+.kiosk-search:focus-within { outline:2px solid #ffd426; }
+.kiosk-new-event { background:#f43d12; color:#080808; white-space:nowrap; }
+.kiosk-search-results { max-height:180px; overflow:auto; flex-shrink:0; margin-bottom:10px; border:1px solid #494646; border-radius:12px; padding:8px; background:#111; }
+.kiosk-search-results > p { color:#b6b4b4; margin:0 0 6px; font-size:12px; }
+.kiosk-search-results > button { display:flex; gap:8px; justify-content:space-between; align-items:center; width:100%; min-height:48px; padding:8px; border:0; border-top:1px solid #343232; color:#fff; background:transparent; text-align:left; cursor:pointer; font:inherit; }
+.kiosk-search-results button:hover,.kiosk-search-results button:focus-visible { background:#282525; outline:1px solid #ffd426; }
+.kiosk-search-results span { color:#b6b4b4; font-size:12px; }
+@media(max-width:650px) { .kiosk-header-utilities { flex-wrap:wrap; }.kiosk-search-results > button { flex-direction:column; align-items:flex-start; } }

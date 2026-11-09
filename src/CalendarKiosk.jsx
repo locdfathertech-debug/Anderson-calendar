@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { Maximize, Minimize, ChevronLeft, ChevronRight, Settings, X, CheckCircle, MapPin, Moon, Bell, Utensils, Play } from "lucide-react";
+import { Maximize, Minimize, ChevronLeft, ChevronRight, Settings, X, CheckCircle, MapPin, Moon, Bell, Utensils, Play, Search, Plus } from "lucide-react";
 import { dateKey, holidays, money } from "./lib/planner.js";
 import { monthDays, shiftMonth, upcomingEvents, kioskMemberStyle, isBounty } from "./lib/kiosk.js";
 import { assignedMemberColors } from "./lib/memberColors.js";
 import { useKioskRecords } from "./lib/useKioskRecords.js";
 import KioskVideo from "./KioskVideo.jsx";
 import WeekTimeline from "./WeekTimeline.jsx";
+import YearCalendar from "./YearCalendar.jsx";
 import { weekDays, shiftWeek } from "./lib/weekTimeline.js";
 import MemberAvatar from "./MemberAvatar.jsx";
 import { videoSource, categoryInfo } from "./lib/video.js";
 import { AnimatePresence } from "framer-motion";
 import "./kiosk.css";
 
-export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore, busy, onOpenParent, portalOpen = false, kioskEnabled = false, onStartKiosk, kioskNotice = "" }) {
+export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore, busy, onOpenParent, portalOpen = false, kioskEnabled = false, onStartKiosk, onRequestEvent, kioskNotice = "" }) {
   const [now, setNow] = useState(() => new Date());
   const [anchor, setAnchor] = useState(() => dateKey());
   const [calendarView, setCalendarView] = useState("week");
+  const [search, setSearch] = useState("");
   const month = anchor.slice(0, 7);
   const [member, setMember] = useState("");
   const [fullscreen, setFullscreen] = useState(() => Boolean(document.fullscreenElement));
@@ -36,6 +38,8 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   const members = records.filter(r => r.kind === "member");
   const colors = assignedMemberColors(members);
   const events = [...records.filter(r => r.kind === "event"), ...[...new Set(days.map(day => Number(day.slice(0, 4))))].flatMap(holidays)];
+  const calendarEvents = events.filter(r => (!member || r.data.member === member || r.data.member === "Family") && [r.data.title,r.data.member,r.data.location,r.data.notes,r.data.category].some(value => String(value || "").toLowerCase().includes(search.trim().toLowerCase())));
+  const searchResults = search.trim() ? calendarEvents.filter(r => /^\d{4}-\d{2}-\d{2}$/.test(r.data.date || "")).sort((a,b) => a.data.date.localeCompare(b.data.date) || (a.data.time || "").localeCompare(b.data.time || "")) : [];
   const dinners = records.filter(r => r.kind === "meal" && r.data.date === today && String(r.data.type || "Dinner").toLowerCase() === "dinner");
   const chores = records.filter(r => r.kind === "chore" && r.data.date === today);
   const upcoming = upcomingEvents(records.filter(r => r.kind === "event"), now).slice(0, 2);
@@ -133,7 +137,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
     } catch { setScreenMessage("Fullscreen unavailable. Open the installed app for a larger view."); }
   }
   function navigate(offset) {
-    setAnchor(calendarView === "week" ? shiftWeek(anchor, offset) : `${shiftMonth(month, offset)}-01`);
+    setAnchor(calendarView === "year" ? `${Number(anchor.slice(0,4)) + offset}-01-01` : calendarView === "week" ? shiftWeek(anchor, offset) : `${shiftMonth(month, offset)}-01`);
   }
   function closeDialog() { setDialog(null); lastActivity.current = Date.now(); }
   function wake() { lastActivity.current = Date.now(); setIdle(false); }
@@ -191,15 +195,17 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
 
         </div>
       </aside>
-      <section className="kiosk-calendar" aria-label={`${calendarView === "week" ? "Weekly" : "Monthly"} family calendar`}>
-        <header className="kiosk-month-header"><div><p className="kiosk-eyebrow">FAMILY CALENDAR</p><h1>{calendarView === "week" ? `${new Date(`${days[0]}T12:00:00`).toLocaleDateString([], { month: "short", day: "numeric" })} – ${new Date(`${days[6]}T12:00:00`).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}` : new Date(`${month}-01T12:00:00`).toLocaleDateString([], { month: "long", year: "numeric" })}</h1><time dateTime={today}>{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</time></div>
-          <div className="kiosk-calendar-actions"><div className="kiosk-view-toggle" role="group" aria-label="Calendar view">{["week", "month"].map(view => <button key={view} aria-pressed={calendarView === view} onClick={() => setCalendarView(view)}>{view === "week" ? "Week" : "Month"}</button>)}</div><div className="kiosk-month-controls"><button className="kiosk-icon" aria-label={`Previous ${calendarView}`} onClick={() => navigate(-1)}><ChevronLeft /></button><button className="kiosk-control" onClick={() => setAnchor(today)}>Today</button><button className="kiosk-icon" aria-label={`Next ${calendarView}`} onClick={() => navigate(1)}><ChevronRight /></button></div></div>
+      <section className="kiosk-calendar" aria-label={`${calendarView === "year" ? "Yearly" : calendarView === "week" ? "Weekly" : "Monthly"} family calendar`}>
+        <header className="kiosk-month-header"><div><p className="kiosk-eyebrow">FAMILY CALENDAR</p><h1>{calendarView === "year" ? anchor.slice(0,4) : calendarView === "week" ? `${new Date(`${days[0]}T12:00:00`).toLocaleDateString([], { month: "short", day: "numeric" })} – ${new Date(`${days[6]}T12:00:00`).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}` : new Date(`${month}-01T12:00:00`).toLocaleDateString([], { month: "long", year: "numeric" })}</h1><time dateTime={today}>{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</time></div>
+          <div className="kiosk-calendar-actions"><div className="kiosk-view-toggle" role="group" aria-label="Calendar view">{["week", "month", "year"].map(view => <button key={view} aria-pressed={calendarView === view} onClick={() => setCalendarView(view)}>{view === "week" ? "Week" : view === "year" ? "Year" : "Month"}</button>)}</div><div className="kiosk-month-controls"><button className="kiosk-icon" aria-label={`Previous ${calendarView}`} onClick={() => navigate(-1)}><ChevronLeft /></button><button className="kiosk-control" onClick={() => setAnchor(today)}>Today</button><button className="kiosk-icon" aria-label={`Next ${calendarView}`} onClick={() => navigate(1)}><ChevronRight /></button></div></div>
         </header>
-        {calendarView === "week" ? <WeekTimeline anchor={anchor} today={today} events={events.filter(r => !member || r.data.member === member || r.data.member === "Family")} memberStyle={memberStyle} onSelectDay={day => { setAnchor(day); setDialog({ day }); }} /> : <>
+        <div className="kiosk-header-utilities"><label className="kiosk-search"><Search size={18} /><input type="search" aria-label="Search family calendar" placeholder="Search family plans…" value={search} maxLength={200} onChange={e => setSearch(e.target.value)} /></label>{["admin","super_admin"].includes(profile?.role) && <button className="kiosk-control kiosk-new-event" onClick={() => { wake(); onRequestEvent?.(anchor); }}><Plus size={18} /> New Event</button>}</div>
+        {search.trim() && <div className="kiosk-search-results" aria-label="Calendar search results"><p role="status">{searchResults.length} matching plans{searchResults.length > 10 ? " · showing first 10" : ""}</p>{searchResults.slice(0,10).map(r => <button key={r.id} onClick={() => { setAnchor(r.data.date); setCalendarView("month"); setDialog({day:r.data.date}); }}><strong>{r.data.title}</strong><span>{r.data.date} · {r.data.time || "All day"} · {r.data.member || "Family"}</span></button>)}</div>}
+        {calendarView === "year" ? <YearCalendar year={Number(anchor.slice(0,4))} events={calendarEvents} today={today} onSelectMonth={value => { setAnchor(`${value}-01`); setCalendarView("month"); }} /> : calendarView === "week" ? <WeekTimeline anchor={anchor} today={today} events={calendarEvents} memberStyle={memberStyle} onSelectDay={day => { setAnchor(day); setDialog({ day }); }} /> : <>
         <div className="kiosk-weekdays">{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => <span key={d}>{d}</span>)}</div>
         <div className="kiosk-month-grid" style={{ "--week-count": days.length / 7 }}>
           {days.map(day => {
-            const plans = events.filter(r => r.data.date === day && (!member || r.data.member === member || r.data.member === "Family"))
+            const plans = calendarEvents.filter(r => r.data.date === day)
               .sort((a, b) => (a.data.time || "").localeCompare(b.data.time || ""));
             return <button key={day} className={`kiosk-date ${day.startsWith(month) ? "" : "outside"}`} aria-current={day === today ? "date" : undefined} aria-label={`${new Date(`${day}T12:00:00`).toLocaleDateString([], { month: "long", day: "numeric" })}, ${plans.length} events`} onClick={() => { setAnchor(day); setDialog({ day }); }}>
               <span className="kiosk-date-number">{Number(day.slice(-2))}</span>
