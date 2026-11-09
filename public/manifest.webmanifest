@@ -1,6 +1,6 @@
 {
-  "name": "Anderson Family Hub",
-  "short_name": "Family Hub",
+  "name": "Anderson Fam Calendar",
+  "short_name": "Anderson Fam",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
@@ -9,7 +9,7 @@
   "description": "A shared family wall calendar for schedules, school, and everyday tasks.",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "/anderson-neon-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
