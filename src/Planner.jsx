@@ -165,7 +165,7 @@ export default function Planner({
         })[window.location.pathname] || "home",
     ),
     [date, setDate] = useState(dateKey()),
-    [view, setView] = useState("week"),
+    [view, setView] = useState("month"),
     [member, setMember] = useState("All family"),
     [search, setSearch] = useState(""),
     [dialog, setDialog] = useState(null),

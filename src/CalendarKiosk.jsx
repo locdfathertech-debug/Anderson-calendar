@@ -16,7 +16,7 @@ import "./kiosk.css";
 export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore, busy, onOpenParent, portalOpen = false, kioskEnabled = false, onStartKiosk, onRequestEvent, kioskNotice = "" }) {
   const [now, setNow] = useState(() => new Date());
   const [anchor, setAnchor] = useState(() => dateKey());
-  const [calendarView, setCalendarView] = useState("week");
+  const [calendarView, setCalendarView] = useState("month");
   const [search, setSearch] = useState("");
   const month = anchor.slice(0, 7);
   const [member, setMember] = useState("");

@@ -227,3 +227,9 @@ Direct tile review: 36 tests/build pass. Browser sample changed Mia White→Viol
 Spec: adapt reference features to current tenant-aware components, never replace with pasted CalendarApp/default PIN/unscoped tables. Calendar search filters displayed events and offers cross-date results. New Event enters existing server-protected parent flow then opens predated event form. Existing brand palette/layout retained. Uploaded notes mark drag/drop and chore templates complete, but current shipped capabilities must be verified rather than assumed.
 
 Reference additions review:39 tests/build pass. Browser sample verified12monthYear views in kiosk and parent calendar;2027→February selects February2027; cross-year Homework search finds November2026 results, opens correct day; empty search feedback; NewEvent→PIN→dated November9 form→sample save; wrongPIN rejection; cancel clears pending add intent. Existing sidebars, palette, PiP, chore/bounty controls and direct tile editors retained. No schema/Auth/RLS changes or real family data writes. Pasted default1234PIN and public avatar bucket were not introduced. Screenshot docs/year-calendar-review.jpg.
+
+## Monthly default
+- [x] Set initial kiosk and parent calendar view to Month; retain Week/Year options.
+- [x] Run production build and publish selected changes.
+
+Review: only initial view states changed; Year remains a selectable view.
