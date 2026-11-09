@@ -242,3 +242,13 @@ Review: only initial view states changed; Year remains a selectable view.
 Spec: retain current section order, family tile editors, Month default and account permissions. Scope changes to portal presentation/navigation; no new database, login or payment behavior.
 
 Portal alignment review:39 tests/build pass. Browser sample verified Dashboard/Calendar/Family navigation, yellow selectedtab RGB255,212,38 and48px toolbarbuttons, Month selected oncalendar, retained photo/color inputs in family tiles and detailform, lightmode preservedwhite tile thenreturn dark. Fixed mismatch between parent-portal-toolbar markup and unused portal-toolbar stylesheet. No records/auth/schema changes. CSS adds wrapping rules; physicalmobile/tablet acceptance not claimed. Screenshot docs/parent-calendar-theme-review.jpg.
+
+
+## Attached calendar logo
+- [x] Replace shared branding with the exact supplied square PNG across sign-in, onboarding, Parent Portal, and kiosk.
+- [x] Set intrinsic dimensions to 1024 × 1024 to retain proportions.
+- [x] Run existing tests and production build; publish review branch.
+
+Verification: all 39 tests and Vite build pass; built PNG is byte-for-byte identical to the supplied 1024 × 1024 artwork.
+
+Scope: preserve the complete supplied artwork and existing calendar/portal functionality. No database changes required.

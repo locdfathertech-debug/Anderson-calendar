@@ -25,7 +25,7 @@ export default function FamilyOnboarding({ email, onComplete, onSignOut }) {
   return (
     <main className="auth-scene onboarding-scene">
       <section className="auth-box">
-        <img className="auth-brand" src="/anderson-family-hub-logo.webp" alt="Anderson Family Hub" width="720" height="216" />
+        <img className="auth-brand" src="/anderson-family-calendar-logo.png" alt="Anderson Family Calendar" width="1024" height="1024" />
         <p className="eyebrow">WELCOME TO YOUR FAMILY HUB</p>
         <h1>Make yourself at home.</h1>
         <p className="muted">Signed in as {email || "your account"}.</p>
