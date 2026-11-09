@@ -338,7 +338,7 @@ function Auth({ recovery = false, onError }) {
       <section className="auth-box">
         <img
           className="auth-brand"
-          src="/anderson-family-calendar-logo.png"
+          src="/anderson-circular-logo.svg"
           alt="Anderson Family Calendar"
           width="1024"
           height="1024"
