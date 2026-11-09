@@ -1670,3 +1670,8 @@ progress {
 @media(max-width:1000px) { .parent-workspace .parent-portal-toolbar { padding:12px 24px; }.parent-workspace .parent-portal-toolbar .btn.danger { margin-left:0; } }
 @media(max-width:760px) { .parent-workspace .parent-portal-toolbar { padding:12px 18px; gap:6px; }.parent-workspace .parent-portal-toolbar .btn { flex:1 1 auto; }.parent-workspace .search { width:100%; }.parent-workspace .search input { width:100%; }.parent-workspace .top-actions { gap:8px; }.parent-workspace .calendar-controls .segmented { max-width:100%; display:flex; flex-wrap:wrap; } }
 .hub.parent-workspace.dark .parent-portal-toolbar .btn[aria-current="page"] { background:#ffd426; border-color:#ffd426; color:#080808; box-shadow:none; }
+
+/* Anderson circular brand: never crop the full logo on login or Parent Portal. */
+.auth-brand { width: min(100%, 340px); height: auto; aspect-ratio: 1 / 1; object-fit: contain; object-position: center; margin-inline: auto; }
+.sidebar-brand-image { width: 100%; max-width: 224px; height: auto; aspect-ratio: 1 / 1; object-fit: contain; object-position: center; margin-inline: auto; border-radius: 50%; }
+.hub-brand { justify-content: center; min-width: 0; }

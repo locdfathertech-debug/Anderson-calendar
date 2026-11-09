@@ -9,7 +9,7 @@
   "description": "A shared family wall calendar for schedules, school, and everyday tasks.",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "/anderson-circular-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
