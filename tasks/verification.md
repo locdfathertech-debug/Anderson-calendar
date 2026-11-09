@@ -68,3 +68,7 @@ Read-only policy inspection confirms family-member shared reads and private.can_
 ## Calendar reference additions
 
 39 tests/build pass. New year helper tests cover12months/leapdays, full cross-year date keys and valid event counts without mutation. Browser sample verifies kiosk/parent Year views, year arrow and correct month selection, cross-year query results/emptyquery feedback, PIN-protected quickadd with selecteddate, sampleeventsave, wrongPIN denial and canceledintentclearing. Screenshot docs/year-calendar-review.jpg. Existing family tile source and storage/data permissions unchanged. No live authenticated real-data save or physicaltablet validation is claimed. No claim is made that the pasted legacy drag/drop or chore generator sample exists unchanged in this different codebase; existing uploader/chore/bounty flows are retained.
+
+## Parent Portal visual alignment
+
+39 existing tests/build pass. Browser sample verifies calendar-aligned glossy panels, Poppins/Inter typography, yellow activetab (computedRGB255,212,38),48px toolbarcontrols, Calendar shortcut and Month default, profile editor retaining35types/24colors/nativeupload, and light/dark toggle preserving familytilecolors. No datawrites or permission changes. Toolbar class mismatch corrected and selected state wins inherited button CSS. Responsive wrapping rules added; no physicaltablet/mobile viewport acceptance claim. Screenshot docs/parent-calendar-theme-review.jpg.

@@ -233,3 +233,12 @@ Reference additions review:39 tests/build pass. Browser sample verified12monthYe
 - [x] Run production build and publish selected changes.
 
 Review: only initial view states changed; Year remains a selectable view.
+
+## Parent Portal visual alignment
+- [x] Match calendar typography, glossy surfaces, borders, focus states and 48px controls.
+- [x] Align parent navigation and calendar view controls with visible Calendar shortcut and selected state.
+- [x] Verify dashboard/family/calendar forms and light mode; add responsive wrapping rules, build and publish.
+
+Spec: retain current section order, family tile editors, Month default and account permissions. Scope changes to portal presentation/navigation; no new database, login or payment behavior.
+
+Portal alignment review:39 tests/build pass. Browser sample verified Dashboard/Calendar/Family navigation, yellow selectedtab RGB255,212,38 and48px toolbarbuttons, Month selected oncalendar, retained photo/color inputs in family tiles and detailform, lightmode preservedwhite tile thenreturn dark. Fixed mismatch between parent-portal-toolbar markup and unused portal-toolbar stylesheet. No records/auth/schema changes. CSS adds wrapping rules; physicalmobile/tablet acceptance not claimed. Screenshot docs/parent-calendar-theme-review.jpg.

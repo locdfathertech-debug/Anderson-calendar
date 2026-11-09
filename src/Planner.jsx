@@ -312,7 +312,7 @@ export default function Planner({
   }
   const heading = NAV.find((n) => n[0] === tab)?.[1];
   return (
-    <div className={`hub ${dark ? "dark" : ""}`}>
+    <div className={`hub parent-workspace ${dark ? "dark" : ""}`}>
       <aside className="hub-sidebar">
         <a
           className="hub-brand"
@@ -416,6 +416,7 @@ export default function Planner({
         {parent && onLock && (
           <nav className="parent-portal-toolbar" aria-label="Parent portal sections">
             <button type="button" className={`btn ${tab === "home" ? "selected" : ""}`} aria-current={tab === "home" ? "page" : undefined} onClick={() => setTab("home")}><LayoutDashboard size={17} /> Dashboard</button>
+            <button type="button" className={`btn ${tab === "calendar" ? "selected" : ""}`} aria-current={tab === "calendar" ? "page" : undefined} onClick={() => setTab("calendar")}><CalendarDays size={17} /> Calendar</button>
             <button type="button" className={`btn ${tab === "settings" ? "selected" : ""}`} aria-current={tab === "settings" ? "page" : undefined} onClick={() => setTab("settings")}><Users size={17} /> Family</button>
             <button type="button" className={`btn ${tab === "chore" ? "selected" : ""}`} aria-current={tab === "chore" ? "page" : undefined} onClick={() => setTab("chore")}><CheckCheck size={17} /> Chores</button>
             <button type="button" className="btn" onClick={kioskEnabled ? onStopKiosk : onStartKiosk}><Monitor size={17} /> {kioskEnabled ? "Stop Kiosk Mode" : "Start Kiosk Mode"}</button>
@@ -686,10 +687,11 @@ export default function Planner({
                   {["day", "week", "month", "year"].map((v) => (
                     <button
                       className={view === v ? "selected" : ""}
+                      aria-pressed={view === v}
                       onClick={() => setView(v)}
                       key={v}
                     >
-                      {v}
+                      {v[0].toUpperCase() + v.slice(1)}
                     </button>
                   ))}
                 </div>
