@@ -322,7 +322,7 @@ export default function Planner({
             setTab("home");
           }}
         >
-          <img className="sidebar-brand-image" src="/anderson-family-hub-logo.webp" alt="Anderson Family Hub" width="720" height="216" />
+          <img className="sidebar-brand-image" src="/anderson-family-calendar-logo.png" alt="Anderson Family Calendar" width="1024" height="1024" />
         </a>
         <div className="family-home">
           <span>🏡</span>

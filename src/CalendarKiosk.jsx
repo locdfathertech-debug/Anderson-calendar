@@ -172,7 +172,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   return <main className="calendar-kiosk">
     <div className="kiosk-layout" inert={idle || dialog || portalOpen ? "" : undefined}>
       <aside className="kiosk-family">
-        <img src="/anderson-family-hub-logo.webp" alt="Anderson Family Hub" width="720" height="216" />
+        <img src="/anderson-family-calendar-logo.png" alt="Anderson Family Calendar" width="1024" height="1024" />
         <p className="kiosk-tagline">Sync the schedule.<br />Share the love.</p>
         <div className="kiosk-section-heading"><h2>Our family</h2><span>{members.length}</span></div>
         <button className={`kiosk-member ${!member ? "selected" : ""}`} aria-pressed={!member} onClick={() => setMember("")}>All family</button>

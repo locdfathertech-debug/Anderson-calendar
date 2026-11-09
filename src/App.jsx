@@ -338,10 +338,10 @@ function Auth({ recovery = false, onError }) {
       <section className="auth-box">
         <img
           className="auth-brand"
-          src="/anderson-family-hub-logo.webp"
-          alt="Anderson Family Hub"
-          width="720"
-          height="216"
+          src="/anderson-family-calendar-logo.png"
+          alt="Anderson Family Calendar"
+          width="1024"
+          height="1024"
         />
         <p className="eyebrow">WELCOME HOME</p>
         <h1>
