@@ -186,3 +186,79 @@
 .kiosk-search-results button:hover,.kiosk-search-results button:focus-visible { background:#282525; outline:1px solid #ffd426; }
 .kiosk-search-results span { color:#b6b4b4; font-size:12px; }
 @media(max-width:650px) { .kiosk-header-utilities { flex-wrap:wrap; }.kiosk-search-results > button { flex-direction:column; align-items:flex-start; } }
+
+
+/* Full-screen monthly screensaver for the family wall tablet (16:10 landscape). */
+.calendar-kiosk .kiosk-month-screensaver {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 0.8vh, 12px);
+  padding: clamp(12px, 1.8vw, 28px);
+  overflow: hidden;
+  box-sizing: border-box;
+  color: #fff;
+  background: radial-gradient(ellipse at 50% -30%, #087d793b, transparent 58%), #070809;
+  cursor: pointer;
+  animation: kiosk-fade .4s ease-out;
+}
+.kiosk-saver-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex: none;
+}
+.kiosk-saver-header .kiosk-eyebrow { margin: 0 0 4px; color: #36c7bb; }
+.kiosk-saver-header h1 { margin: 0; font-size: clamp(24px, 3.5vw, 52px); font-weight: 700; }
+.kiosk-saver-clock { display: flex; flex-direction: column; text-align: right; gap: 3px; }
+.kiosk-saver-clock time { font-size: clamp(19px, 2vw, 32px); font-variant-numeric: tabular-nums; }
+.kiosk-saver-clock span { color: #c3c5c7; font-size: clamp(10px, 1.1vw, 15px); }
+.kiosk-saver-weekdays, .kiosk-saver-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.kiosk-saver-weekdays { flex: none; text-align: center; color: #cbd0d1; font-weight: 600; font-size: clamp(10px, 1vw, 16px); }
+.kiosk-saver-weekdays span { padding: 5px 0; }
+.kiosk-saver-grid {
+  flex: 1 1 0;
+  min-height: 0;
+  grid-template-rows: repeat(var(--week-count), minmax(0, 1fr));
+  gap: clamp(3px, 0.5vw, 8px);
+}
+.kiosk-saver-day {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #363b40;
+  border-radius: 9px;
+  padding: clamp(4px, 0.65vw, 10px);
+  background: linear-gradient(150deg, #1b1b20, #101216);
+  overflow: hidden;
+}
+.kiosk-saver-day.outside { opacity: .45; background: #0b0c0f; }
+.kiosk-saver-day.today { border: 2px solid #ff8a18; background: #20201a; }
+.kiosk-saver-day-number { font-size: clamp(12px, 1.25vw, 20px); font-weight: 700; line-height: 1; margin-bottom: 5px; }
+.kiosk-saver-day.today .kiosk-saver-day-number { color: #ffb351; }
+.kiosk-saver-events { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 3px; }
+.kiosk-saver-event { display: flex; gap: 4px; align-items: center; min-width: 0; border-radius: 5px; background: var(--member-color); color: var(--member-ink); padding: 3px 5px; font-size: clamp(9px, .9vw, 13px); }
+.kiosk-saver-event span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kiosk-saver-event small { flex: none; font-size: .8em; }
+.kiosk-saver-more { color: #bdc3c8; font-size: 10px; }
+.kiosk-saver-footer { display: flex; justify-content: space-between; flex: none; gap: 10px; color: #b8b8b8; font-size: clamp(10px, 1vw, 13px); }
+@media (max-width: 740px) {
+  .calendar-kiosk .kiosk-month-screensaver { padding: 7px; gap: 4px; }
+  .kiosk-saver-header h1 { font-size: 22px; }
+  .kiosk-saver-clock span { display: none; }
+  .kiosk-saver-weekdays span { font-size: 0; }
+  .kiosk-saver-weekdays span::first-letter { font-size: 12px; }
+  .kiosk-saver-day { padding: 3px; border-radius: 5px; }
+  .kiosk-saver-day-number { font-size: 12px; }
+  .kiosk-saver-event { padding: 2px; font-size: 9px; }
+  .kiosk-saver-footer span:first-child { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .calendar-kiosk .kiosk-month-screensaver { animation: none; } }

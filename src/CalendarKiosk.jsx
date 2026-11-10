@@ -7,6 +7,7 @@ import { useKioskRecords } from "./lib/useKioskRecords.js";
 import KioskVideo from "./KioskVideo.jsx";
 import WeekTimeline from "./WeekTimeline.jsx";
 import YearCalendar from "./YearCalendar.jsx";
+import MonthlyScreensaver from "./MonthlyScreensaver.jsx";
 import { weekDays, shiftWeek } from "./lib/weekTimeline.js";
 import MemberAvatar from "./MemberAvatar.jsx";
 import { videoSource, categoryInfo } from "./lib/video.js";
@@ -58,7 +59,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
-      if (!kioskEnabled && !dialog && !portalOpen && !activeVideo && Date.now() - lastActivity.current >= 15000) setIdle(true);
+      if (!dialog && !portalOpen && !activeVideo && Date.now() - lastActivity.current >= 60000) setIdle(true);
     }, 1000);
     function activity() { lastActivity.current = Date.now(); }
     for (const type of ["pointerdown", "pointermove", "keydown", "wheel", "touchmove", "scroll"]) window.addEventListener(type, activity, { passive: true, capture: true });
@@ -191,7 +192,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
           <button className="kiosk-control" onClick={() => { wake(); setDialog({ setup: true }); }}><Settings size={19} /> Kiosk setup</button>
           <button className="kiosk-control" onClick={() => { wake(); onOpenParent?.(); }}><Settings size={19} /> Parent portal</button>
           {!installedFullscreen && (!kioskEnabled || !fullscreen) && <button className="kiosk-control" onClick={toggleFullscreen}>{fullscreen ? <Minimize size={19} /> : <Maximize size={19} />}{fullscreen ? "Exit fullscreen" : kioskEnabled ? "Enter fullscreen" : "Fullscreen"}</button>}
-          {!kioskEnabled && <button className="kiosk-control" disabled={Boolean(activeVideo)} title={activeVideo ? "Close the video to show the clock" : undefined} onClick={() => setIdle(true)}><Moon size={19} /> Clock display</button>}
+          {<button className="kiosk-control" disabled={Boolean(activeVideo)} title={activeVideo ? "Close the video to show the monthly calendar" : undefined} onClick={() => setIdle(true)}><Moon size={19} /> Monthly screensaver</button>}
 
         </div>
       </aside>
@@ -236,8 +237,6 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
       </div> : <>{dayEvents.length ? dayEvents.map(r => <article className="kiosk-event-detail" key={r.id} style={memberStyle(r.data.member)}><time>{r.data.time || "All day"}</time><h3>{r.data.title}</h3><p>{r.data.member}</p>{r.data.location && <p><MapPin size={16} /> {r.data.location}</p>}{r.data.notes && <p>{r.data.notes}</p>}{categoryInfo(r.data.category).icon && <p>{categoryInfo(r.data.category).icon} {categoryInfo(r.data.category).label}</p>}{videoSource(r.data.video_url) ? <button className="kiosk-control kiosk-play" onClick={() => playVideo(r)}><Play size={17} /> Play event video</button> : r.data.video_url ? <p className="kiosk-hint">Unsupported video link. Ask a parent to update it.</p> : null}</article>) : <p>No events on this date.</p>}</>}
     </section></div>}
     <AnimatePresence key={familyId || "sample"} mode="wait">{activeVideo && <KioskVideo key={`${activeVideo.id}-${activeVideo.url}`} video={activeVideo} onClose={closeVideo} hidden={Boolean(dialog || portalOpen)} />}</AnimatePresence>
-    {idle && !kioskEnabled && !activeVideo && !portalOpen && <button className="kiosk-screensaver" onClick={wake} onKeyDown={e => { if (e.key !== "Tab") { e.preventDefault(); wake(); } }} autoFocus aria-label="Wake family calendar">
-      <div className="kiosk-clock-glass"><p className="kiosk-eyebrow">ANDERSON FAMILY HUB</p><time className="kiosk-idle-time">{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time><p>{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</p><div className="kiosk-up-next"><h2>Up next</h2>{upcoming.length ? upcoming.map(r => <div key={r.id}><strong>{r.data.title}</strong><span>{r.data.date === today ? "Today" : r.data.date} · {r.data.time || "All day"}</span></div>) : <p>No upcoming plans.</p>}</div><small>Tap anywhere or press a key to wake</small></div>
-    </button>}
+    {idle && !activeVideo && !portalOpen && <MonthlyScreensaver now={now} records={records} members={members} colors={colors} onWake={wake} />}
   </main>;
 }
