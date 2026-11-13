@@ -222,6 +222,7 @@
 .kiosk-saver-weekdays, .kiosk-saver-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .kiosk-saver-weekdays { flex: none; text-align: center; color: #cbd0d1; font-weight: 600; font-size: clamp(10px, 1vw, 16px); }
 .kiosk-saver-weekdays span { padding: 5px 0; }
+.kiosk-weekday-short { display: none; }
 .kiosk-saver-grid {
   flex: 1 1 0;
   min-height: 0;
@@ -254,8 +255,8 @@
   .calendar-kiosk .kiosk-month-screensaver { padding: 7px; gap: 4px; }
   .kiosk-saver-header h1 { font-size: 22px; }
   .kiosk-saver-clock span { display: none; }
-  .kiosk-saver-weekdays span { font-size: 0; }
-  .kiosk-saver-weekdays span::first-letter { font-size: 12px; }
+  .kiosk-weekday-full { display: none; }
+  .kiosk-weekday-short { display: inline; font-size: 11px; }
   .kiosk-saver-day { padding: 3px; border-radius: 5px; }
   .kiosk-saver-day-number { font-size: 12px; }
   .kiosk-saver-event { padding: 2px; font-size: 9px; }
