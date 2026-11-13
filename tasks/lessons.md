@@ -26,3 +26,10 @@
 - A closed/draft review is not permanent: re-check actual merged production SHA before asserting which code is live.
 - Never infer security from UI badges or a client PIN; check the actual app import graph and server-side RLS/RPC guards before claiming exploitability.
 - For app branding and kiosk changes, require exact-asset quality, screen/layout QA, and an independent CI gate rather than relying on Vercel build alone.
+
+- Remove unused insecure prototypes entirely; adding a verified badge to the main UI cannot make an unimported hard-coded PIN flow safe to retain.
+- Derive badges from server-returned `profiles.role` and currently unlocked Parent Portal state; never derive permissions from editable family/member tiles. Treat display badges as descriptive, with all writes still subject to RLS/RPC guards.
+- A passing npm audit high-severity gate does not mean zero advisories. Record unresolved low-severity transitive dependencies and avoid unsupported overrides while no patched version exists.
+- Replace unused vulnerable dependencies before forcing incompatible major upgrades. Verify patched Vite on its compatible major and commit the generated lockfile only after test/build/audit pass.
+- Private photos require signed downloads, family-scoped Storage RLS, parent grant enforcement, and a real upload test in isolated staging. A migration proposal and green build do not establish that the Storage gateway forwards custom grant headers.
+- Prevent release until external authenticated family A/child A/family B fixtures, real device QA, and branch protection are configured. Missing staging credentials should fail closed, never silently skip.
