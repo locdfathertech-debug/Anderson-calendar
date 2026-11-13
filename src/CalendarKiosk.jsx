@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Maximize, Minimize, ChevronLeft, ChevronRight, Settings, X, CheckCircle, MapPin, Moon, Bell, Utensils, Play, Search, Plus } from "lucide-react";
+import { Maximize, Minimize, ChevronLeft, ChevronRight, Settings, X, CheckCircle, MapPin, Moon, Bell, Utensils, Play, Search, Plus, ShoppingCart, Sunrise } from "lucide-react";
 import { dateKey, holidays, money } from "./lib/planner.js";
 import { monthDays, shiftMonth, upcomingEvents, kioskMemberStyle, isBounty } from "./lib/kiosk.js";
 import { assignedMemberColors } from "./lib/memberColors.js";
@@ -8,6 +8,8 @@ import KioskVideo from "./KioskVideo.jsx";
 import WeekTimeline from "./WeekTimeline.jsx";
 import YearCalendar from "./YearCalendar.jsx";
 import MonthlyScreensaver from "./MonthlyScreensaver.jsx";
+import GroceryPanel from "./GroceryPanel.jsx";
+import { timeOfDayMode, routineGreeting, nextLocalDate } from "./lib/routineMode.js";
 import { weekDays, shiftWeek } from "./lib/weekTimeline.js";
 import MemberAvatar from "./MemberAvatar.jsx";
 import { videoSource, categoryInfo } from "./lib/video.js";
@@ -19,6 +21,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   const [anchor, setAnchor] = useState(() => dateKey());
   const [calendarView, setCalendarView] = useState("month");
   const [search, setSearch] = useState("");
+  const [rightColumn, setRightColumn] = useState("routine");
   const month = anchor.slice(0, 7);
   const [member, setMember] = useState("");
   const [fullscreen, setFullscreen] = useState(() => Boolean(document.fullscreenElement));
@@ -43,6 +46,9 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   const searchResults = search.trim() ? calendarEvents.filter(r => /^\d{4}-\d{2}-\d{2}$/.test(r.data.date || "")).sort((a,b) => a.data.date.localeCompare(b.data.date) || (a.data.time || "").localeCompare(b.data.time || "")) : [];
   const dinners = records.filter(r => r.kind === "meal" && r.data.date === today && String(r.data.type || "Dinner").toLowerCase() === "dinner");
   const chores = records.filter(r => r.kind === "chore" && r.data.date === today);
+  const routine = timeOfDayMode(now);
+  const tomorrow = nextLocalDate(now);
+  const tomorrowEvents = records.filter(r => r.kind === "event" && r.data.date === tomorrow).sort((a,b)=>(a.data.time||"").localeCompare(b.data.time||"")).slice(0,3);
   const upcoming = upcomingEvents(records.filter(r => r.kind === "event"), now).slice(0, 2);
   const trips = records.filter(r => r.kind === "trip" && (r.data.end || r.data.date) >= today)
     .sort((a, b) => (a.data.date || "").localeCompare(b.data.date || ""));
@@ -170,7 +176,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
         : <span className="kiosk-reward">{r.data.points ? `${r.data.points} pts` : money(r.data.amount)}</span>}
     </li>;
   }
-  return <main className="calendar-kiosk">
+  return <main className={`calendar-kiosk routine-${routine}`}>
     <div className="kiosk-layout" inert={idle || dialog || portalOpen ? "" : undefined}>
       <aside className="kiosk-family">
         <img src="/anderson-circular-logo.svg" alt="Anderson Family Calendar" width="1024" height="1024" />
@@ -220,10 +226,22 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
         <footer className="kiosk-calendar-footer"><span><Bell size={15} /> Tap a date to see all events</span><time>{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></footer>
       </section>
       <aside className="kiosk-activities">
+        <div className="kiosk-routine-greeting" role="status">
+          {routine === "morning" ? <Sunrise size={21}/> : routine === "evening" ? <Moon size={21}/> : <CheckCircle size={21}/>}
+          <div><strong>{routineGreeting(routine)}</strong>
+          <small>{routine === "morning" ? "Your day starts here" : routine === "evening" ? "Tomorrow is coming up" : "Today’s family overview"}</small></div>
+        </div>
+        <div className="kiosk-activity-toggle" role="group" aria-label="Right column view">
+          <button type="button" aria-pressed={rightColumn === "routine"} onClick={()=>setRightColumn("routine")}>Daily Routine</button>
+          <button type="button" aria-pressed={rightColumn === "groceries"} onClick={()=>setRightColumn("groceries")}><ShoppingCart size={16}/> Grocery List</button>
+        </div>
+        {rightColumn === "groceries" ? <GroceryPanel familyId={familyId} userId={profile?.id} demo={Boolean(sample)} dinners={dinners}/> : <>
+        {routine === "evening" && <section className="kiosk-tomorrow"><h2><Moon size={19}/> Tomorrow’s schedule</h2>{tomorrowEvents.length ? <ul>{tomorrowEvents.map(r=><li key={r.id} className="kiosk-chore"><div><strong>{r.data.title}</strong><small>{r.data.time || "All day"} · {r.data.member || "Family"}</small></div></li>)}</ul> : <p className="kiosk-empty">Nothing scheduled tomorrow.</p>}</section>}
         <section><h2><CheckCircle size={19} /> Today’s chores</h2><ul>{chores.filter(r => !isBounty(r.data)).map(choreCard)}</ul>{!chores.some(r => !isBounty(r.data)) && <p className="kiosk-empty">No chores scheduled today.</p>}</section>
         <section className="kiosk-dinner"><h2><Utensils size={19} /> Dinner</h2>{dinners.length ? dinners.map(r => <article key={r.id} className="kiosk-meal"><strong>{r.data.title}</strong>{r.data.notes && <p>{r.data.notes}</p>}{videoSource(r.data.video_url) ? <button className="kiosk-control kiosk-play" onClick={() => playVideo(r)}><Play size={17} /> Play recipe</button> : r.data.video_url ? <p className="kiosk-hint">This video link is unsupported. Ask a parent to update it.</p> : null}</article>) : <p className="kiosk-empty">No dinner planned for today.</p>}</section>
         <section><h2>Bounty board</h2><p className="kiosk-hint">Ask a parent to assign a task.</p><ul>{chores.filter(r => isBounty(r.data) && (r.data.status || "open") === "open").map(choreCard)}</ul>{!chores.some(r => isBounty(r.data) && (r.data.status || "open") === "open") && <p className="kiosk-empty">No open bounties today.</p>}</section>
         <section><h2><MapPin size={19} /> Upcoming vacations</h2>{trips.map(r => <article key={r.id} className="kiosk-trip"><strong>{r.data.title}</strong><p>{r.data.location}</p><time>{r.data.date} {r.data.end && `— ${r.data.end}`}</time></article>)}{!trips.length && <p className="kiosk-empty">Your next adventure starts here.</p>}</section>
+        </>}
       </aside>
     </div>
     {dialog && <div className="kiosk-modal-backdrop"><section ref={dialogRef} className="kiosk-dialog" role="dialog" aria-modal="true" aria-labelledby="kiosk-dialog-title">

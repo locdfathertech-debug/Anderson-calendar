@@ -150,6 +150,7 @@ export function sampleRecords() {
         date: today,
         type: "Dinner",
         notes: "Family favorite. The sample clip demonstrates the recipe player.",
+        ingredients: "chicken, long-grain rice, celery, onions",
         video_url: "/demo-recipe.mp4",
       },
     ],

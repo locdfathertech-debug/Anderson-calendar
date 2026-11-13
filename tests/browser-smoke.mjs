@@ -59,7 +59,24 @@ for (const device of viewports) {
     await page.locator(".family-chat-bubble.assistant").waitFor();
     const note = await page.locator(".family-chat-bubble.assistant").innerText();
     assert.match(note,/dinner|meal|parent/i,"AI must provide advisory suggestion");
+    await page.getByRole("textbox",{name:"Send family message"}).fill("@AI add bananas to the grocery list");
+    await page.getByRole("button",{name:"Send message"}).click();
+    await page.getByRole("button",{name:"Confirm add to groceries"}).click();
+    await page.locator(".family-chat-bubble.assistant").getByText(/Added "bananas"/).waitFor();
     await page.getByRole("dialog",{name:"Family chat and AI assistant"}).getByRole("button",{name:"Close family chat"}).click();
+    await page.getByRole("button",{name:"Grocery List"}).click();
+    await page.getByRole("region",{name:"Family grocery list"}).getByText("bananas").waitFor();
+    await page.getByRole("button",{name:/Add 4 ingredients for Smoked chicken/}).click();
+    await page.locator(".grocery-items").getByText("long-grain rice").waitFor();
+
+    await page.getByRole("textbox",{name:"Grocery item"}).fill("bread");
+    await page.getByRole("button",{name:"Add grocery item"}).click();
+    await page.locator(".grocery-items").getByText("bread").waitFor();
+    await page.getByRole("checkbox",{name:"Bought bread"}).check();
+    await page.locator(".grocery-items").getByText("bread").waitFor({state:"detached",timeout:7000});
+    await page.getByRole("button",{name:"Daily Routine"}).click();
+    await page.getByText(/Your day starts here|Tomorrow is coming up|Today’s family overview/).waitFor();
+
     await page.getByRole("dialog",{name:"Family chat and AI assistant"}).waitFor({state:"detached"});
     assert.deepEqual(pageErrors,[],"No uncaught client error");
     console.log(`PASS ${device.name}: month/week nav, screensaver ${count} cells, viewport geometry, wake, no exceptions`);

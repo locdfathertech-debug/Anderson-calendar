@@ -376,3 +376,24 @@ Draft PR #16, production unaffected by this chat change. Migration remains delib
 - [ ] Keep staged two-family RLS/chat/photo acceptance and GitHub branch protection as release blockers.
 
 **Release decision:** Review branch only, no Supabase Auth users created, no database change, no hard-coded owner email/password/PIN, no production deployment requested.
+
+
+## Phase 4 — Pantry & Grocery Ecosystem / Contextual Routine Modes (2026-11-13)
+
+**Scope:** Integrate the provided blueprint with the existing secure App/CalendarKiosk/Planner, not the pasted replacement CalendarApp. Preserve month default, full-screen month idle screensaver, accounts/Parent PIN, Supabase tenant RLS and 20/60/20 kiosk layout. No production migration without authenticated staging acceptance.
+
+- [x] Inspect existing client calendar, planned meals, pantry, family chat, database project and auth model.
+- [x] Add private `public.groceries` SQL proposal with `family_id`, authenticated sender, RLS SELECT/INSERT/UPDATE/DELETE, narrow update grants and Realtime publication.
+- [x] Add grocery UI in the kiosk right-column toggle, family-scoped hook, demo mode, checked-item clearing after two seconds.
+- [x] Add shared routine helper: Morning 05:00–10:59, Day 11:00–17:59/23:00–04:59, Evening 18:00–22:59; no hard-coded fake weather. Show tomorrow plans in Evening Mode.
+- [x] Add dinner ingredients field in Parent Portal meal planner and one-action transfer to groceries without duplicate entries.
+- [x] Extend advisory `@AI add milk to the grocery list` to show explicit user confirmation; never invent successful writes while Storage unavailable.
+- [x] Add unit tests for local time/day boundaries, ingredient parsing, grocery command and static SQL safety rules. Extend browser tests for four viewport sizes and new flows.
+- [x] npm test passed 63/63, Vite build and high-severity npm audit passed on initial review commit.
+- [x] Browser suite: first attempt failed because dinner-ingredient transfer text was rendered as literal JSX placeholders. Fixed, then reran Chromium across desktop, mobile, Samsung Tab S7 landscape and portrait. All passed (run 43394768695); verified grocery input/checkbox cleanup, dinner transfer, @AI confirmation, monthly default and screensaver.
+- [ ] Apply SQL in separately designated, healthy Supabase staging and execute Parent A/Child A/Parent B cross-family read/write/edit/delete tests, realtime sync on phone/kiosk and logout-revocation.
+- [ ] Validate actual Galaxy Tab S7 physically, plus native login, mobile grocery shopping, and dinner ingredient transfer.
+- [ ] Require release sign-off, required CI checks and authenticated staging acceptance before any production deployment.
+
+### Review / release decision
+Implementation stays in draft PR until CI and authenticated staging acceptance pass. Production database and family records are unchanged.
