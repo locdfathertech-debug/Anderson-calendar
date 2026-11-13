@@ -95,6 +95,46 @@ try {
     family_id:b.profile.family_id,sender_id:a.profile.id,body:testText+" cross"
   });
   assert.ok(deniedCross.error,"Parent A must not post to Family B");
+  // Realtime delivery across signed-in devices. Family B can subscribe to
+  // the same table/filter, but must NEVER receive Family A payloads.
+  const ping = `E2E realtime ${Date.now()} ${Math.random().toString(36).slice(2)}`;
+  let resolveChildEvent;
+  const received = new Promise(resolve => { resolveChildEvent=resolve; });
+  let leakedToB = false;
+  const channelFilter = `family_id=eq.${a.profile.family_id}`;
+  const channelA = child.c.channel(`e2e-child-${Date.now()}`)
+    .on("postgres_changes", {event:"INSERT",schema:"public",table:"family_messages",filter:channelFilter},
+      payload => { if(payload.new?.body === ping) resolveChildEvent(payload.new); });
+  const channelB = b.c.channel(`e2e-other-household-${Date.now()}`)
+    .on("postgres_changes", {event:"INSERT",schema:"public",table:"family_messages",filter:channelFilter},
+      payload => { if(payload.new?.body === ping) leakedToB = true; });
+  async function subscribeReady(channel) {
+    await new Promise((resolve,reject)=>{
+      const timer = setTimeout(()=>reject(new Error("Realtime subscription timed out")),12000);
+      channel.subscribe(status=>{
+        if(status==="SUBSCRIBED") {clearTimeout(timer);resolve();}
+        else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED") {
+          clearTimeout(timer);reject(new Error("Realtime subscription failed: "+status));
+        }
+      });
+    });
+  }
+  try {
+    await Promise.all([subscribeReady(channelA),subscribeReady(channelB)]);
+    const sent = await a.c.from("family_messages").insert({
+      family_id:a.profile.family_id,sender_id:a.profile.id,body:ping
+    });
+    assert.ifError(sent.error);
+    const delivery = await Promise.race([
+      received,
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("Child A did not receive Realtime chat")),12000))
+    ]);
+    assert.equal(delivery.body,ping,"Realtime payload mismatch");
+    await new Promise(resolve=>setTimeout(resolve,1000));
+    assert.equal(leakedToB,false,"Cross-family Realtime message leaked to Family B");
+  } finally {
+    await Promise.allSettled([child.c.removeChannel(channelA), b.c.removeChannel(channelB)]);
+  }
   const validChild = await child.c.from("family_messages").insert({
     family_id:a.profile.family_id,sender_id:child.profile.id,body:testText+" child"
   });
