@@ -5,7 +5,7 @@ export function groceryItem(value) {
 export function requestedGroceryItem(message) {
   const text = String(message || "");
   if (!/(?:^|\s)@ai\b/i.test(text)) return null;
-  const match = text.match(/\badd\s+(.+?)\s+to\s+(?:the\s+)?(?:grocery|groceries|shopping)\s+list\b/i) ||
+  const match = text.match(/\badd\s+(.+?)\s+to\s+(?:the\s+)?(?:grocery|groceries|shopping)(?:\s+list)?\b/i) ||
     text.match(/\b(?:groceries|grocery list)\s*:\s*(.+)$/i);
   if (!match) return null;
   const item = groceryItem(match[1]);
