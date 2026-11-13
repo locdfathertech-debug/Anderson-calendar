@@ -271,3 +271,41 @@ Scope: inspect deployed main, open PRs #10/#11/#12 if accessible, Supabase proje
 
 ## Review
 Pending evidence. No release approval until authenticated multi-user tests and security issues are resolved.
+
+
+## Release hardening — 2026-11-12 (review branch)
+
+**Release rule:** Keep production unchanged until a green automated security/test suite, verified two-household auth isolation, parent unlock/expiry, photo upload/download, and browser/tablet acceptance. Never use real family content as test fixtures.
+
+- [ ] Remove unused hard-coded-PIN prototype and show permissions from server-returned profiles.role, not editable member display labels.
+- [ ] Upgrade security-vulnerable dependencies using pinned lockfile; run npm ci, npm test, npm run build, npm audit.
+- [ ] Extend automated checks for member/parent role boundaries, cross-family attempts, and parent-grant/session expiry; record which tests require authenticated staging accounts.
+- [ ] Stage private photo Storage bucket and RLS migration; add authenticated upload/read UI, retain legacy thumbnails, and prove isolation before applying to production.
+- [ ] Integrate and verify month screensaver, including view layout, time changes, keyboard/wake behaviour and tablet-specific checks.
+- [ ] Require a real CI gate and human verified authenticated acceptance before any promotion.
+
+### Review / outstanding proof
+Pending CI and staging acceptance results. Existing Supabase branch state reports MIGRATIONS_FAILED; do not deploy schema changes until reconciled.
+
+### Engineering review — November 12, 2026
+
+**Current result: build and unit gates pass; authenticated release acceptance is still BLOCKED.** Changes are in draft PR #14, not production.
+
+- [x] Remove unused `src/CalendarApp.jsx` containing hardcoded `pin === '1234'`. Its insecure fake auth flow is no longer in the review branch.
+- [x] Add role badges sourced from the existing Supabase `profiles.role` returned for the signed-in account. Child/member badges are view-only and display-only; server authorization remains in RLS and Parent PIN RPCs.
+- [x] Remove unused vulnerable `react-router-dom` dependency and upgrade Vite to **7.3.8** with exact lockfile. GitHub Actions committed the tested files to the review branch.
+- [x] GitHub Actions verified `npm ci`, **47/47** automated unit tests, `npm run build`, `npm audit --audit-level=high`, and a static hard-coded-PIN regression gate. Verification run: https://github.com/locdfathertech-debug/Anderson-calendar/actions/runs/43336444653
+- [ ] Resolve residual low-severity `deepmerge` advisory: GHSA-gcqx-w48m-w2h4 has no patched upstream release as of review. Do not force a broken dependency override. Risk review / supported replacement remains.
+- [x] Add private `family-photos` Storage SQL proposal: private JPEG-only bucket; scoped family SELECT and parent-elevated INSERT, no public reads. Add immutable photo references, signed reads, staging-only feature flag and browser JPEG validation.
+- [ ] **Apply and validate private photo SQL in healthy, isolated Supabase staging**. Existing linked Supabase development branch reports `MIGRATIONS_FAILED`; no production schema writes or upload acceptance performed. Verify forwarded parent token headers, two-family object isolation, signed URL expiration, and delete/cleanup policy before activation.
+- [x] Add disposable-account authenticated acceptance harness and PR workflow for parent A, member A, parent B: family isolation, fresh lock state, denied member role escalation and sign-out.
+- [ ] **Execute authenticated acceptance**: workflow https://github.com/locdfathertech-debug/Anderson-calendar/actions/runs/43336444801 currently fails because test credentials for a separate staging project are not configured. This is an intentional release blocker; never use production accounts.
+- [x] Add parent grant expiry and private photo helper regression tests; verify all automated tests pass.
+- [x] Integrate monthly idle screensaver into kiosk preview, including active kiosk after one minute and read-only event tiles.
+- [ ] Validate desktop, mobile, Samsung Galaxy Tab S7 landscape/portrait, actual month change, wake gesture, memory/performance, signed-in functionality and photo upload via real device/browser. Build READY is not visual QA.
+- [x] Audit workflow runs on PR and main for tests/build/dependency/security regressions; staging acceptance is a separate workflow.
+- [ ] Require both workflow statuses in GitHub branch protection, add reviewers to `staging` environment, and approve production only once authenticated testing passes. GitHub branch-protection settings were not changed through this connector.
+
+### Release decision
+
+**DO NOT MERGE/DEPLOY PR #14** until authenticated staging QA, photo Storage isolation, and browser/tablet acceptance pass. No production deployment or Supabase migration was performed by this release-hardening task.

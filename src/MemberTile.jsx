@@ -1,3 +1,4 @@
+import { isPrivatePhoto } from "./lib/privatePhotos.js";
 import { useEffect, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import MemberAvatar from "./MemberAvatar.jsx";
@@ -22,10 +23,10 @@ export default function MemberTile({ record, members, editable, busy, onSave, on
   const disabled = busy || saving || photoBusy;
   async function saveTile() {
     if (disabled || !changed) return;
-    if (photo && !safeAvatarUrl(photo)) { setMessage("Choose a photo or enter a valid HTTPS photo link."); return; }
+    if (photo && !isPrivatePhoto(photo) && !safeAvatarUrl(photo)) { setMessage("Choose a photo or enter a valid HTTPS photo link."); return; }
     setSaving(true); setMessage("");
     try {
-      const result = await onSave({ ...record, data: { ...record.data, color: effectiveColor, avatar_url: safeAvatarUrl(photo) || "" } });
+      const result = await onSave({ ...record, data: { ...record.data, color: effectiveColor, avatar_url: isPrivatePhoto(photo) ? photo : safeAvatarUrl(photo) || "" } });
       setMessage(result === false ? "Could not save. Check the message at the top of the page and try again." : "Tile saved.");
     } catch { setMessage("Could not save this tile. Please try again."); }
     finally { setSaving(false); }

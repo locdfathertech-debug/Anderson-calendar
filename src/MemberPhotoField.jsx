@@ -1,3 +1,5 @@
+import { usePrivatePhotoUrl } from "./lib/usePrivatePhotoUrl.js";
+import { isPrivatePhoto } from "./lib/privatePhotos.js";
 import { useEffect, useRef, useState } from "react";
 import { safeAvatarUrl } from "./lib/avatar.js";
 import { compressMemberPhoto, validateMemberPhoto } from "./lib/photoUpload.js";
@@ -33,7 +35,8 @@ export default function MemberPhotoField({ value, onChange, disabled = false, on
       if (job.current === current) { setBusy(false); busyCallback.current?.(false); }
     }
   }
-  const preview = safeAvatarUrl(value);
+  const privateUrl = usePrivatePhotoUrl(value);
+  const preview = isPrivatePhoto(value) ? privateUrl : safeAvatarUrl(value);
   return (
     <div className="member-photo-field">
       <label>
@@ -45,7 +48,7 @@ export default function MemberPhotoField({ value, onChange, disabled = false, on
       <p className="footnote" aria-live="polite">{busy ? "Processing photo…" : compact ? "JPG, PNG or WebP · up to 5 MB." : "PNG, JPEG or WebP, up to 5 MB. Your photo is saved when you select Save plan."}</p>
       {!compact && <label>
         Or use an HTTPS photo link
-        <input ref={linkInput} type="url" data-avatar-url="" value={typeof value === "string" && !value.startsWith("data:") ? value : ""}
+        <input ref={linkInput} type="url" data-avatar-url="" value={typeof value === "string" && !value.startsWith("data:") && !isPrivatePhoto(value) ? value : ""}
           disabled={disabled || busy} placeholder="https://…" style={{ minHeight: 48 }}
           onChange={(event) => { event.target.setCustomValidity(""); setError(""); onChange(event.target.value); }} />
       </label>}
