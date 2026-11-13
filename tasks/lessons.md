@@ -52,3 +52,9 @@
 - Android Google Autofill/password-manager synchronization is not Supabase session replication. Each device needs its own authenticated session; calendar data stays in one family-scoped backend.
 - Do not force all family members into one shared master login or hard-code an owner email; preserve independent parent/child accounts, role checks, RLS and expiring server-issued Parent PIN grants.
 - Existing Auth session listeners and family-scoped data should be verified and reused rather than replacing the app with an incompatible standalone CalendarApp component.
+
+- When a pasted app blueprint uses different database tables or a hard-coded Parent PIN, implement only the requested features in the existing app, preserving established family auth/RLS and default monthly calendar.
+- Grocery lists require household tenancy, live-session validation, immutable created-by/family fields, per-column update grants and authenticated multi-family tests, not an unscoped `groceries` table.
+- AI grocery requests should be displayed as pending suggestions and require a real confirmation before any database write; report unavailability rather than fake success.
+- The dinner-shopping bridge needs explicit ingredient data entered in the Parent Portal; don't infer a shopping list from arbitrary recipe titles or freeform preparation notes.
+- Keep the full-screen monthly idle screensaver unobstructed and verify right-column grocery/routine switching on 16:10 landscape plus mobile sizes.
