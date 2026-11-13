@@ -58,3 +58,5 @@
 - AI grocery requests should be displayed as pending suggestions and require a real confirmation before any database write; report unavailability rather than fake success.
 - The dinner-shopping bridge needs explicit ingredient data entered in the Parent Portal; don't infer a shopping list from arbitrary recipe titles or freeform preparation notes.
 - Keep the full-screen monthly idle screensaver unobstructed and verify right-column grocery/routine switching on 16:10 landscape plus mobile sizes.
+
+- Treat user-visible JSX text as JSX expressions, not template-string placeholder literals. End-to-end test the rendered button label/behavior instead of relying on unit tests or a successful build.
