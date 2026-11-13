@@ -295,3 +295,7 @@
 .grocery-items .grocery-completed svg{margin-left:auto;color:#36c7bb;}
 .grocery-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
 @media(max-width:1000px){.kiosk-activity-toggle{flex-wrap:wrap}.kiosk-activity-toggle button{min-width:85px}}
+
+.grocery-meal-transfer{display:grid;gap:8px;margin:0 0 16px;padding:11px;border:1px solid #335c57;border-radius:11px;background:#082a2780;}
+.grocery-meal-transfer strong{font-size:12px;}
+.grocery-meal-transfer .kiosk-control{justify-content:flex-start;text-align:left;min-height:44px;font-size:12px;overflow-wrap:anywhere;}
