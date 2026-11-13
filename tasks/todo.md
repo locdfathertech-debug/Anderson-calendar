@@ -390,7 +390,7 @@ Draft PR #16, production unaffected by this chat change. Migration remains delib
 - [x] Extend advisory `@AI add milk to the grocery list` to show explicit user confirmation; never invent successful writes while Storage unavailable.
 - [x] Add unit tests for local time/day boundaries, ingredient parsing, grocery command and static SQL safety rules. Extend browser tests for four viewport sizes and new flows.
 - [x] npm test passed 63/63, Vite build and high-severity npm audit passed on initial review commit.
-- [ ] Browser suite: first attempt failed because dinner-ingredient transfer text was rendered as literal JSX placeholders. Fixed; rerunning full viewport checks on the latest code.
+- [x] Browser suite: first attempt failed because dinner-ingredient transfer text was rendered as literal JSX placeholders. Fixed, then reran Chromium across desktop, mobile, Samsung Tab S7 landscape and portrait. All passed (run 43394768695); verified grocery input/checkbox cleanup, dinner transfer, @AI confirmation, monthly default and screensaver.
 - [ ] Apply SQL in separately designated, healthy Supabase staging and execute Parent A/Child A/Parent B cross-family read/write/edit/delete tests, realtime sync on phone/kiosk and logout-revocation.
 - [ ] Validate actual Galaxy Tab S7 physically, plus native login, mobile grocery shopping, and dinner ingredient transfer.
 - [ ] Require release sign-off, required CI checks and authenticated staging acceptance before any production deployment.
