@@ -1,3 +1,4 @@
+import { isPrivatePhoto } from "./lib/privatePhotos.js";
 import { accountAccessLabel, accountAccessTone } from "./lib/accountAccess.js";
 import { ThemeColorField, FamilyTypeField } from "./MemberProfileFields.jsx";
 import MemberAvatar from "./MemberAvatar.jsx";
@@ -233,7 +234,7 @@ export default function Planner({
     e.preventDefault();
     if (photoBusy) return;
     const rawAvatar = typeof dialog.data.avatar_url === "string" ? dialog.data.avatar_url.trim() : "";
-    const avatar = safeAvatarUrl(rawAvatar);
+    const avatar = isPrivatePhoto(rawAvatar) ? rawAvatar : safeAvatarUrl(rawAvatar);
     if (dialog.kind === "member" && rawAvatar && !avatar) {
       const field = e.currentTarget.querySelector("[data-avatar-url]");
       field?.setCustomValidity("Use a direct HTTPS photo link without account credentials.");
