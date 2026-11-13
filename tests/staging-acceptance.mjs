@@ -93,6 +93,47 @@ try {
   assert.ifError(deniedBRead.error);
   assert.equal(deniedBRead.data.length,0,"Family A accessed Family B chat");
 
+  // Family Groceries: actual DB tests require the reviewed groceries SQL
+  // on a disposable staging project with Parent A / Child A / Parent B.
+  const groceryName = `E2E bananas ${Date.now()}`;
+  const groceryA = await a.c.from("groceries").insert({
+    family_id:a.profile.family_id, added_by:a.profile.id, item:groceryName
+  }).select("id,item,completed").single();
+  assert.ifError(groceryA.error);
+  assert.equal(groceryA.data.completed,false);
+  const childGroceries = await child.c.from("groceries").select("id").eq("id",groceryA.data.id);
+  assert.ifError(childGroceries.error);
+  assert.equal(childGroceries.data.length,1,"Child A should see Family A groceries");
+  const otherGroceries = await b.c.from("groceries").select("id").eq("id",groceryA.data.id);
+  assert.ifError(otherGroceries.error);
+  assert.deepEqual(otherGroceries.data,[],"Family B accessed Family A groceries");
+  const spoofedGrocery = await child.c.from("groceries").insert({
+    family_id:a.profile.family_id,added_by:a.profile.id,item:"spoofed"
+  });
+  assert.ok(spoofedGrocery.error,"Child cannot pretend parent added grocery");
+  const crossFamilyGrocery = await a.c.from("groceries").insert({
+    family_id:b.profile.family_id,added_by:a.profile.id,item:"cross"
+  });
+  assert.ok(crossFamilyGrocery.error,"Parent A cannot insert into Family B groceries");
+  const forbiddenOwnerChange = await a.c.from("groceries").update({
+    added_by:b.profile.id
+  }).eq("id",groceryA.data.id);
+  assert.ok(forbiddenOwnerChange.error,"Browser cannot transfer grocery ownership");
+  const completedAt=new Date().toISOString();
+  const bought=await child.c.from("groceries").update({
+    completed:true,completed_at:completedAt
+  }).eq("family_id",a.profile.family_id).eq("id",groceryA.data.id).select("id,completed").single();
+  assert.ifError(bought.error);
+  assert.equal(bought.data.completed,true,"Family A grocery was not checked off");
+  const bAttemptDelete=await b.c.from("groceries").delete().eq("id",groceryA.data.id).select("id");
+  assert.ifError(bAttemptDelete.error);
+  assert.equal(bAttemptDelete.data.length,0,"Family B deleted Family A grocery");
+  const originalStillThere=await a.c.from("groceries").select("id").eq("id",groceryA.data.id);
+  assert.ifError(originalStillThere.error);
+  assert.equal(originalStillThere.data.length,1,"Grocery vanished after denied foreign delete");
+  const cleanup=await a.c.from("groceries").delete().eq("id",groceryA.data.id);
+  assert.ifError(cleanup.error);
+
   for (const actor of [a,child,b]) {
     const result = await actor.c.auth.signOut();
     assert.ifError(result.error);
