@@ -2,6 +2,7 @@ name: Dependency remediation evaluation
 on:
   push:
     branches: [fix/security-ci-photos-kiosk-20261112]
+  pull_request:
 permissions:
   contents: read
 jobs:
