@@ -31,6 +31,12 @@ for (const device of viewports) {
     await page.getByRole("button",{name:"Monthly screensaver"}).click();
     const overlay = page.locator(".kiosk-month-screensaver");
     await overlay.waitFor({timeout:7000});
+    // Wait for the opacity transition before checking legibility/screenshot.
+    await overlay.evaluate(async element => {
+      await Promise.all(element.getAnimations().map(animation => animation.finished.catch(() => {})));
+    });
+    const opacity = await overlay.evaluate(element => Number.parseFloat(getComputedStyle(element).opacity));
+    assert.ok(opacity >= .99, "Screensaver must be fully opaque when ready");
     const cells = overlay.locator(".kiosk-saver-day");
     const count = await cells.count();
     assert.ok(count===35 || count===42, "Month should show full 5 or 6 weeks");
