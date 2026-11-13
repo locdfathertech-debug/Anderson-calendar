@@ -309,3 +309,21 @@ Pending CI and staging acceptance results. Existing Supabase branch state report
 ### Release decision
 
 **DO NOT MERGE/DEPLOY PR #14** until authenticated staging QA, photo Storage isolation, and browser/tablet acceptance pass. No production deployment or Supabase migration was performed by this release-hardening task.
+
+
+## Release verification continuation — November 12, 2026
+- [x] Recheck PR #14 and Vercel production: PR #14 merged and production READY at `127d9745`; treat prior outstanding gates as LIVE release risks, not future-only risks.
+- [x] Add browser E2E suite on PR #15 for desktop/mobile/Galaxy Tab S7 viewports, month/year switch, screensaver and wake; Chromium CI succeeded, screenshots inspected.
+- [x] Diagnose/fix Playwright unsupported Ubuntu 26 runner by pinning Ubuntu 24.04.
+- [x] Fix compact weekday labels on narrow calendar screensaver and wait for fade completion before screenshots/visual acceptance.
+- [x] Restrict authenticated staging workflow to manual workflow_dispatch from reviewed branch; secrets must reside in protected staging environment.
+- [x] Expand staging checks to deny locked-parent and cross-household role escalation.
+- [x] Document full acceptance checklist at `docs/RELEASE_GATES.md`.
+- [ ] Physically test Samsung Galaxy Tab S7 and account sign-in, unlock, sleep/wake and app-pinning; automated viewport simulation alone insufficient.
+- [ ] Select/authorize an isolated healthy Supabase staging project and configure 3 disposable household accounts in GitHub staging Environment; current linked empty second project has not been designated as staging.
+- [ ] Execute authenticated two-household suite with actual staging secrets and independently test parent PIN grant expiry, private photo upload/signature and RLS access.
+- [ ] Apply reviewed photo bucket SQL in staging, only after migration health; production currently has **no Storage buckets**.
+- [ ] Enforce GitHub main ruleset for CI, manually approved authenticated acceptance and reviewer sign-off. Connector cannot edit branch protection (403).
+- [ ] Address low-severity unpatched transitive deepmerge advisory or document a time-limited exception.
+
+**Release disposition:** No further production approval; PR #15 draft. Read-only inspection confirmed prior PR #14 had already shipped before all release gates.
