@@ -25,7 +25,7 @@ for insert to authenticated
 with check (
   bucket_id = 'family-photos'
   and (storage.foldername(name))[1] = private.current_family_id()::text
-  and storage.filename(name) ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.jpg$'
+  and storage.filename(name) ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg$'
   and owner_id = (select auth.uid()::text)
   and private.can_manage_family(private.current_family_id())
 );
