@@ -66,6 +66,9 @@ for (const device of viewports) {
     await page.getByRole("dialog",{name:"Family chat and AI assistant"}).getByRole("button",{name:"Close family chat"}).click();
     await page.getByRole("button",{name:"Grocery List"}).click();
     await page.getByRole("region",{name:"Family grocery list"}).getByText("bananas").waitFor();
+    await page.getByRole("button",{name:/Add 4 ingredients for Smoked chicken/}).click();
+    await page.locator(".grocery-items").getByText("long-grain rice").waitFor();
+
     await page.getByRole("textbox",{name:"Grocery item"}).fill("bread");
     await page.getByRole("button",{name:"Add grocery item"}).click();
     await page.locator(".grocery-items").getByText("bread").waitFor();
