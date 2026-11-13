@@ -23,13 +23,14 @@ grant select, insert on public.family_messages to authenticated;
 drop policy if exists "family_messages_read_own_family" on public.family_messages;
 create policy "family_messages_read_own_family" on public.family_messages
   for select to authenticated
-  using (private.is_family_member(family_id));
+  using (private.live_portal_session() is not null and private.is_family_member(family_id));
 
 drop policy if exists "family_messages_post_as_self" on public.family_messages;
 create policy "family_messages_post_as_self" on public.family_messages
   for insert to authenticated
   with check (
-    sender_id = (select auth.uid())
+    private.live_portal_session() is not null
+    and sender_id = (select auth.uid())
     and private.is_family_member(family_id)
   );
 
