@@ -18,14 +18,17 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
-      - name: Evaluate npm security upgrades (never push automatically)
-        run: npm audit fix --force
+      - name: Evaluate targeted, compatible security upgrades (never push automatically)
+        run: |
+          npm uninstall react-router-dom
+          npm install --save-dev --save-exact vite@7.3.8
+          npm audit fix --audit-level=moderate
       - name: Test upgraded dependencies
         run: npm test
       - name: Build upgraded dependencies
         run: npm run build
       - name: Verify remaining advisories
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
       - name: Upload updated package manifest and lockfile for human review
         if: success() || failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
