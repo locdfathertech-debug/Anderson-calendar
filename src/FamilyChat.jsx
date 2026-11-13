@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { MessageSquare, X, Send, Bot } from "lucide-react";
 import { supabase } from "./lib/supabase.js";
 import { cleanedChatMessage, familyChatSuggestion } from "./lib/familyChat.js";
+import { requestedGroceryItem } from "./lib/groceryItems.js";
+import { useFamilyGroceries } from "./lib/useFamilyGroceries.js";
 import { canSendFamilyChat } from "./lib/chatReadiness.js";
 import "./familyChat.css";
 
@@ -13,6 +15,7 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
   const [available, setAvailable] = useState(demo);
   const [status, setStatus] = useState(demo ? "Sample chat · not sent" : "Connecting…");
   const [suggestions, setSuggestions] = useState([]);
+  const groceries = useFamilyGroceries(familyId,userId,demo);
   const scroller = useRef(null);
   const input = useRef(null);
 
@@ -100,13 +103,36 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
           if (!result.error) allowedRecords=result.data || [];
         }
         const names=allowedRecords.filter(r=>r.kind==="member").map(r=>r.data?.title).filter(Boolean);
-        const reply=familyChatSuggestion(body,allowedRecords,names);
+        const requestedItem=requestedGroceryItem(body);
+        if (requestedItem) {
+          setSuggestions(prev=>[...prev,{id:`ai-grocery-${Date.now()}`,
+            body:`Add "${requestedItem}" to your family grocery list? This requires your confirmation.`,
+            groceryItem:requestedItem}].slice(-10));
+        }
+        const reply=requestedItem?null:familyChatSuggestion(body,allowedRecords,names);
         if (reply) setSuggestions(prev=>[...prev,{id:`ai-${Date.now()}`,body:reply}].slice(-10));
       }
       setStatus(demo ? "Sample chat · not sent" : "Family chat · connected");
     } catch {
       setStatus("Message not sent · your draft is preserved");
     } finally { setBusy(false); }
+  }
+
+  async function confirmGrocery(suggestion) {
+    if (!groceries.ready) {
+      setSuggestions(prev=>prev.map(s=>s.id===suggestion.id?
+        {...s,groceryItem:null,body:"Private groceries are not active yet. Ask a parent to finish the secure setup."}:s));
+      return;
+    }
+    setBusy(true);
+    try {
+      await groceries.add(suggestion.groceryItem);
+      setSuggestions(prev=>prev.map(s=>s.id===suggestion.id?
+        {...s,groceryItem:null,body:`Added "${suggestion.groceryItem}" to the ${demo?"sample":"family"} grocery list.`}:s));
+    } catch {
+      setSuggestions(prev=>prev.map(s=>s.id===suggestion.id?
+        {...s,body:"Unable to add this grocery item. Confirm that private syncing is available."}:s));
+    } finally {setBusy(false);}
   }
 
   return <div className="family-chat-root">
@@ -129,6 +155,10 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
         </div>)}
         {suggestions.map(m=><div className="family-chat-bubble assistant" key={m.id}>
           <small><Bot size={14}/> AI suggestion · only visible on this device</small><p>{m.body}</p>
+          {m.groceryItem && <button type="button" className="family-chat-confirm-grocery"
+            disabled={busy||!groceries.ready} onClick={()=>void confirmGrocery(m)}>
+              Confirm add to groceries
+            </button>}
         </div>)}
       </div>
       <form className="family-chat-compose" onSubmit={send}>
