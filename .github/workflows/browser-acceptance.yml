@@ -1,0 +1,45 @@
+name: Calendar browser viewport checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Install pinned browser harness (test runner only)
+        run: |
+          npm install --no-save --package-lock=false playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Serve local demo build
+        run: |
+          npm run build
+          npm run preview -- --host 127.0.0.1 --port 4174 > /tmp/calendar-preview.log 2>&1 &
+          for i in {1..60}; do
+            curl -sf http://127.0.0.1:4174/demo >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/calendar-preview.log
+          exit 1
+      - name: Test desktop, mobile and Samsung Tab S7 viewport layouts
+        run: |
+          mkdir -p artifacts
+          node tests/browser-smoke.mjs
+      - name: Upload browser screenshots
+        if: success() || failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: browser-viewports
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
