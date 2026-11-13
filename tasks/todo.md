@@ -336,7 +336,8 @@ Pending CI and staging acceptance results. Existing Supabase branch state report
 - [x] Add floating chat UI on shared calendar and Parent Portal; sample/demo messages remain local.
 - [x] Stage private `family_messages` with `family_id`, `auth.users` sender, verified session, membership RLS and per-family Realtime.
 - [x] Add advisory `@AI` dinner/chore/reward parser with no backend side effects or impersonated AI messages.
-- [ ] Run automated tests, build and preview visual QA; fix any regressions before merge.
+- [x] Run automated unit/security/build checks; initial browser run exposed ambiguous close button test selector, corrected on branch.
+- [ ] Final fresh browser check on latest commit, including chat open/send/@AI/close and all four viewports.
 - [ ] Apply messaging SQL only in healthy, isolated staging, verify Parent A/Child A/Parent B cross-family read/post denial, session revocation, realtime two-device delivery and message history under RLS.
 - [ ] Add server-backed push mention delivery only if requested and authorized; do not claim client tags send notifications.
 - [ ] If desired, implement real LLM via authenticated server function with explicit parent confirmation for any writes/payment actions.
