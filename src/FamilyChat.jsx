@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { MessageSquare, X, Send, Bot } from "lucide-react";
 import { supabase } from "./lib/supabase.js";
 import { cleanedChatMessage, familyChatSuggestion } from "./lib/familyChat.js";
+import { canSendFamilyChat } from "./lib/chatReadiness.js";
 import "./familyChat.css";
 
 export default function FamilyChat({ familyId, userId, records = [], demo = false }) {
@@ -70,7 +71,7 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
   async function send(event) {
     event.preventDefault();
     const body = cleanedChatMessage(draft);
-    if (!body || busy || (!demo && !available)) return;
+    if (!canSendFamilyChat({demo,available,busy,draft:body})) return;
     setBusy(true);
     try {
       if (demo) {
@@ -134,7 +135,7 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
         <label className="family-chat-sr" htmlFor="family-chat-input">Send family message</label>
         <input id="family-chat-input" ref={input} maxLength={2000} value={draft}
           onChange={e=>setDraft(e.target.value)} disabled={!demo && !available} placeholder={available || demo ? "Message family or @AI…" : "Secure chat not enabled"} />
-        <button type="submit" aria-label="Send message" disabled={busy||!draft.trim()||(!demo && !available)}><Send size={18}/></button>
+        <button type="submit" aria-label="Send message" disabled={!canSendFamilyChat({demo,available,busy,draft})}><Send size={18}/></button>
       </form>
       <p className="family-chat-footnote">Use @AI for dinner or chore ideas. AI cannot approve payments, change plans or send device alerts.</p>
     </section>}
