@@ -337,7 +337,7 @@ Pending CI and staging acceptance results. Existing Supabase branch state report
 - [x] Stage private `family_messages` with `family_id`, `auth.users` sender, verified session, membership RLS and per-family Realtime.
 - [x] Add advisory `@AI` dinner/chore/reward parser with no backend side effects or impersonated AI messages.
 - [x] Run automated unit/security/build checks; initial browser run exposed ambiguous close button test selector, corrected on branch.
-- [ ] Final fresh browser check on latest commit, including chat open/send/@AI/close and all four viewports.
+- [x] Final browser check on latest commit, including chat open/send/@AI/close and all four viewports. Run 43345012831 passed.
 - [ ] Apply messaging SQL only in healthy, isolated staging, verify Parent A/Child A/Parent B cross-family read/post denial, session revocation, realtime two-device delivery and message history under RLS.
 - [ ] Add server-backed push mention delivery only if requested and authorized; do not claim client tags send notifications.
 - [ ] If desired, implement real LLM via authenticated server function with explicit parent confirmation for any writes/payment actions.
@@ -345,3 +345,5 @@ Pending CI and staging acceptance results. Existing Supabase branch state report
 
 ### Review
 Draft PR #16, production unaffected by this chat change. Migration remains deliberately unapplied. Simulator/parser is advisory only; no autonomous financial operations.
+
+**Chat release review (2026-11-12):** GitHub Actions release audit, npm test (50/50 tests), dependency evaluation, Vite build and browser viewport run all passed. Vercel preview READY at commit `330d0f7`. These verify build/demo only; full authenticated multi-family chat and live database migration remain unverified. No production SQL change; PR #16 stays draft.
