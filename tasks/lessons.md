@@ -39,3 +39,8 @@
 - Never expose authenticated staging credentials automatically to unreviewed PR code; require manual dispatch from reviewed refs and protected environment approvals.
 - Always recheck merged PR state and deployed production SHA before assuming prior draft-PR blockers are not yet live.
 - A passing simulated Tab S7 viewport cannot verify physical Android app pinning, real fullscreen, wake-lock or installation behavior.
+
+- Pasted standalone UI implementations can propose a completely different database model, even when they look feature-complete. Integrate requested interactions with existing families/profiles/planner_records and never replace session-based Parent PIN grants.
+- Chat requires server-enforced family scoping for both reads and writes. The browser must never be allowed to send arbitrary sender IDs, create AI/system entries, or approve payouts via a mock parser.
+- Local @AI answers are suggestions, not LLM execution, durable message history, push notifications, or payment authorization. State those limitations in the UI and require a separately authorized backend for actions.
+- Preserve the full-screen monthly screensaver by hiding floating controls while the idle overlay is shown; verify chat and wake on desktop, mobile and 16:10 tablet layouts.
