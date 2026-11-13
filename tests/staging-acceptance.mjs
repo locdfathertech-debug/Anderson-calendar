@@ -125,14 +125,24 @@ try {
   }).eq("family_id",a.profile.family_id).eq("id",groceryA.data.id).select("id,completed").single();
   assert.ifError(bought.error);
   assert.equal(bought.data.completed,true,"Family A grocery was not checked off");
-  const bAttemptDelete=await b.c.from("groceries").delete().eq("id",groceryA.data.id).select("id");
-  assert.ifError(bAttemptDelete.error);
-  assert.equal(bAttemptDelete.data.length,0,"Family B deleted Family A grocery");
+  const bAttemptArchive=await b.c.from("groceries").update({
+    archived_at:new Date().toISOString()
+  }).eq("id",groceryA.data.id).select("id");
+  assert.ifError(bAttemptArchive.error);
+  assert.deepEqual(bAttemptArchive.data,[],"Family B archived Family A grocery");
+  const noClientDelete=await a.c.from("groceries").delete().eq("id",groceryA.data.id);
+  assert.ok(noClientDelete.error,"Direct browser DELETE must be denied");
   const originalStillThere=await a.c.from("groceries").select("id").eq("id",groceryA.data.id);
   assert.ifError(originalStillThere.error);
-  assert.equal(originalStillThere.data.length,1,"Grocery vanished after denied foreign delete");
-  const cleanup=await a.c.from("groceries").delete().eq("id",groceryA.data.id);
+  assert.equal(originalStillThere.data.length,1,"Grocery vanished after denied foreign archive/delete");
+  const cleanup=await a.c.from("groceries").update({
+    archived_at:new Date().toISOString()
+  }).eq("id",groceryA.data.id).eq("completed",true).select("id").single();
   assert.ifError(cleanup.error);
+  const noActiveRecord=await a.c.from("groceries").select("id")
+    .eq("id",groceryA.data.id).is("archived_at",null);
+  assert.ifError(noActiveRecord.error);
+  assert.equal(noActiveRecord.data.length,0,"Archived grocery remains on active list");
 
   for (const actor of [a,child,b]) {
     const result = await actor.c.auth.signOut();

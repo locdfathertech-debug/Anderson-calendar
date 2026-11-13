@@ -11,7 +11,10 @@ test("grocery migration requires family membership and live Supabase Auth sessio
   assert.match(sql,/revoke all on public\.groceries from public, anon/i);
 });
 test("grocery migration limits update columns and publishes realtime",()=>{
-  assert.match(sql,/grant update\(completed,completed_at\) on public\.groceries to authenticated/i);
+  assert.match(sql,/grant update\(completed,completed_at,archived_at\) on public\.groceries to authenticated/i);
   assert.match(sql,/alter publication supabase_realtime add table public\.groceries/i);
   assert.match(sql,/char_length\(btrim\(item\)\) between 1 and 120/i);
+  assert.match(sql,/archived_at timestamptz/i);
+  assert.doesNotMatch(sql,/create policy "groceries_family_delete"/i);
+  assert.doesNotMatch(sql,/grant\s+select,insert,update,delete\s+on public\.groceries/i);
 });
