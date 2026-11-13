@@ -9,6 +9,7 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [available, setAvailable] = useState(demo);
   const [status, setStatus] = useState(demo ? "Sample chat · not sent" : "Connecting…");
   const [suggestions, setSuggestions] = useState([]);
   const scroller = useRef(null);
@@ -19,6 +20,8 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
     setMessages([]);
     setSuggestions([]);
     setDraft("");
+    setAvailable(demo);
+    setStatus(demo ? "Sample chat · not sent" : "Connecting…");
   }, [familyId, userId, demo]);
 
   useEffect(() => {
@@ -35,9 +38,14 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
         if (error) throw error;
         if (!active) return;
         setMessages((data || []).reverse());
+        setAvailable(true);
         setStatus("Family chat · connected");
       } catch {
-        if (active) setStatus("Chat unavailable · database setup required");
+        if (active) {
+          setAvailable(false);
+          setMessages([]);
+          setStatus("Chat unavailable · private messaging has not been activated");
+        }
       } finally { syncing = false; }
     }
     void refresh();
@@ -62,7 +70,7 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
   async function send(event) {
     event.preventDefault();
     const body = cleanedChatMessage(draft);
-    if (!body || busy) return;
+    if (!body || busy || (!demo && !available)) return;
     setBusy(true);
     try {
       if (demo) {
@@ -96,7 +104,7 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
       }
       setStatus(demo ? "Sample chat · not sent" : "Family chat · connected");
     } catch {
-      setStatus("Message not sent · check chat availability and permissions");
+      setStatus("Message not sent · your draft is preserved");
     } finally { setBusy(false); }
   }
 
@@ -112,7 +120,7 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
         <button type="button" aria-label="Close family chat" onClick={()=>setOpen(false)}><X size={19}/></button>
       </header>
       <div className="family-chat-history" ref={scroller} role="log" aria-live="polite" aria-label="Family messages">
-        {!messages.length && <p className="family-chat-empty">No messages yet. Say hello to your family!</p>}
+        {!demo && !available ? <p className="family-chat-empty" role="status">Secure family messaging is not active yet. Messages cannot be sent until the private database and permissions are verified.</p> : !messages.length && <p className="family-chat-empty">No messages yet. Say hello to your family!</p>}
         {messages.map(m=><div className={`family-chat-bubble ${m.sender_id===userId?"mine":"theirs"}`} key={m.id}>
           <small>{m.sender_id===userId?"You":"Family member"}</small>
           <p>{m.body}</p>
@@ -125,8 +133,8 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
       <form className="family-chat-compose" onSubmit={send}>
         <label className="family-chat-sr" htmlFor="family-chat-input">Send family message</label>
         <input id="family-chat-input" ref={input} maxLength={2000} value={draft}
-          onChange={e=>setDraft(e.target.value)} placeholder="Message family or @AI…" />
-        <button type="submit" aria-label="Send message" disabled={busy||!draft.trim()}><Send size={18}/></button>
+          onChange={e=>setDraft(e.target.value)} disabled={!demo && !available} placeholder={available || demo ? "Message family or @AI…" : "Secure chat not enabled"} />
+        <button type="submit" aria-label="Send message" disabled={busy||!draft.trim()||(!demo && !available)}><Send size={18}/></button>
       </form>
       <p className="family-chat-footnote">Use @AI for dinner or chore ideas. AI cannot approve payments, change plans or send device alerts.</p>
     </section>}
