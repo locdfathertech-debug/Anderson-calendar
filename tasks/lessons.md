@@ -20,3 +20,9 @@
 - When the user asks to customize a tile, expose photo/color controls directly within that tile and verify the visible tile changes after saving. A hidden arrow plus a long modal does not satisfy an in-tile interaction request.
 
 - Adding a calendar view must preserve the user’s intended starting view. Month is the default in both kiosk and parent calendars; Year remains optional.
+
+- Before starting any audit, preserve historical tasks/todo.md and append a dated section; never replace past verification notes.
+- A Vercel READY build proves bundling/deployment, not npm test, authenticated QA, access isolation or release readiness; verify checks separately.
+- A closed/draft review is not permanent: re-check actual merged production SHA before asserting which code is live.
+- Never infer security from UI badges or a client PIN; check the actual app import graph and server-side RLS/RPC guards before claiming exploitability.
+- For app branding and kiosk changes, require exact-asset quality, screen/layout QA, and an independent CI gate rather than relying on Vercel build alone.
