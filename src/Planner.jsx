@@ -1,3 +1,4 @@
+import { accountAccessLabel, accountAccessTone } from "./lib/accountAccess.js";
 import { ThemeColorField, FamilyTypeField } from "./MemberProfileFields.jsx";
 import MemberAvatar from "./MemberAvatar.jsx";
 import MemberTile from "./MemberTile.jsx";
@@ -368,7 +369,7 @@ export default function Planner({
                 ? "Sample family"
                 : profile?.email?.split("@")[0] || "Family member"}
             </strong>
-            <small>{parent ? "Parent space" : "Kids space"}</small>
+            <small className={`account-access-badge ${accountAccessTone(profile?.role, parent)}`} aria-label="Account permission">{accountAccessLabel(profile?.role, parent)}</small>
           </div>
           <button
             className="icon-btn"
@@ -1562,7 +1563,7 @@ function AccessPanel({ accounts, access, profile, onManage, busy }) {
         <div className="simple-row" key={a.id}>
           <div>
             <strong>{a.email}</strong>
-            <small>{a.id}</small>
+            <small>{a.id}</small><small className={`account-access-badge ${accountAccessTone(a.role, a.id === profile.id && parent)}`}>{accountAccessLabel(a.role, a.id === profile.id && parent)}</small>
           </div>
           {a.id !== profile.id && a.role !== "super_admin" ? (
             <select
