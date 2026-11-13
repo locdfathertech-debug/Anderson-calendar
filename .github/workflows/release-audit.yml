@@ -31,6 +31,7 @@ jobs:
       - name: Dependency vulnerabilities
         run: npm audit --audit-level=high
       - name: Security regression checks
+        if: success() || failure()
         run: |
           if grep -Eq "pin[[:space:]]*===[[:space:]]*['\"]1234['\"]" src/CalendarApp.jsx; then
             echo "::error::Hard-coded Parent Portal PIN is forbidden."
