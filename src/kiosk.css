@@ -263,3 +263,35 @@
   .kiosk-saver-footer span:first-child { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .calendar-kiosk .kiosk-month-screensaver { animation: none; } }
+
+
+/* Phase 4: kiosk routine mode and shared groceries. Keep calendar grid untouched. */
+.calendar-kiosk.routine-morning { --routine-accent:#ffb24c; }
+.calendar-kiosk.routine-day { --routine-accent:#36c7bb; }
+.calendar-kiosk.routine-evening { --routine-accent:#a899ef; }
+.calendar-kiosk.routine-evening .kiosk-activities {background:#0a0914e8;}
+.calendar-kiosk.routine-morning .kiosk-activities {background:#171007e8;}
+.kiosk-routine-greeting{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid var(--routine-accent);border-radius:12px;background:#ffffff08;margin-bottom:12px;}
+.kiosk-routine-greeting svg{color:var(--routine-accent);flex-shrink:0;}
+.kiosk-routine-greeting strong{display:block;color:#fff;font-size:clamp(12px,1.05vw,17px);line-height:1.4;}
+.kiosk-routine-greeting small{display:block;color:#c5c2c2;font-size:11px;margin-top:2px;}
+.kiosk-activity-toggle{display:flex;gap:4px;background:#191919;padding:4px;border:1px solid #494646;border-radius:12px;margin-bottom:18px;}
+.kiosk-activity-toggle button{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:1;min-width:0;min-height:42px;border:0;border-radius:8px;background:transparent;color:#ddd;font:600 clamp(10px,.75vw,12px) Inter,sans-serif;cursor:pointer;padding:5px;}
+.kiosk-activity-toggle button[aria-pressed="true"]{background:#087d79;color:#fff;}
+.kiosk-activity-toggle button:focus-visible{outline:2px solid #ffb24c;}
+.kiosk-tomorrow{border:1px solid #554b7a;border-radius:12px;padding:12px;background:#211b36;}
+.calendar-kiosk.routine-morning .kiosk-activities>.kiosk-activity-toggle+section{border-left:3px solid #ffb24c;}
+.kiosk-groceries h2{display:flex;gap:8px;align-items:center;}
+.grocery-add-form{display:flex;gap:6px;align-items:center;margin:13px 0;}
+.grocery-add-form input{box-sizing:border-box;min-width:0;width:100%;flex:1;background:#1c1d21;color:#fff;border:1px solid #6a6971;border-radius:9px;padding:12px 9px;font:inherit;font-size:13px;}
+.grocery-add-form input:focus-visible{outline:2px solid #ffb24c;}
+.grocery-add-form input:disabled{opacity:.6;}
+.grocery-add-form button{min-width:68px;font-size:12px;min-height:44px;}
+.grocery-items{display:grid;gap:8px;list-style:none;margin:0 0 14px;padding:0;}
+.grocery-items li{min-width:0;background:#1b1d21;border:1px solid #3a3c40;border-radius:10px;}
+.grocery-items label{display:flex;gap:8px;align-items:center;min-height:45px;padding:7px 10px;font-size:13px;overflow-wrap:anywhere;cursor:pointer;}
+.grocery-items input{accent-color:#36c7bb;width:20px;height:20px;flex:none;}
+.grocery-items .grocery-completed span{text-decoration:line-through;color:#a6a6a6;}
+.grocery-items .grocery-completed svg{margin-left:auto;color:#36c7bb;}
+.grocery-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+@media(max-width:1000px){.kiosk-activity-toggle{flex-wrap:wrap}.kiosk-activity-toggle button{min-width:85px}}
