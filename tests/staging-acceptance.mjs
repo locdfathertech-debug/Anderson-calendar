@@ -59,6 +59,40 @@ try {
   const recheck = await child.c.from("profiles").select("role").eq("id",child.profile.id).single();
   assert.ifError(recheck.error);
   assert.equal(recheck.data.role,"member","Child role changed without authorization");
+  // Family Chat: signed-in family members can post their own messages,
+  // cannot impersonate anyone else, and cannot read/post across households.
+  // This runs only in disposable staging after family_chat_review.sql.
+  const testText = `E2E family chat ${Date.now()}`;
+  const postedA = await a.c.from("family_messages").insert({
+    family_id:a.profile.family_id,sender_id:a.profile.id,body:testText+" A"
+  }).select("id").single();
+  assert.ifError(postedA.error);
+  const postedB = await b.c.from("family_messages").insert({
+    family_id:b.profile.family_id,sender_id:b.profile.id,body:testText+" B"
+  }).select("id").single();
+  assert.ifError(postedB.error);
+  const childRead = await child.c.from("family_messages").select("id").eq("id",postedA.data.id);
+  assert.ifError(childRead.error);
+  assert.equal(childRead.data.length,1,"Child A should read family A messages");
+  const deniedRead = await b.c.from("family_messages").select("id").eq("id",postedA.data.id);
+  assert.ifError(deniedRead.error);
+  assert.equal(deniedRead.data.length,0,"Family B accessed Family A chat");
+  const deniedSpoof = await child.c.from("family_messages").insert({
+    family_id:a.profile.family_id,sender_id:a.profile.id,body:testText+" spoof"
+  });
+  assert.ok(deniedSpoof.error,"Child must not impersonate family parent");
+  const deniedCross = await a.c.from("family_messages").insert({
+    family_id:b.profile.family_id,sender_id:a.profile.id,body:testText+" cross"
+  });
+  assert.ok(deniedCross.error,"Parent A must not post to Family B");
+  const validChild = await child.c.from("family_messages").insert({
+    family_id:a.profile.family_id,sender_id:child.profile.id,body:testText+" child"
+  });
+  assert.ifError(validChild.error);
+  const deniedBRead = await a.c.from("family_messages").select("id").eq("id",postedB.data.id);
+  assert.ifError(deniedBRead.error);
+  assert.equal(deniedBRead.data.length,0,"Family A accessed Family B chat");
+
   for (const actor of [a,child,b]) {
     const result = await actor.c.auth.signOut();
     assert.ifError(result.error);
