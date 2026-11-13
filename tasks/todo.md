@@ -271,3 +271,18 @@ Scope: inspect deployed main, open PRs #10/#11/#12 if accessible, Supabase proje
 
 ## Review
 Pending evidence. No release approval until authenticated multi-user tests and security issues are resolved.
+
+
+## Release hardening — 2026-11-12 (review branch)
+
+**Release rule:** Keep production unchanged until a green automated security/test suite, verified two-household auth isolation, parent unlock/expiry, photo upload/download, and browser/tablet acceptance. Never use real family content as test fixtures.
+
+- [ ] Remove unused hard-coded-PIN prototype and show permissions from server-returned profiles.role, not editable member display labels.
+- [ ] Upgrade security-vulnerable dependencies using pinned lockfile; run npm ci, npm test, npm run build, npm audit.
+- [ ] Extend automated checks for member/parent role boundaries, cross-family attempts, and parent-grant/session expiry; record which tests require authenticated staging accounts.
+- [ ] Stage private photo Storage bucket and RLS migration; add authenticated upload/read UI, retain legacy thumbnails, and prove isolation before applying to production.
+- [ ] Integrate and verify month screensaver, including view layout, time changes, keyboard/wake behaviour and tablet-specific checks.
+- [ ] Require a real CI gate and human verified authenticated acceptance before any promotion.
+
+### Review / outstanding proof
+Pending CI and staging acceptance results. Existing Supabase branch state reports MIGRATIONS_FAILED; do not deploy schema changes until reconciled.
