@@ -360,3 +360,19 @@ Draft PR #16, production unaffected by this chat change. Migration remains delib
 - [ ] Future enhancement: real notifications/AI commands only through verified backend; no fabricated payout approvals.
 
 **Status:** Production database unchanged and no insecure hard-coded PIN introduced.
+
+
+## Family Chat staging gate hardening — 2026-11-12
+
+- [x] Recheck current GitHub PR #17: already merged; latest workflow build, dependency and browser checks passed.
+- [x] Confirm production still lacks `public.family_messages` and its realtime publication; no live database change.
+- [x] Verify existing private.live_portal_session() uses auth.sessions; design revoked bearer-token regression test.
+- [x] Add explicit staging project reference match and forbid privileged service_role/secret keys in acceptance script.
+- [x] Extend authenticated staging acceptance: client cannot UPDATE/DELETE messages, revoked JWT cannot read, realtime Parent A→Child A message delivery and zero Parent B leak.
+- [x] Add static migration contract tests into normal npm test command for tenant RLS and Realtime rules.
+- [x] Update manual staging workflow secret names and document step-by-step isolated setup in docs/FAMILY_CHAT_STAGING.md.
+- [ ] Configure isolated, healthy Supabase staging project and three disposable confirmed accounts. Separate connected empty project has no app schema and is not yet designated.
+- [ ] Execute actual staging Auth/RLS/Realtime acceptance and inspect logs; cannot claim pass from static CI.
+- [ ] Enforce required GitHub checks/approvals on main via admin settings (GitHub integration lacks ruleset write access).
+
+**Release status:** Staging safety tests prepared on independent review branch; production remains unchanged. PR pending.
