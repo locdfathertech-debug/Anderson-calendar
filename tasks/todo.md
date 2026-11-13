@@ -258,16 +258,57 @@ Scope: preserve the complete supplied artwork and existing calendar/portal funct
 
 # Anderson Family Calendar — release-readiness audit (2026-11-12)
 
-Scope: inspect deployed main, open PRs #10/#11/#12 if accessible, Supabase project `kwaqscxveniaostnmonu`, and Vercel project `vite-anderson-calendar`. Audit/document only; no production deploy, schema writes, PR merges, or real user-data modifications.
+**Scope:** Production main at `fc1e3627`, Vercel `dpl_DZdyX7Zfw8JWCpUE5nV9vvpxCLRy`, Supabase `kwaqscxveniaostnmonu`; verify current code, the uploaded CalendarApp.jsx, and release controls. This branch contains only documentation and isolated CI configuration. No live schema, records, releases or main branch modifications.
 
-## Plan / verification gates
-- [ ] Confirm exact GitHub main/PR SHAs, Vercel deployment SHA and configured Supabase project.
-- [ ] Inspect existing automated unit/integration tests; execute test runner and build if source/dependencies are accessible; distinguish remote build pass from test pass.
-- [ ] Check Vercel build events, deployment readiness, recent runtime errors and HTTP access to pages.
-- [ ] Check Supabase RLS, grants, auth/RPC security, storage, migrations, and security/performance advisors using read-only calls.
-- [ ] Review critical user journeys: email/OAuth login, onboarding, Parent PIN, child access, CRUD, chores, photos, week/month/year, kiosk/screensaver, installability.
-- [ ] Review security and accessibility/performance/reliability risks; compare changes in open PRs with main.
-- [ ] Record evidence, blockers, follow-up regressions and lessons; leave unverified checks marked pending.
+## Plan and verification checklist
+- [x] Confirm repository and actual production deployment SHA; PR #12 unexpectedly merged and deployed.
+- [x] Run exact npm install/test/build commands in GitHub Actions and capture results.
+- [x] Run npm audit with high-severity gate and static check for hard-coded parent PIN.
+- [x] Inspect Vercel deployment build, runtime log query, bundle size.
+- [x] Inspect linked Supabase public RLS tables and policies; inspect security/performance/health advisors.
+- [x] Inspect security-definer RPC bodies/grants, storage buckets, critical frontend import graph and migrations.
+- [x] Compare deployed main to proposed calendar screensaver and access-level changes.
+- [ ] Authenticated end-to-end sign-in (email/Google/Apple/Microsoft), invite/onboarding, parent PIN, parent/child CRUD, family isolation, logout/reload, device/browser QA and accessibility measurements.
+- [ ] Dedicated regression tests for time/calendar data, photo storage, month screensaver, data persistence and authorization (requires controlled authenticated test identities and fixture environment).
+- [ ] Remediate security findings, rerun gates, and obtain release approval.
 
-## Review
-Pending evidence. No release approval until authenticated multi-user tests and security issues are resolved.
+## Review — evidence and decision
+
+**Release decision: FAIL / do not approve further production releases.** Production already exists; no rollback was attempted. All checks are from 2026-11-12 UTC/US evening (some GitHub run metadata labels 2026-11-13 UTC).
+
+| Gate | Status | Evidence |
+| --- | --- | --- |
+| Locked dependency install | PASS | GitHub Actions verify workflow, `npm ci` |
+| Existing automated test suite | PASS | `npm test` executed 39 tests: 39 passed, 0 failed |
+| Vite production compile | PASS | `npm run build` passed in GitHub Actions and Vercel production `READY` |
+| Independent release gate | FAIL | Actions run `43333810187`: both `npm audit --audit-level=high` and hard-coded-PIN check failed |
+| Production deployment | READY only | Vercel built commit `fc1e3627` from `main`; READY is not E2E acceptance |
+| Bundle performance | WARN | Vercel logged main JS 629.92 kB minified, 187.60 kB gzip; >500kB warning |
+| Dependency security | FAIL | 5 vulnerabilities: 1 low, 3 moderate, 1 high. Npm audit identifies deepmerge prototype poisoning (GHSA-gcqx-w48m-w2h4), esbuild dev server issue (GHSA-67mh-4wv8-2f99), React Router open redirect (GHSA-wrjc-x8rr-h8h6), React Router SSR error hydration (GHSA-337j-9hxr-rhxg). Proposed forced upgrades cross major versions: review before use |
+| Inactive component security | FAIL | `src/CalendarApp.jsx` contains `pin === '1234'`, client-side auth state and queries for `family_members` and `meals`. Main `src/App.jsx` remains entrypoint, so no proof this is a reachable production PIN exploit; retain gate to prevent later wiring |
+| Schema compatibility | FAIL for proposed component | Public tables are `families`, `profiles`, `events`, `chores`, `vacations`, `grades`, `planner_records`, `family_access`; no `family_members`/`meals` public tables or `access_level` column. UI badge alone is not authorization |
+| Public RLS | CONFIG PASS, behavioral UNVERIFIED | RLS enabled on all eight public tables; policies use `private.can_manage_family`, `private.is_family_member` and `private.is_super_admin`. No two-family authenticated attack test run |
+| RPC privileges | REVIEW | Four public SECURITY DEFINER RPCs callable by `authenticated` only: `accept_family_authorization`, `create_family`, `set_family_role`, `submit_planner_chore`. SQL bodies contain checks but multi-identity attack tests not run. See Supabase advisor https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable |
+| Parent PIN | REVIEW | Actual `src/App.jsx` calls `set_parent_pin`, `unlock_parent_portal`, `lock_parent_portal` RPCs; unlike unused CalendarApp.jsx demo PIN. Must test session revocation, expiry and lock on device |
+| Password protection | WARN | Supabase leaked password protection disabled: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection |
+| Performance advisors | WARN | 9 unindexed foreign keys, 5 overlapping permissive SELECT policy cases, 2 unused private indices and absolute Auth DB connection allocation. See https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys |
+| Storage / photos | FAIL for upload readiness | No Supabase Storage buckets configured in linked project; user photo upload cannot be certified |
+| Data continuity | PARTIAL | Linked DB: 3 families, 2 profiles, 11 planner records. No destructive changes; backup/restore and migration-history parity not demonstrated |
+| Calendar screensaver | NOT RELEASED | Deployed `src/CalendarKiosk.jsx` still contains clock-based idle overlay; full-month feature is separate PR #11, so do not claim live |
+| Browser/E2E | NOT RUN | No authenticated browser interaction or Tab S7 physical-device acceptance. External site fetch attempt did not establish browser test |
+| Vercel runtime errors | INCONCLUSIVE | No matching server/function errors in 24h query; static client errors may not appear in Vercel function logs |
+
+## Prioritized corrective actions
+1. **P0:** Keep draft audit PR #13 unmerged until failing checks addressed. Remove insecure dormant CalendarApp.jsx or adapt only its badges into actual server-authorized Planner/Parent Portal. Never expose static PINs.
+2. **P0:** Review the 5 npm audit advisories; upgrade dependencies on a focused review branch, pin lockfile, run all 39 tests, build and targeted regression checks; don't blindly run `npm audit fix --force`.
+3. **P1:** Add automated two-family/three-role RLS and RPC tests with disposable accounts and validate old user sessions against lock/expiry; confirm provider sign-ins, email confirmation and role changes.
+4. **P1:** Implement a private family-scoped photo bucket, storage RLS and upload/download acceptance if photo upload is required.
+5. **P1:** Consolidate and index backed queries after profiling; assess security advisor warnings individually. Enable leaked-password checks if plan supports it.
+6. **P1:** Confirm legacy data/migration continuity, daily backups and restore drill before schema upgrades.
+7. **P2:** Test the 16:10 landscape kiosk/idle monthly view and calendar transitions (month/year/week), mobile portrait, accessibility keyboard/focus and performance; PR #11 should remain staged until accepted.
+8. **P2:** Reduce main bundle via code splitting and set release gates to require CI as well as Vercel preview.
+
+**Verification link:** https://github.com/locdfathertech-debug/Anderson-calendar/actions/runs/43333810187
+
+## Workflow principles compliance
+Plan/track/review/lessons recorded here on dedicated audit branch. Independent CI was created and executed. Build and existing tests are proven; full UI/auth/device verification remains incomplete. No production changes, DB writes or PR merges from this audit.
