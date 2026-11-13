@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase.js";
 import { groceryItem } from "./groceryItems.js";
 
-const sampleGroceries = [
+let demoGroceries = [
   { id:"demo-milk",item:"Milk",completed:false,created_at:"2026-11-13T09:00:00Z" },
   { id:"demo-eggs",item:"Eggs",completed:false,created_at:"2026-11-13T09:01:00Z" }
 ];
@@ -11,10 +11,16 @@ export function useFamilyGroceries(familyId, userId, demo = false) {
   const timers = useRef(new Map());
   const generation=useRef(0);
   useEffect(()=>{
+    if (!demo) return;
+    const sync=()=>setState(s=>({...s,rows:[...demoGroceries]}));
+    window.addEventListener("family-demo-groceries",sync);
+    return ()=>window.removeEventListener("family-demo-groceries",sync);
+  },[demo]);
+  useEffect(()=>{
     const epoch=++generation.current;
     for(const timer of timers.current.values()) clearTimeout(timer);
     timers.current.clear();
-    setState({familyId,rows:demo?sampleGroceries:[],status:demo?"Sample list · not synced":"Connecting…",ready:demo});
+    setState({familyId,rows:demo?[...demoGroceries]:[],status:demo?"Sample list · not synced":"Connecting…",ready:demo});
     if(demo || !familyId || !userId) return;
     let pending=false;
     const refresh=async()=>{
@@ -56,7 +62,11 @@ export function useFamilyGroceries(familyId, userId, demo = false) {
   const add=useCallback(async input=>{
     const item=groceryItem(input);
     if(!ready||!item) throw new Error("Grocery list is unavailable or item is empty.");
-    if(demo) {setState(s=>({...s,rows:[...s.rows,{id:`demo-${Date.now()}-${Math.random()}`,item,completed:false,created_at:new Date().toISOString()}]}));return;}
+    if(demo) {
+      demoGroceries=[...demoGroceries,{id:`demo-${Date.now()}-${Math.random()}`,item,completed:false,created_at:new Date().toISOString()}];
+      window.dispatchEvent(new Event("family-demo-groceries"));
+      return;
+    }
     const {error}=await supabase.from("groceries").insert({family_id:familyId,added_by:userId,item});
     if(error) throw error;
     await refresh();
@@ -68,7 +78,8 @@ export function useFamilyGroceries(familyId, userId, demo = false) {
       const timer=timers.current.get(row.id);if(timer)clearTimeout(timer);timers.current.delete(row.id);
     }
     if(demo){
-      setState(s=>({...s,rows:s.rows.map(x=>x.id===row.id?{...x,completed}:x)}));
+      demoGroceries=demoGroceries.map(x=>x.id===row.id?{...x,completed}:x);
+      window.dispatchEvent(new Event("family-demo-groceries"));
     }else{
       const {error}=await supabase.from("groceries").update({
         completed,completed_at:completed?new Date().toISOString():null
@@ -79,7 +90,10 @@ export function useFamilyGroceries(familyId, userId, demo = false) {
     if(completed){
       const timer=setTimeout(async()=>{
         timers.current.delete(row.id);
-        if(demo) setState(s=>({...s,rows:s.rows.filter(x=>x.id!==row.id)}));
+        if(demo) {
+          demoGroceries=demoGroceries.filter(x=>x.id!==row.id);
+          window.dispatchEvent(new Event("family-demo-groceries"));
+        }
         else {
           const {error}=await supabase.from("groceries").delete().eq("family_id",familyId).eq("id",row.id).eq("completed",true);
           if(!error) await refresh();
