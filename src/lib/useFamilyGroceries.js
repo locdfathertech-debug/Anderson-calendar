@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase.js";
+import { groceryItem } from "./groceryItems.js";
 
 const sampleGroceries = [
   { id:"demo-milk",item:"Milk",completed:false,created_at:"2026-11-13T09:00:00Z" },
   { id:"demo-eggs",item:"Eggs",completed:false,created_at:"2026-11-13T09:01:00Z" }
 ];
-export function groceryItem(value) {
-  return String(value||"").trim().replace(/\s+/g," ").slice(0,120);
-}
 export function useFamilyGroceries(familyId, userId, demo = false) {
   const [state,setState] = useState({familyId:null,rows:[],status:"Connecting…",ready:demo});
   const timers = useRef(new Map());
