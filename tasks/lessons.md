@@ -44,3 +44,6 @@
 - Chat requires server-enforced family scoping for both reads and writes. The browser must never be allowed to send arbitrary sender IDs, create AI/system entries, or approve payouts via a mock parser.
 - Local @AI answers are suggestions, not LLM execution, durable message history, push notifications, or payment authorization. State those limitations in the UI and require a separately authorized backend for actions.
 - Preserve the full-screen monthly screensaver by hiding floating controls while the idle overlay is shown; verify chat and wake on desktop, mobile and 16:10 tablet layouts.
+
+- A merged chat UI is not operational messaging until Supabase's tenant-scoped table and Realtime publication are verified. Disable send while unavailable and preserve typed drafts.
+- Never replace secure calendar auth with standalone mock code containing fixed Parent PINs, unscoped reads, or fabricated push/payout confirmations.
