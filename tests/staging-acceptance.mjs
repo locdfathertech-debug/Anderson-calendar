@@ -9,6 +9,8 @@ const required = ["E2E_STAGING_SUPABASE_URL","E2E_STAGING_SUPABASE_KEY",
   "E2E_PARENT_B_EMAIL","E2E_PARENT_B_PASSWORD"];
 for (const key of required) if (!env[key]) throw new Error(`Missing staging acceptance secret ${key}`);
 const projectUrl = new URL(env.E2E_STAGING_SUPABASE_URL);
+if (!env.E2E_STAGING_PROJECT_REF || projectUrl.hostname !== `${env.E2E_STAGING_PROJECT_REF}.supabase.co`)
+  throw new Error("The explicitly approved staging project reference does not match the URL.");
 if (projectUrl.protocol !== "https:" || !projectUrl.hostname.endsWith(".supabase.co") ||
     projectUrl.hostname === "kwaqscxveniaostnmonu.supabase.co")
   throw new Error("Only a separate staging Supabase project may be used for acceptance tests.");
@@ -93,11 +95,38 @@ try {
   assert.ifError(deniedBRead.error);
   assert.equal(deniedBRead.data.length,0,"Family A accessed Family B chat");
 
+  // Session revocation: after logout an old JWT must not read a prior message.
+  // The private.live_portal_session() RLS helper checks auth.sessions, not
+  // merely JWT expiry.
+  const { data: sessionBeforeLogout, error: sessionError } = await a.c.auth.getSession();
+  assert.ifError(sessionError);
+  const oldAccessToken = sessionBeforeLogout.session?.access_token;
+  assert.ok(oldAccessToken, "Acceptance fixture must have a signed-in session");
+  const deniedUpdate = await a.c.from("family_messages").update({body:"tamper"}).eq("id",postedA.data.id);
+  assert.ok(deniedUpdate.error,"Client must not have UPDATE grant");
+  const deniedDelete = await a.c.from("family_messages").delete().eq("id",postedA.data.id);
+  assert.ok(deniedDelete.error,"Client must not have DELETE grant");
   for (const actor of [a,child,b]) {
     const result = await actor.c.auth.signOut();
     assert.ifError(result.error);
     const {data} = await actor.c.auth.getSession();
     assert.equal(data.session,null,"Session retained after logout");
+  }
+  // A stale access token must not see family history after sign-out.
+  const revoked = await fetch(new URL(
+    `/rest/v1/family_messages?select=id&id=eq.${encodeURIComponent(postedA.data.id)}`,
+    projectUrl
+  ), {
+    headers: {
+      apikey: env.E2E_STAGING_SUPABASE_KEY,
+      Authorization: `Bearer ${oldAccessToken}`
+    }
+  });
+  if (revoked.ok) {
+    const afterSignout = await revoked.json();
+    assert.deepEqual(afterSignout,[],"Revoked JWT exposed family messages after signout");
+  } else {
+    assert.ok([401,403].includes(revoked.status),"Expected auth rejection for revoked access token");
   }
   console.log("Staging acceptance passed: A/B isolation, parent/child role, locked portal, unauthorized escalation and sign-out.");
 } finally {
