@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Planner from "./Planner.jsx";
 import FamilyOnboarding from "./FamilyOnboarding.jsx";
 import CalendarKiosk from "./CalendarKiosk.jsx";
+import FamilyChat from "./FamilyChat.jsx";
 import ParentGate from "./ParentGate.jsx";
 import { clearParentGrant, setParentGrant, getParentToken } from "./lib/parentAccess.js";
 import { supabase, isSupabaseConfigured } from "./lib/supabase.js";
@@ -244,6 +245,7 @@ export default function App() {
       : session ? <FamilyOnboarding email={session.user.email} onComplete={() => load(session.user)} onSignOut={signOut}/>
       : <Auth onError={setError}/>}
     {gateOpen && <ParentGate status={portalStatus} demo={demo} onUnlock={unlock} onClose={closeGate} onSignOut={signOut} allowAccountSwitch={!activeKiosk}/>}
+    {!gateOpen && (demo || (session && profile?.family_id)) && <FamilyChat familyId={profile?.family_id || "sample-family"} userId={profile?.id || "sample-parent"} records={records} demo={demo} />}
     {error && <div className="error-toast" role="alert">{error}<button aria-label="Dismiss error" onClick={() => setError("")}>×</button></div>}
   </>;
 }
