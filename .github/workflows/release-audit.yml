@@ -1,13 +1,8 @@
 name: Anderson Family Calendar release audit
 on:
   push:
-    branches: [audit/release-readiness-20261112]
+    branches: [main, fix/security-ci-photos-kiosk-20261112]
   pull_request:
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "package*.json"
-      - ".github/workflows/release-audit.yml"
 permissions:
   contents: read
 jobs:
@@ -33,7 +28,11 @@ jobs:
       - name: Security regression checks
         if: success() || failure()
         run: |
-          if grep -Eq "pin[[:space:]]*===[[:space:]]*['\"]1234['\"]" src/CalendarApp.jsx; then
-            echo "::error::Hard-coded Parent Portal PIN is forbidden."
+          if [ -e src/CalendarApp.jsx ]; then
+            echo "::error::Unused prototype CalendarApp.jsx must not be reintroduced."
+            exit 1
+          fi
+          if grep -ERq "pin[[:space:]]*===[[:space:]]*['\\\"][0-9]{4}['\\\"]" src/; then
+            echo "::error::Static client-side Parent PIN detected."
             exit 1
           fi
