@@ -29,7 +29,7 @@ export function useFamilyGroceries(familyId, userId, demo = false) {
       try {
         const {data,error}=await supabase.from("groceries")
           .select("id,item,completed,created_at,completed_at")
-          .eq("family_id",familyId).order("created_at",{ascending:true}).limit(200);
+          .eq("family_id",familyId).is("archived_at",null).order("created_at",{ascending:true}).limit(200);
         if(error) throw error;
         if(generation.current===epoch) setState({familyId,rows:data||[],status:"Grocery list · synced",ready:true});
       } catch {
@@ -38,7 +38,8 @@ export function useFamilyGroceries(familyId, userId, demo = false) {
     };
     void refresh();
     const channel=supabase.channel(`groceries-${familyId}`)
-      .on("postgres_changes",{event:"*",schema:"public",table:"groceries",filter:`family_id=eq.${familyId}`},()=>void refresh())
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"groceries",filter:`family_id=eq.${familyId}`},()=>void refresh())
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"groceries",filter:`family_id=eq.${familyId}`},()=>void refresh())
       .subscribe();
     const poll=setInterval(refresh,15000);
     window.addEventListener("online",refresh);
@@ -55,7 +56,7 @@ export function useFamilyGroceries(familyId, userId, demo = false) {
   const refresh=useCallback(async()=>{
     if(demo||!familyId||!userId) return;
     const {data,error}=await supabase.from("groceries")
-      .select("id,item,completed,created_at,completed_at").eq("family_id",familyId)
+      .select("id,item,completed,created_at,completed_at").eq("family_id",familyId).is("archived_at",null)
       .order("created_at",{ascending:true}).limit(200);
     if(!error) setState({familyId,rows:data||[],status:"Grocery list · synced",ready:true});
   },[familyId,userId,demo]);
@@ -95,7 +96,9 @@ export function useFamilyGroceries(familyId, userId, demo = false) {
           window.dispatchEvent(new Event("family-demo-groceries"));
         }
         else {
-          const {error}=await supabase.from("groceries").delete().eq("family_id",familyId).eq("id",row.id).eq("completed",true);
+          // Immutable archive instead of DELETE: Postgres Changes UPDATE is RLS-filtered.
+          const {error}=await supabase.from("groceries").update({archived_at:new Date().toISOString()})
+            .eq("family_id",familyId).eq("id",row.id).eq("completed",true).is("archived_at",null);
           if(!error) await refresh();
         }
       },2000);
