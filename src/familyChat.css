@@ -25,3 +25,6 @@
 
 /* The monthly screensaver stays genuinely unobstructed until touched. */
 .calendar-kiosk:has(.kiosk-month-screensaver) ~ .family-chat-root{display:none}
+
+.family-chat-confirm-grocery{display:inline-flex;align-items:center;justify-content:center;margin-top:8px;min-height:40px;padding:7px 12px;border:1px solid #36c7bb;border-radius:9px;background:#087d79;color:#fff;font:600 12px Inter,sans-serif;cursor:pointer}
+.family-chat-confirm-grocery:disabled{opacity:.5;cursor:not-allowed}
