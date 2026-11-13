@@ -22,3 +22,6 @@
 .family-chat-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media(max-width:560px){.family-chat-root{right:10px;bottom:10px}.family-chat-panel{height:min(520px,calc(100dvh - 90px));bottom:64px}.family-chat-fab{padding:12px}}
 @media(prefers-reduced-motion:reduce){.family-chat-root *{scroll-behavior:auto!important}}
+
+/* The monthly screensaver stays genuinely unobstructed until touched. */
+.calendar-kiosk:has(.kiosk-month-screensaver) ~ .family-chat-root{display:none}
