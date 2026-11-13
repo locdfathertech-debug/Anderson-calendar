@@ -24,6 +24,7 @@ jobs:
         run: node tests/staging-acceptance.mjs
         env:
           E2E_STAGING_SUPABASE_URL: ${{ secrets.E2E_STAGING_SUPABASE_URL }}
+          E2E_STAGING_PROJECT_REF: ${{ secrets.E2E_STAGING_PROJECT_REF }}
           E2E_STAGING_SUPABASE_KEY: ${{ secrets.E2E_STAGING_SUPABASE_KEY }}
           E2E_PARENT_A_EMAIL: ${{ secrets.E2E_PARENT_A_EMAIL }}
           E2E_PARENT_A_PASSWORD: ${{ secrets.E2E_PARENT_A_PASSWORD }}
