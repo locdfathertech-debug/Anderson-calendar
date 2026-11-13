@@ -14,9 +14,10 @@ export function privatePhotoEnabled() { return import.meta.env?.VITE_PRIVATE_FAM
 export async function uploadPrivateMemberPhoto(client, familyId, imageDataUrl) {
   const uuid = new RegExp(`^${UUID}$`);
   if (!uuid.test(familyId)) throw new Error("A verified household is required to save photos.");
-  if (typeof imageDataUrl !== "string" || !/^data:image\\/jpeg;base64,\\/9j\\/[A-Za-z0-9+/]*={0,2}$/.test(imageDataUrl))
+  const prefix = "data:image/jpeg;base64,";
+  const encoded = typeof imageDataUrl === "string" && imageDataUrl.startsWith(prefix) ? imageDataUrl.slice(prefix.length) : "";
+  if (!encoded || !encoded.startsWith("/9j/") || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded))
     throw new Error("Only compressed JPEG photos may be uploaded.");
-  const encoded = imageDataUrl.slice("data:image/jpeg;base64,".length);
   const bytes = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
   if (!bytes.length || bytes.length > 262144) throw new Error("Photo is too large. Please choose a smaller image.");
   const path = `${familyId}/${crypto.randomUUID()}.jpg`;
@@ -28,6 +29,6 @@ export async function signedPrivatePhotoUrl(client, ref) {
   const path = privatePhotoPath(ref);
   if (!path) return null;
   const { data, error } = await client.storage.from(PRIVATE_PHOTO_BUCKET).createSignedUrl(path, 300);
-  if (error || !/^https:\\/\\//.test(data?.signedUrl || "")) return null;
+  if (error || typeof data?.signedUrl !== "string" || !data.signedUrl.startsWith("https://")) return null;
   return data.signedUrl;
 }
