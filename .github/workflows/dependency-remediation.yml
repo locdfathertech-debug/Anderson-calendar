@@ -4,7 +4,7 @@ on:
     branches: [fix/security-ci-photos-kiosk-20261112]
   pull_request:
 permissions:
-  contents: read
+  contents: write
 jobs:
   upgrade-evaluation:
     runs-on: ubuntu-latest
@@ -38,3 +38,18 @@ jobs:
             package.json
             package-lock.json
           retention-days: 7
+
+      - name: Commit tested lockfile to the review branch only
+        if: github.event_name == 'push' && github.ref == 'refs/heads/fix/security-ci-photos-kiosk-20261112'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "No dependency changes to commit."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "fix(deps): remove unused router and update Vite security patches"
+          gh auth setup-git
+          git push origin HEAD:refs/heads/fix/security-ci-photos-kiosk-20261112
