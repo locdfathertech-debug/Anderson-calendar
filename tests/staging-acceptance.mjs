@@ -9,10 +9,20 @@ const required = ["E2E_STAGING_SUPABASE_URL","E2E_STAGING_SUPABASE_KEY",
   "E2E_PARENT_B_EMAIL","E2E_PARENT_B_PASSWORD"];
 for (const key of required) if (!env[key]) throw new Error(`Missing staging acceptance secret ${key}`);
 const projectUrl = new URL(env.E2E_STAGING_SUPABASE_URL);
+if (!env.E2E_STAGING_PROJECT_REF || projectUrl.hostname !== `${env.E2E_STAGING_PROJECT_REF}.supabase.co`)
+  throw new Error("The explicitly approved staging project reference does not match the URL.");
 if (projectUrl.protocol !== "https:" || !projectUrl.hostname.endsWith(".supabase.co") ||
     projectUrl.hostname === "kwaqscxveniaostnmonu.supabase.co")
   throw new Error("Only a separate staging Supabase project may be used for acceptance tests.");
 
+// Never run the acceptance suite with a privileged service_role key.
+if (env.E2E_STAGING_SUPABASE_KEY.startsWith("sb_secret_"))
+  throw new Error("Service-role/secret keys are forbidden for browser acceptance.");
+const pieces = env.E2E_STAGING_SUPABASE_KEY.split(".");
+if (pieces.length === 3) {
+  const payload = JSON.parse(Buffer.from(pieces[1],"base64url").toString("utf8"));
+  if (payload.role !== "anon") throw new Error("Only an anon JWT may be used for acceptance.");
+}
 function client() { return createClient(projectUrl.href,env.E2E_STAGING_SUPABASE_KEY,
   {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}); }
 async function signIn(email,password) {
@@ -85,6 +95,46 @@ try {
     family_id:b.profile.family_id,sender_id:a.profile.id,body:testText+" cross"
   });
   assert.ok(deniedCross.error,"Parent A must not post to Family B");
+  // Realtime delivery across signed-in devices. Family B can subscribe to
+  // the same table/filter, but must NEVER receive Family A payloads.
+  const ping = `E2E realtime ${Date.now()} ${Math.random().toString(36).slice(2)}`;
+  let resolveChildEvent;
+  const received = new Promise(resolve => { resolveChildEvent=resolve; });
+  let leakedToB = false;
+  const channelFilter = `family_id=eq.${a.profile.family_id}`;
+  const channelA = child.c.channel(`e2e-child-${Date.now()}`)
+    .on("postgres_changes", {event:"INSERT",schema:"public",table:"family_messages",filter:channelFilter},
+      payload => { if(payload.new?.body === ping) resolveChildEvent(payload.new); });
+  const channelB = b.c.channel(`e2e-other-household-${Date.now()}`)
+    .on("postgres_changes", {event:"INSERT",schema:"public",table:"family_messages",filter:channelFilter},
+      payload => { if(payload.new?.body === ping) leakedToB = true; });
+  async function subscribeReady(channel) {
+    await new Promise((resolve,reject)=>{
+      const timer = setTimeout(()=>reject(new Error("Realtime subscription timed out")),12000);
+      channel.subscribe(status=>{
+        if(status==="SUBSCRIBED") {clearTimeout(timer);resolve();}
+        else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED") {
+          clearTimeout(timer);reject(new Error("Realtime subscription failed: "+status));
+        }
+      });
+    });
+  }
+  try {
+    await Promise.all([subscribeReady(channelA),subscribeReady(channelB)]);
+    const sent = await a.c.from("family_messages").insert({
+      family_id:a.profile.family_id,sender_id:a.profile.id,body:ping
+    });
+    assert.ifError(sent.error);
+    const delivery = await Promise.race([
+      received,
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("Child A did not receive Realtime chat")),12000))
+    ]);
+    assert.equal(delivery.body,ping,"Realtime payload mismatch");
+    await new Promise(resolve=>setTimeout(resolve,1000));
+    assert.equal(leakedToB,false,"Cross-family Realtime message leaked to Family B");
+  } finally {
+    await Promise.allSettled([child.c.removeChannel(channelA), b.c.removeChannel(channelB)]);
+  }
   const validChild = await child.c.from("family_messages").insert({
     family_id:a.profile.family_id,sender_id:child.profile.id,body:testText+" child"
   });
@@ -93,11 +143,38 @@ try {
   assert.ifError(deniedBRead.error);
   assert.equal(deniedBRead.data.length,0,"Family A accessed Family B chat");
 
+  // Session revocation: after logout an old JWT must not read a prior message.
+  // The private.live_portal_session() RLS helper checks auth.sessions, not
+  // merely JWT expiry.
+  const { data: sessionBeforeLogout, error: sessionError } = await a.c.auth.getSession();
+  assert.ifError(sessionError);
+  const oldAccessToken = sessionBeforeLogout.session?.access_token;
+  assert.ok(oldAccessToken, "Acceptance fixture must have a signed-in session");
+  const deniedUpdate = await a.c.from("family_messages").update({body:"tamper"}).eq("id",postedA.data.id);
+  assert.ok(deniedUpdate.error,"Client must not have UPDATE grant");
+  const deniedDelete = await a.c.from("family_messages").delete().eq("id",postedA.data.id);
+  assert.ok(deniedDelete.error,"Client must not have DELETE grant");
   for (const actor of [a,child,b]) {
     const result = await actor.c.auth.signOut();
     assert.ifError(result.error);
     const {data} = await actor.c.auth.getSession();
     assert.equal(data.session,null,"Session retained after logout");
+  }
+  // A stale access token must not see family history after sign-out.
+  const revoked = await fetch(new URL(
+    `/rest/v1/family_messages?select=id&id=eq.${encodeURIComponent(postedA.data.id)}`,
+    projectUrl
+  ), {
+    headers: {
+      apikey: env.E2E_STAGING_SUPABASE_KEY,
+      Authorization: `Bearer ${oldAccessToken}`
+    }
+  });
+  if (revoked.ok) {
+    const afterSignout = await revoked.json();
+    assert.deepEqual(afterSignout,[],"Revoked JWT exposed family messages after signout");
+  } else {
+    assert.ok([401,403].includes(revoked.status),"Expected auth rejection for revoked access token");
   }
   console.log("Staging acceptance passed: A/B isolation, parent/child role, locked portal, unauthorized escalation and sign-out.");
 } finally {

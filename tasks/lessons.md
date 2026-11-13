@@ -47,3 +47,7 @@
 
 - A merged chat UI is not operational messaging until Supabase's tenant-scoped table and Realtime publication are verified. Disable send while unavailable and preserve typed drafts.
 - Never replace secure calendar auth with standalone mock code containing fixed Parent PINs, unscoped reads, or fabricated push/payout confirmations.
+
+- After a merged chat UI, verify live Supabase DDL and Realtime publication independently; a green build does not prove message delivery.
+- Authenticated staging tests must pin a deliberately approved project reference, reject service-role keys, check old JWTs after sign-out and assert no cross-family realtime events.
+- Static SQL tests can catch removed RLS clauses but do not prove Postgres policy behavior; real multi-account tests remain mandatory before production.
