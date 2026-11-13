@@ -49,6 +49,18 @@ for (const device of viewports) {
     await page.screenshot({path:`artifacts/screensaver-${device.name}.png`,fullPage:false});
     await overlay.click({position:{x:20,y:20}});
     await overlay.waitFor({state:"detached"});
+    await page.getByRole("button",{name:"Open family chat and AI assistant"}).click();
+    await page.getByRole("dialog",{name:"Family chat and AI assistant"}).waitFor();
+    await page.getByRole("textbox",{name:"Send family message"}).fill("Hello family!");
+    await page.getByRole("button",{name:"Send message"}).click();
+    await page.locator(".family-chat-bubble.mine").getByText("Hello family!").waitFor();
+    await page.getByRole("textbox",{name:"Send family message"}).fill("@AI what is for dinner?");
+    await page.getByRole("button",{name:"Send message"}).click();
+    await page.locator(".family-chat-bubble.assistant").waitFor();
+    const note = await page.locator(".family-chat-bubble.assistant").innerText();
+    assert.match(note,/dinner|meal|parent/i,"AI must provide advisory suggestion");
+    await page.getByRole("dialog",{name:"Family chat and AI assistant"}).getByRole("button",{name:"Close family chat"}).click();
+    await page.getByRole("dialog",{name:"Family chat and AI assistant"}).waitFor({state:"detached"});
     assert.deepEqual(pageErrors,[],"No uncaught client error");
     console.log(`PASS ${device.name}: month/week nav, screensaver ${count} cells, viewport geometry, wake, no exceptions`);
   } catch(err) {

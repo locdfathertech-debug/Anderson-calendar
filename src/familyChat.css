@@ -1,0 +1,27 @@
+.family-chat-root{position:fixed;right:clamp(12px,2vw,28px);bottom:clamp(12px,2vh,24px);z-index:110;font-family:Inter,system-ui,sans-serif}
+.family-chat-fab{display:flex;gap:9px;align-items:center;min-height:52px;padding:11px 17px;border:1px solid #36c7bb;border-radius:999px;background:#087d79;color:#fff;font:600 14px inherit;box-shadow:0 12px 32px #0009;cursor:pointer}
+.family-chat-fab:focus-visible,.family-chat-panel button:focus-visible,.family-chat-panel input:focus-visible{outline:3px solid #ff8a18;outline-offset:2px}
+.family-chat-panel{position:absolute;right:0;bottom:66px;width:min(390px,calc(100vw - 24px));height:min(580px,calc(100dvh - 104px));display:flex;flex-direction:column;overflow:hidden;color:#fff;background:#11151a;border:1px solid #287973;border-radius:18px;box-shadow:0 18px 60px #000c}
+.family-chat-head{display:flex;justify-content:space-between;align-items:center;padding:15px 16px;border-bottom:1px solid #344147;background:linear-gradient(110deg,#0c3534,#16151f)}
+.family-chat-head strong,.family-chat-bubble.assistant small{display:flex;align-items:center;gap:8px}
+.family-chat-head small{display:block;color:#d4d9db;font-size:11px;margin-top:4px}
+.family-chat-head button{background:transparent;color:#fff;border:0;padding:7px;cursor:pointer}
+.family-chat-history{flex:1;overflow:auto;padding:16px 12px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
+.family-chat-empty{text-align:center;color:#c5d0d3;margin:auto;font-size:13px}
+.family-chat-bubble{align-self:flex-start;max-width:87%;min-width:120px;padding:10px 12px;border:1px solid #374249;border-radius:14px;background:#202932;overflow-wrap:anywhere}
+.family-chat-bubble.mine{align-self:flex-end;background:#085957;border-color:#36a9a0}
+.family-chat-bubble.assistant{background:#2e2040;border-color:#8055b4}
+.family-chat-bubble small{color:#d5e7e6;font-weight:600;font-size:11px}
+.family-chat-bubble p{margin:6px 0 2px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.family-chat-bubble time{display:block;text-align:right;font-size:10px;color:#bac8c9}
+.family-chat-compose{display:flex;gap:8px;padding:10px 12px;border-top:1px solid #344147}
+.family-chat-compose input{flex:1;min-width:0;border:1px solid #596970;border-radius:18px;padding:10px 12px;background:#212a31;color:#fff;font:inherit}
+.family-chat-compose button{min-height:42px;min-width:44px;border:0;border-radius:12px;background:#ff8a18;color:#141414;cursor:pointer}
+.family-chat-compose button:disabled{opacity:.4;cursor:not-allowed}
+.family-chat-footnote{padding:0 14px 11px;margin:0;color:#cad0d1;font-size:10px;line-height:1.4}
+.family-chat-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:560px){.family-chat-root{right:10px;bottom:10px}.family-chat-panel{height:min(520px,calc(100dvh - 90px));bottom:64px}.family-chat-fab{padding:12px}}
+@media(prefers-reduced-motion:reduce){.family-chat-root *{scroll-behavior:auto!important}}
+
+/* The monthly screensaver stays genuinely unobstructed until touched. */
+.calendar-kiosk:has(.kiosk-month-screensaver) ~ .family-chat-root{display:none}
