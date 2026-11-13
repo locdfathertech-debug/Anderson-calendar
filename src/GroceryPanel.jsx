@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ShoppingCart, Plus, Check } from "lucide-react";
 import { useFamilyGroceries } from "./lib/useFamilyGroceries.js";
+import { mealShoppingItems } from "./lib/groceryItems.js";
 
-export default function GroceryPanel({familyId,userId,demo=false}) {
+export default function GroceryPanel({familyId,userId,demo=false,dinners=[]}) {
   const {rows,status,ready,add,toggle}=useFamilyGroceries(familyId,userId,demo);
   const [draft,setDraft]=useState("");
   const [busy,setBusy]=useState(false);
@@ -14,6 +15,21 @@ export default function GroceryPanel({familyId,userId,demo=false}) {
     try{await add(draft);setDraft("");}catch(e){setError(e?.message||"Unable to add this item.");}
     finally{setBusy(false);}
   }
+  async function sendMealIngredients(meal){
+    const ingredients=mealShoppingItems(meal.data?.ingredients);
+    if(!ready||busy||!ingredients.length)return;
+    setBusy(true);setError("");
+    try{
+      const existing=new Set(rows.map(row=>row.item.toLowerCase()));
+      for(const item of ingredients){
+        if(!existing.has(item.toLowerCase())) {
+          await add(item);
+          existing.add(item.toLowerCase());
+        }
+      }
+    }catch(e){setError(e?.message||"Some dinner ingredients could not be added.");}
+    finally{setBusy(false);}
+  }
   async function change(item){
     setError("");setBusy(true);
     try{await toggle(item);}catch(e){setError(e?.message||"Unable to update item.");}
@@ -22,6 +38,16 @@ export default function GroceryPanel({familyId,userId,demo=false}) {
   return <section className="kiosk-groceries" aria-label="Family grocery list">
     <h2><ShoppingCart size={19}/> Shared groceries</h2>
     <p className="kiosk-hint" role="status">{status}</p>
+    {dinners.some(meal=>mealShoppingItems(meal.data?.ingredients).length>0) &&
+      <div className="grocery-meal-transfer">
+        <strong>Tonight's dinner ingredients</strong>
+        {dinners.filter(meal=>mealShoppingItems(meal.data?.ingredients).length).map(meal=>
+          <button type="button" key={meal.id} className="kiosk-control" disabled={!ready||busy}
+            onClick={()=>void sendMealIngredients(meal)}>
+              <Plus size={16}/> Add ${mealShoppingItems(meal.data.ingredients).length} ingredients for ${meal.data.title}
+          </button>
+        )}
+      </div>}
     <form onSubmit={submit} className="grocery-add-form">
       <label htmlFor="kiosk-grocery-input" className="grocery-sr">Grocery item</label>
       <input id="kiosk-grocery-input" value={draft} onChange={e=>setDraft(e.target.value)}
