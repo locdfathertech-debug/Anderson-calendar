@@ -59,7 +59,7 @@ for (const device of viewports) {
     await page.locator(".family-chat-bubble.assistant").waitFor();
     const note = await page.locator(".family-chat-bubble.assistant").innerText();
     assert.match(note,/dinner|meal|parent/i,"AI must provide advisory suggestion");
-    await page.getByRole("button",{name:"Close family chat"}).click();
+    await page.getByRole("dialog",{name:"Family chat and AI assistant"}).getByRole("button",{name:"Close family chat"}).click();
     await page.getByRole("dialog",{name:"Family chat and AI assistant"}).waitFor({state:"detached"});
     assert.deepEqual(pageErrors,[],"No uncaught client error");
     console.log(`PASS ${device.name}: month/week nav, screensaver ${count} cells, viewport geometry, wake, no exceptions`);
