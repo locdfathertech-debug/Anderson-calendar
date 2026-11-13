@@ -370,7 +370,7 @@ Draft PR #16, production unaffected by this chat change. Migration remains delib
 - [x] Improve sign-in's native password-manager username autofill and add cross-device guidance in login UI.
 - [x] Add regression tests for Supabase session lifecycle, identity/family scope, credential-free app bundle and 6–12 digit server-unlocked Parent PIN.
 - [x] Document steps for Google Password Manager / Android autofill and same-household logins in `docs/CROSS_DEVICE_SIGNIN.md`; password manager syncs credentials, not sessions.
-- [ ] Run GitHub CI unit/build/security and browser viewport checks on this branch.
+- [x] GitHub CI verified 55/55 automated tests, Vite build, high-severity dependency audit, and desktop/mobile/Samsung Tab S7 browser viewport checks (runs 43390990884 and 43390990860).
 - [ ] Verify actual Galaxy Tab S7, phone and desktop sign-in and password manager autofill with test identities.
 - [ ] Reconcile any existing credentials that were pasted into shared content; use password reset and rotation outside GitHub.
 - [ ] Keep staged two-family RLS/chat/photo acceptance and GitHub branch protection as release blockers.
