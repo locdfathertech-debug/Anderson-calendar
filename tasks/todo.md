@@ -360,3 +360,19 @@ Draft PR #16, production unaffected by this chat change. Migration remains delib
 - [ ] Future enhancement: real notifications/AI commands only through verified backend; no fabricated payout approvals.
 
 **Status:** Production database unchanged and no insecure hard-coded PIN introduced.
+
+
+## Secure master/family account sync — November 13, 2026
+
+**Intent from uploaded plan:** same family workspace on phone, Tab S7 and PC without password CSV exports; preserve secure Parent Portal. Do not implement the supplied hard-coded password or 1234 PIN.
+
+- [x] Audit existing Supabase Auth listener, profile family scoping, and server-enforced Parent Portal PIN. This already supports independent device sign-in and synced household data.
+- [x] Improve sign-in's native password-manager username autofill and add cross-device guidance in login UI.
+- [x] Add regression tests for Supabase session lifecycle, identity/family scope, credential-free app bundle and 6–12 digit server-unlocked Parent PIN.
+- [x] Document steps for Google Password Manager / Android autofill and same-household logins in `docs/CROSS_DEVICE_SIGNIN.md`; password manager syncs credentials, not sessions.
+- [x] GitHub CI verified 55/55 automated tests, Vite build, high-severity dependency audit, and desktop/mobile/Samsung Tab S7 browser viewport checks (runs 43390990884 and 43390990860).
+- [ ] Verify actual Galaxy Tab S7, phone and desktop sign-in and password manager autofill with test identities.
+- [ ] Reconcile any existing credentials that were pasted into shared content; use password reset and rotation outside GitHub.
+- [ ] Keep staged two-family RLS/chat/photo acceptance and GitHub branch protection as release blockers.
+
+**Release decision:** Review branch only, no Supabase Auth users created, no database change, no hard-coded owner email/password/PIN, no production deployment requested.

@@ -47,3 +47,8 @@
 
 - A merged chat UI is not operational messaging until Supabase's tenant-scoped table and Realtime publication are verified. Disable send while unavailable and preserve typed drafts.
 - Never replace secure calendar auth with standalone mock code containing fixed Parent PINs, unscoped reads, or fabricated push/payout confirmations.
+
+- An uploaded setup plan containing a plaintext account password must be treated as credential exposure. Never reuse, commit or repeat that secret; advise rotation via trusted reset flow.
+- Android Google Autofill/password-manager synchronization is not Supabase session replication. Each device needs its own authenticated session; calendar data stays in one family-scoped backend.
+- Do not force all family members into one shared master login or hard-code an owner email; preserve independent parent/child accounts, role checks, RLS and expiring server-issued Parent PIN grants.
+- Existing Auth session listeners and family-scoped data should be verified and reused rather than replacing the app with an incompatible standalone CalendarApp component.
