@@ -15,6 +15,14 @@ if (projectUrl.protocol !== "https:" || !projectUrl.hostname.endsWith(".supabase
     projectUrl.hostname === "kwaqscxveniaostnmonu.supabase.co")
   throw new Error("Only a separate staging Supabase project may be used for acceptance tests.");
 
+// Never run the acceptance suite with a privileged service_role key.
+if (env.E2E_STAGING_SUPABASE_KEY.startsWith("sb_secret_"))
+  throw new Error("Service-role/secret keys are forbidden for browser acceptance.");
+const pieces = env.E2E_STAGING_SUPABASE_KEY.split(".");
+if (pieces.length === 3) {
+  const payload = JSON.parse(Buffer.from(pieces[1],"base64url").toString("utf8"));
+  if (payload.role !== "anon") throw new Error("Only an anon JWT may be used for acceptance.");
+}
 function client() { return createClient(projectUrl.href,env.E2E_STAGING_SUPABASE_KEY,
   {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}); }
 async function signIn(email,password) {
