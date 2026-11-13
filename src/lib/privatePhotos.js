@@ -19,7 +19,9 @@ export async function uploadPrivateMemberPhoto(client, familyId, imageDataUrl) {
   if (!encoded || !encoded.startsWith("/9j/") || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded))
     throw new Error("Only compressed JPEG photos may be uploaded.");
   const bytes = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
-  if (!bytes.length || bytes.length > 262144) throw new Error("Photo is too large. Please choose a smaller image.");
+  if (bytes.length < 6 || bytes.length > 262144) throw new Error("Photo is too large or invalid.");
+  if (bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9)
+    throw new Error("Only valid JPEG photos are supported.");
   const path = `${familyId}/${crypto.randomUUID()}.jpg`;
   const { error } = await client.storage.from(PRIVATE_PHOTO_BUCKET).upload(path, new Blob([bytes], { type: "image/jpeg" }), { contentType: "image/jpeg", upsert: false });
   if (error) throw new Error(`Private photo upload failed: ${error.message}`);
