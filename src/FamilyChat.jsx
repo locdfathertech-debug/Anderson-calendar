@@ -87,7 +87,7 @@ export default function FamilyChat({ familyId, userId, records = [], demo = fals
         if (!demo) {
           const result=await supabase.from("planner_records")
             .select("id,kind,data").eq("family_id",familyId)
-            .in("kind",["meal","chore"]).limit(150);
+            .in("kind",["meal","chore","member"]).limit(150);
           if (!result.error) allowedRecords=result.data || [];
         }
         const names=allowedRecords.filter(r=>r.kind==="member").map(r=>r.data?.title).filter(Boolean);
