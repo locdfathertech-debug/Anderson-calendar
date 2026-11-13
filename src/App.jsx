@@ -384,7 +384,7 @@ function Auth({ recovery = false, onError }) {
             <label>
               Email address
               <input
-                autoComplete="email"
+                autoComplete="username"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -418,6 +418,7 @@ function Auth({ recovery = false, onError }) {
                 }[mode]}
           </button>
         </form>
+        {mode === "login" && <p className="muted" data-testid="cross-device-signin-hint">Use your existing family account on your phone, computer, or tablet. Each device signs in separately and securely syncs the same family calendar. Your device’s password manager can fill your credentials.</p>}
         {message && <p role="status">{message}</p>}
         {mode !== "update" && (
           <div className="auth-options">
