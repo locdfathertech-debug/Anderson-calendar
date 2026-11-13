@@ -81,7 +81,8 @@ const FIELDS = {
     ["title", "Meal"],
     ["date", "Date", "date"],
     ["type", "Meal type", "mealtype"],
-    ["notes", "Ingredients / notes"],
+    ["notes", "Preparation notes"],
+    ["ingredients", "Shopping ingredients (comma-separated)"],
     ["video_url", "Recipe video URL (optional)", "video"],
   ],
   pantry: [
