@@ -44,7 +44,7 @@ export default function GroceryPanel({familyId,userId,demo=false,dinners=[]}) {
         {dinners.filter(meal=>mealShoppingItems(meal.data?.ingredients).length).map(meal=>
           <button type="button" key={meal.id} className="kiosk-control" disabled={!ready||busy}
             onClick={()=>void sendMealIngredients(meal)}>
-              <Plus size={16}/> Add ${mealShoppingItems(meal.data.ingredients).length} ingredients for ${meal.data.title}
+              <Plus size={16}/> Add {mealShoppingItems(meal.data.ingredients).length} ingredients for {meal.data.title}
           </button>
         )}
       </div>}
