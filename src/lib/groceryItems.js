@@ -11,3 +11,7 @@ export function requestedGroceryItem(message) {
   const item = groceryItem(match[1]);
   return item && !/[<>\r\n]/.test(item) ? item : null;
 }
+
+export function mealShoppingItems(value) {
+  return [...new Set(String(value||"").split(/[,\n;]/).map(groceryItem).filter(Boolean))].slice(0,30);
+}
