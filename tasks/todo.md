@@ -397,3 +397,19 @@ Draft PR #16, production unaffected by this chat change. Migration remains delib
 
 ### Review / release decision
 Implementation stays in draft PR until CI and authenticated staging acceptance pass. Production database and family records are unchanged.
+
+
+## Grocery Realtime security hardening — 2026-11-13
+
+- [x] Recheck live database: `public.groceries` absent, Realtime publication absent; PR #20 already merged.
+- [x] Review Supabase's updated RLS and Realtime guidance: Postgres Changes DELETE events cannot be relied on for family-level row filtering.
+- [x] Replace client DELETE after 2 seconds with `archived_at` UPDATE, remove DELETE policy and DELETE permission, filter active rows, and subscribe only to INSERT/UPDATE.
+- [x] Strengthen SQL grants and indexes: revoke pre-existing authenticated grants, grant select/insert + narrow update columns, index active rows.
+- [x] Extend migration/unit and authenticated staging tests for denied cross-family archive, denied direct DELETE and active list removal.
+- [ ] Run GitHub tests, production build, dependency audit and four viewport browser tests. Resolve any failures.
+- [ ] Apply proposed SQL only to an explicitly designated healthy isolated staging project; this account's connected second project is not yet designated, while production's branch reports MIGRATIONS_FAILED.
+- [ ] Verify Parent A / Child A / Parent B read/write/Realtime updates, stale token revocation and parent/child permission boundaries.
+- [ ] Review remaining cascade DELETE implications, consider private Broadcast channels instead of Postgres Changes for higher sensitivity.
+- [ ] Configure GitHub protection requiring authenticated staging acceptance and production approval before migrations.
+
+**Production SQL unchanged.** This is a review-only branch; merged UI will continue to show database-unavailable status until RLS migration is validated and deployed.
