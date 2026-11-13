@@ -60,3 +60,7 @@
 - Keep the full-screen monthly idle screensaver unobstructed and verify right-column grocery/routine switching on 16:10 landscape plus mobile sizes.
 
 - Treat user-visible JSX text as JSX expressions, not template-string placeholder literals. End-to-end test the rendered button label/behavior instead of relying on unit tests or a successful build.
+
+- Supabase Postgres Changes DELETE payloads are not filtered through row-level SELECT policies. For family-sensitive lists, prefer archiving with UPDATE instead of client DELETE; subscribe to INSERT/UPDATE and treat privileged cascading deletion separately.
+- A merged grocery UI does not mean a grocery database is active. Query the actual linked database and publication before claiming cross-device sync.
+- Always revoke old table privileges from authenticated when changing a migration from full CRUD to column-limited updates. Client tests and SQL policy tests must evolve together.
