@@ -10,6 +10,7 @@ test("grocery items are bounded, trimmed and collapsed",()=>{
 test("AI grocery commands request confirmation without writing",()=>{
   assert.equal(requestedGroceryItem("@AI add milk to the grocery list"),"milk");
   assert.equal(requestedGroceryItem("@AI groceries: eggs"),"eggs");
+  assert.equal(requestedGroceryItem("@AI add milk to groceries"),"milk");
   assert.equal(requestedGroceryItem("add milk to the grocery list"),null);
   assert.equal(requestedGroceryItem("@AI add <script> to groceries list"),null);
 });
