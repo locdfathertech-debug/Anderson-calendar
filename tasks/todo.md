@@ -347,3 +347,16 @@ Pending CI and staging acceptance results. Existing Supabase branch state report
 Draft PR #16, production unaffected by this chat change. Migration remains deliberately unapplied. Simulator/parser is advisory only; no autonomous financial operations.
 
 **Chat release review (2026-11-12):** GitHub Actions release audit, npm test (50/50 tests), dependency evaluation, Vite build and browser viewport run all passed. Vercel preview READY at commit `330d0f7`. These verify build/demo only; full authenticated multi-family chat and live database migration remain unverified. No production SQL change; PR #16 stays draft.
+
+
+## Family Chat live activation follow-up — 2026-11-12
+
+- [x] Read latest Chat / AI master code; preserve existing family authentication, monthly screensaver and secure Parent PIN.
+- [x] Confirm production Supabase has no public.family_messages table and no Realtime publication for it; real chat is not active yet.
+- [x] Show missing configuration, disable sending, retain local demo.
+- [x] Add regression tests for fail-closed chat sending.
+- [ ] Complete CI test/build/browser checks on this review branch.
+- [ ] Enable messaging after isolated staging migration and Parent A/Child A/Parent B RLS tests, then explicit production approval.
+- [ ] Future enhancement: real notifications/AI commands only through verified backend; no fabricated payout approvals.
+
+**Status:** Production database unchanged and no insecure hard-coded PIN introduced.
