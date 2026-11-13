@@ -17,8 +17,11 @@ create table if not exists public.groceries (
 );
 create index if not exists groceries_family_created_idx
   on public.groceries (family_id, created_at desc, id desc);
+create index if not exists groceries_active_family_created_idx
+  on public.groceries (family_id, created_at desc, id desc)
+  where archived_at is null;
 alter table public.groceries enable row level security;
-revoke all on public.groceries from public, anon;
+revoke all on public.groceries from public, anon, authenticated;
 grant select,insert on public.groceries to authenticated;
 drop policy if exists "groceries_family_select" on public.groceries;
 create policy "groceries_family_select" on public.groceries
