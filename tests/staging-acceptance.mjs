@@ -43,6 +43,17 @@ try {
     assert.equal(Boolean(status?.is_parent),actor !== child,"Parent status mismatch");
     assert.equal(Boolean(status?.unlocked),false,"Fresh sessions must start locked");
   }
+  // A signed-in parent is not elevated merely because their profile.role is admin.
+  const lockedParent = await a.c.rpc("set_family_role",{
+    target_user_id:child.profile.id,new_role:"admin"
+  });
+  assert.ok(lockedParent.error,"Locked parent must not modify child permissions");
+
+  // A parent from household B can never administer another household A.
+  const crossFamilyRole = await b.c.rpc("set_family_role",{
+    target_user_id:child.profile.id,new_role:"admin"
+  });
+  assert.ok(crossFamilyRole.error,"Cross-family role change must be denied");
   const role = await child.c.rpc("set_family_role",{target_user_id:child.profile.id,new_role:"admin"});
   assert.ok(role.error,"Child must not change their own authorization");
   const recheck = await child.c.from("profiles").select("role").eq("id",child.profile.id).single();

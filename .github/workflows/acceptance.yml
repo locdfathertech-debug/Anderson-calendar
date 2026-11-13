@@ -1,6 +1,7 @@
 name: Authenticated staging acceptance
 on:
-  pull_request:
+  # Authenticated credentials are NEVER provided to unreviewed PR code.
+  # Manually dispatch from an approved branch; require staging environment reviewers.
   workflow_dispatch:
 permissions:
   contents: read

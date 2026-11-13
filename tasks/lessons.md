@@ -33,3 +33,9 @@
 - Replace unused vulnerable dependencies before forcing incompatible major upgrades. Verify patched Vite on its compatible major and commit the generated lockfile only after test/build/audit pass.
 - Private photos require signed downloads, family-scoped Storage RLS, parent grant enforcement, and a real upload test in isolated staging. A migration proposal and green build do not establish that the Storage gateway forwards custom grant headers.
 - Prevent release until external authenticated family A/child A/family B fixtures, real device QA, and branch protection are configured. Missing staging credentials should fail closed, never silently skip.
+
+- Screenshots taken during CSS fade animations can look like a transparent/broken overlay even when layout checks pass. Await animation completion and assert final opacity before visual QA.
+- GitHub-hosted ubuntu-latest can advance beyond browser toolchain compatibility. Pin a supported Ubuntu runner version and browser package for reproducible screenshot tests.
+- Never expose authenticated staging credentials automatically to unreviewed PR code; require manual dispatch from reviewed refs and protected environment approvals.
+- Always recheck merged PR state and deployed production SHA before assuming prior draft-PR blockers are not yet live.
+- A passing simulated Tab S7 viewport cannot verify physical Android app pinning, real fullscreen, wake-lock or installation behavior.

@@ -45,7 +45,7 @@ export default function MonthlyScreensaver({ now, records, members, colors, onWa
         </div>
       </div>
       <div className="kiosk-saver-weekdays" aria-hidden="true">
-        {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(day => <span key={day}>{day}</span>)}
+        {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(day => <span key={day}><span className="kiosk-weekday-full">{day}</span><span className="kiosk-weekday-short">{day.slice(0, 3)}</span></span>)}
       </div>
       <div className="kiosk-saver-grid" style={{ "--week-count": days.length / 7 }}>
         {days.map(day => {
