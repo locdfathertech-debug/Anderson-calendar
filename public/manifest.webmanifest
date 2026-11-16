@@ -4,12 +4,12 @@
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f8f9f6",
-  "theme_color": "#346853",
+  "background_color": "#080a12",
+  "theme_color": "#080a12",
   "description": "A shared family wall calendar for schedules, school, and everyday tasks.",
   "icons": [
     {
-      "src": "/anderson-circular-logo.svg",
+      "src": "/anderson-neon-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

@@ -1684,3 +1684,7 @@ progress {
 .account-access-badge.unverified { background:#44231f; border-color:#ff8a18; color:#fff1e5; }
 .hub:not(.dark) .account-access-badge { background:#edf2f6; color:#24323a; border-color:#64748b; }
 .hub:not(.dark) .account-access-badge.unlocked { background:#e0faf3; color:#03584f; border-color:#087d79; }
+
+/* Preserve the full circle and maintain a crisp, modest brand footprint. */
+.auth-brand { width:min(100%, 280px); max-height:280px; object-fit:contain; border-radius:50%; }
+.sidebar-brand-image { width:100%; max-width:210px; aspect-ratio:1 / 1; object-fit:contain; border-radius:50%; }

@@ -350,3 +350,6 @@
 .kiosk-repeating-routines .kiosk-chore strong{overflow-wrap:anywhere;}
 .kiosk-repeating-routines .kiosk-chore small{line-height:1.35;}
 @media(max-width:560px){.kiosk-repeating-routines{padding:8px}.kiosk-routine-period h3{font-size:12px}}
+
+/* Brand swap: keep the entire neon circular medallion visible on 16:10 tablets. */
+.kiosk-family > img { display:block; width: min(100%, 210px); max-height: 210px; height:auto; aspect-ratio:1 / 1; object-fit:contain; object-position:center; flex-shrink:0; margin-inline:auto; }
