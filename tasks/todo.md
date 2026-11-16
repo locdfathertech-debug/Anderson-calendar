@@ -413,3 +413,19 @@ Implementation stays in draft PR until CI and authenticated staging acceptance p
 - [ ] Configure GitHub protection requiring authenticated staging acceptance and production approval before migrations.
 
 **Production SQL unchanged.** This is a review-only branch; merged UI will continue to show database-unavailable status until RLS migration is validated and deployed.
+
+
+## REA/Skylight observational study + original weekly UX Phase 1 — Nov 15, 2026
+- [x] Verify upstream `morluto/rea` is MIT-licensed reverse-engineering tooling, not an authorized Skylight source-code repository.
+- [x] Review official public Skylight Calendar 2 feature lists and task/routine guide; compare to the current Anderson app.
+- [x] Record measured feature parity, unknowns, REA optional local developer setup, security and source/licensing boundaries in `docs/REA_SKYLIGHT_FEATURE_AUDIT.md`.
+- [x] Preserve existing month default, year view, monthly fullscreen screensaver, tenant-scoped Supabase records and server-issued Parent Portal grants.
+- [x] Add optional validated event end time; render exact event duration and family avatar clusters in existing proportional week view.
+- [x] Add parent-only (not locked kiosk) focusable 1-hour quick-creation slots; route through existing Parent Portal with date/time prefilled.
+- [x] Extend browser smoke tests for four responsive sizes and example timed sample records.
+- [ ] Verify new branch's automated unit tests, dependency audit, build and multi-viewport browser tests; fix failures before approval.
+- [ ] Complete authenticated cross-family, child-v-parent, secure photo, time/session expiry and physical Samsung Tab S7 acceptance separately.
+- [ ] Obtain a legitimately accessible application bundle or public UI observation capture before claiming REA reverse-engineering results. Do not attempt to unlock protected/private Skylight code.
+- [ ] Extend day/schedule views, recurring task routine controls, sleep mode and calendar-sync integrations in future isolated, reviewed PRs.
+
+**Review:** Implementation is original, source-derived feature research is labeled, no Supabase production change or deployment requested. PR stays draft while tests execute.
