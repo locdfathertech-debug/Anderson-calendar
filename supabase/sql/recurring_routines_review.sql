@@ -73,13 +73,13 @@ for select to authenticated using (
 );
 
 -- Family-scoped INSERT and UPDATE deliveries; no client DELETE events.
-do $
+do $$
 begin
   if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime'
     and schemaname='public' and tablename='routine_templates') then
     alter publication supabase_realtime add table public.routine_templates;
   end if;
-end $;
+end $$;
 
 -- Parent-triggered, transaction-atomic materialization. Chores enter the
 -- EXISTING open -> submitted -> approved -> paid workflow; no auto payouts.
