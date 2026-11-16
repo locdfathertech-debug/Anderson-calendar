@@ -28,6 +28,15 @@ for (const device of viewports) {
     await page.locator(".kiosk-year-grid").waitFor();
     await page.getByRole("button",{name:"Month",exact:true}).click();
     await page.locator(".kiosk-month-grid").waitFor();
+    await page.getByRole("button",{name:"Week",exact:true}).click();
+    await page.locator(".kiosk-week-scroll").waitFor();
+    const quickAddSlots = page.locator(".kiosk-week-create-slot");
+    assert.ok(await quickAddSlots.count() >= 90, "Parent should have hourly quick-add slots across the week");
+    const timedCard = page.locator(".kiosk-timeline-event").filter({hasText:"Family breakfast"});
+    await timedCard.getByText("09:00 – 10:00").waitFor();
+    assert.ok(await timedCard.locator(".kiosk-week-member-avatar").count() >= 1, "Week event should include member avatar");
+    await page.getByRole("button",{name:"Month",exact:true}).click();
+    await page.locator(".kiosk-month-grid").waitFor();
     await page.getByRole("button",{name:"Monthly screensaver"}).click();
     const overlay = page.locator(".kiosk-month-screensaver");
     await overlay.waitFor({timeout:7000});

@@ -63,7 +63,8 @@ const FIELDS = {
   event: [
     ["title", "Event name"],
     ["date", "Date", "date"],
-    ["time", "Time", "time"],
+    ["time", "Start time", "time"],
+    ["end_time", "End time (optional)", "time"],
     ["member", "Family member", "member"],
     ["category", "Category", "category"],
     ["location", "Location"],
@@ -228,7 +229,7 @@ export default function Planner({
   useEffect(() => {
     if (!eventRequest || !parent) return;
     setTab("calendar"); setDate(eventRequest.date);
-    add("event", { date: eventRequest.date });
+    add("event", { date: eventRequest.date, ...(eventRequest.time ? { time: eventRequest.time } : {}) });
     onEventRequestHandled?.();
   }, [eventRequest, parent]);
   async function save(e) {
@@ -239,6 +240,13 @@ export default function Planner({
     if (dialog.kind === "member" && rawAvatar && !avatar) {
       const field = e.currentTarget.querySelector("[data-avatar-url]");
       field?.setCustomValidity("Use a direct HTTPS photo link without account credentials.");
+      field?.reportValidity();
+      return;
+    }
+    if (dialog.kind === "event" && dialog.data.end_time && dialog.data.time &&
+        dialog.data.end_time <= dialog.data.time) {
+      const field = e.currentTarget.querySelector('[name="end_time"]');
+      field?.setCustomValidity("End time must be later than start time.");
       field?.reportValidity();
       return;
     }
@@ -1377,7 +1385,8 @@ export default function Planner({
                       }
                       value={dialog.data[key] ?? ""}
                       onChange={(e) => {
-                        if (type === "video" || key === "avatar_url") e.target.setCustomValidity("");
+                        if (type === "video" || key === "avatar_url" || key === "end_time" || key === "time") e.target.setCustomValidity("");
+                         if (key === "time") e.currentTarget.form?.querySelector('[name="end_time"]')?.setCustomValidity("");
                         setDialog({
                           ...dialog,
                           data: {

@@ -64,3 +64,8 @@
 - Supabase Postgres Changes DELETE payloads are not filtered through row-level SELECT policies. For family-sensitive lists, prefer archiving with UPDATE instead of client DELETE; subscribe to INSERT/UPDATE and treat privileged cascading deletion separately.
 - A merged grocery UI does not mean a grocery database is active. Query the actual linked database and publication before claiming cross-device sync.
 - Always revoke old table privileges from authenticated when changing a migration from full CRUD to column-limited updates. Client tests and SQL policy tests must evolve together.
+
+- REA is a general reverse-engineering toolkit, NOT a source repository for a proprietary application. Verify upstream metadata before assuming it contains an application's code; never claim private source inspection without an authorized artifact and reproducible evidence.
+- For familiar calendar features, reuse the already-tested proportional weekly grid, secured Parent Portal and private avatar hook instead of replacing the entire application; enhance only missing interactions.
+- Protect quick-create gestures with actual parent role checks **and** the existing server-issued Parent Portal grant; exclude locked kiosk mode and preserve default monthly view.
+- New event duration fields can initially live in existing planner-record JSON rather than requiring an unverified SQL migration. Preserve precise same-day start/end validation.

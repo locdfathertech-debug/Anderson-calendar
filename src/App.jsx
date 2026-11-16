@@ -156,9 +156,9 @@ export default function App() {
       await locking.current;
     }
   }
-  function requestNewEvent(day) {
+  function requestNewEvent(day, time = "") {
     if (!isParent(profile)) return;
-    setEventRequest({date:day}); void openParent();
+    setEventRequest({date:day, ...(time ? {time} : {})}); void openParent();
   }
   async function openParent() {
     setGateOpen(true);

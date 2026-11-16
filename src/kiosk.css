@@ -299,3 +299,14 @@
 .grocery-meal-transfer{display:grid;gap:8px;margin:0 0 16px;padding:11px;border:1px solid #335c57;border-radius:11px;background:#082a2780;}
 .grocery-meal-transfer strong{font-size:12px;}
 .grocery-meal-transfer .kiosk-control{justify-content:flex-start;text-align:left;min-height:44px;font-size:12px;overflow-wrap:anywhere;}
+
+/* Original family-week enhancements: parent-only quick-add slots and member photos. */
+.calendar-kiosk .kiosk-week-create-slot{position:absolute;left:0;right:0;z-index:1;width:100%;border:1px dashed transparent;background:transparent;color:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+.calendar-kiosk .kiosk-week-create-slot:is(:hover,:focus-visible){border-color:#ffd426;background:#ffd42618;color:#ffd426;outline-offset:-2px;}
+.calendar-kiosk .kiosk-timeline-event{z-index:2;}
+.kiosk-week-event-footer{width:100%;min-width:0;display:flex;align-items:center;gap:4px;}
+.kiosk-week-event-avatars{display:flex;align-items:center;padding-left:4px;flex:none;}
+.kiosk-week-event-avatars .kiosk-week-member-avatar{width:21px;height:21px;min-width:21px;min-height:21px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;border:2px solid #fff;border-radius:50%;margin-left:-5px;background:var(--member-color,#147f79);color:var(--member-ink,#fff);font:700 10px Inter,sans-serif;}
+.kiosk-week-member-avatar img{width:100%;height:100%;object-fit:cover;}
+.kiosk-week-event-member{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+@media (prefers-reduced-motion:reduce){.calendar-kiosk .kiosk-week-create-slot{transition:none;}}
