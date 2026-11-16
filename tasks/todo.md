@@ -443,3 +443,21 @@ Implementation stays in draft PR until CI and authenticated staging acceptance p
 - [ ] Follow up with recurring chores/routines and properly scoped calendar-provider syncing only after separate design/testing.
 
 **Release:** Draft feature PR only; no merge or production/Supabase mutation authorized.
+
+
+## Advanced recurring chores and family routines — November 15, 2026
+
+- [x] Audit current Parent Portal/child chore RPC and production database: `planner_records` rejects new `kind='routine'`, parent plan writes require server-issued unlock; existing statuses are open → submitted → approved → paid.
+- [x] Add independent review-only `routine_templates` and `routine_occurrences` schema with family read RLS, confirmed assignee per household, parent-only writes, immutable recurrence configuration, and unique(template_id,due_date).
+- [x] Add `materialize_family_routines(target_day)` server RPC with live-session and parent-grant checks, date bounds, advisory locks and ordinary chore records, avoiding duplicates across concurrent requests.
+- [x] Add deterministic Morning/Evening weekday scheduling, seven-day previews, and tests for weekdays, month rollover and reward summaries.
+- [x] Implement Parent Portal editor for repeat days, confirmed assignee, points and optional dollar rewards, date ranges, pause/resume and on-demand generation of due instances.
+- [x] Surface due Morning/Evening templates on the kiosk and preserve existing child submit → parent approve → manual payment recording flow.
+- [x] Add schema contract and browser smoke tests including kiosk routine and unlocked sample Parent Portal generation.
+- [ ] Run complete unit/security/build/browser CI, fix regressions.
+- [ ] Prove family A/child A/family B isolation, parent PIN expiry, disabled-while-locked writes, concurrent idempotence and actual child submission against disposable staging Supabase.
+- [ ] Add a separately reviewed time-zone-aware backend scheduler if fully unattended daily occurrence generation is required. **Current generation is explicit parent action**, not background automation.
+- [ ] Physical Samsung Galaxy Tab S7 and mobile QA plus reviewer approval.
+- [ ] Preserve production unchanged until authenticated release gates pass.
+
+**Release:** Draft feature PR only; SQL not applied and real family data unchanged. Existing child/parent rewards are recorded, not automatically paid.
