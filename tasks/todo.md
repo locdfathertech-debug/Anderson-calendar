@@ -429,3 +429,17 @@ Implementation stays in draft PR until CI and authenticated staging acceptance p
 - [ ] Extend day/schedule views, recurring task routine controls, sleep mode and calendar-sync integrations in future isolated, reviewed PRs.
 
 **Review:** Implementation is original, source-derived feature research is labeled, no Supabase production change or deployment requested. PR stays draft while tests execute.
+
+
+## Original daily / rolling agenda expansion — November 15, 2026
+
+- [x] Confirm previous original weekly PR #22 merged into main; retain its time-scaled week view and default monthly calendar.
+- [x] Build an original bounded daily/14-day agenda model over the **already authorized/filtered** family events, including holidays, DST, month/year boundaries and stable chronological order.
+- [x] Add Day / Agenda tabs to the existing kiosk view switcher; retain Month as default and preserve fullscreen monthly idle screensaver.
+- [x] Provide read-only details and private-photo avatars using the existing `MemberAvatar` and `memberStyle`, with parent-only event creation routed through Parent Portal; no new Supabase SQL.
+- [x] Extend unit and desktop/mobile/Tab S7 browser tests for agenda navigation, 14-day count, visible events and month reset.
+- [ ] Run new-branch CI tests, security audit, build and browser checks; remediate any failures on this PR.
+- [ ] Run authenticated two-family parent/child/kiosk permissions and actual Samsung tablet testing before production approval.
+- [ ] Follow up with recurring chores/routines and properly scoped calendar-provider syncing only after separate design/testing.
+
+**Release:** Draft feature PR only; no merge or production/Supabase mutation authorized.
