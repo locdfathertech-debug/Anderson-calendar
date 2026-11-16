@@ -19,7 +19,12 @@ export function createParentFetch(projectUrl, fetchImpl = (...args) => fetch(...
     const headers = new Headers(init.headers ?? (input instanceof Request ? input.headers : undefined));
     headers.delete('x-parent-unlock');
     const token = getParentToken();
-    if (token && url.origin === origin && (url.pathname.startsWith('/rest/v1/') || url.pathname.startsWith('/storage/v1/'))) headers.set('x-parent-unlock', token);
+    // Reject redirects for credential-bearing requests: an intermediary 302
+    // must never forward our custom parent token to another HTTPS origin.
+    if (token && url.origin === origin && (url.pathname.startsWith('/rest/v1/') || url.pathname.startsWith('/storage/v1/'))) {
+      headers.set('x-parent-unlock', token);
+      return fetchImpl(input, { ...init, headers, redirect: 'error' });
+    }
     return fetchImpl(input, { ...init, headers });
   };
 }
