@@ -3,6 +3,7 @@ import { accountAccessLabel, accountAccessTone } from "./lib/accountAccess.js";
 import { ThemeColorField, FamilyTypeField } from "./MemberProfileFields.jsx";
 import MemberAvatar from "./MemberAvatar.jsx";
 import MemberTile from "./MemberTile.jsx";
+import RoutineManager from "./RoutineManager.jsx";
 import YearCalendar from "./YearCalendar.jsx";
 import MemberPhotoField from "./MemberPhotoField.jsx";
 import { safeAvatarUrl } from "./lib/avatar.js";
@@ -144,6 +145,7 @@ export default function Planner({
   records,
   profile,
   onSave,
+  onRefresh,
   onDelete,
   onSubmitChore,
   onSignOut,
@@ -811,6 +813,7 @@ export default function Planner({
           )}
           {tab === "chore" && (
             <>
+              <RoutineManager familyId={profile?.family_id || "sample-family"} profile={profile} accounts={accounts} records={records} demo={demo} onSave={onSave} onRefresh={onRefresh} />
               <div className="summary-strip">
                 <span>
                   <strong>

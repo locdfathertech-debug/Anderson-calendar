@@ -31,3 +31,17 @@ jobs:
           E2E_CHILD_A_PASSWORD: ${{ secrets.E2E_CHILD_A_PASSWORD }}
           E2E_PARENT_B_EMAIL: ${{ secrets.E2E_PARENT_B_EMAIL }}
           E2E_PARENT_B_PASSWORD: ${{ secrets.E2E_PARENT_B_PASSWORD }}
+
+      - name: Verify family recurrence, child completion, parent PIN and idempotence
+        run: node tests/routine-staging-acceptance.mjs
+        env:
+          E2E_STAGING_PROJECT_REF: ${{ secrets.E2E_STAGING_PROJECT_REF }}
+          E2E_STAGING_SUPABASE_URL: ${{ secrets.E2E_STAGING_SUPABASE_URL }}
+          E2E_STAGING_SUPABASE_KEY: ${{ secrets.E2E_STAGING_SUPABASE_KEY }}
+          E2E_PARENT_A_EMAIL: ${{ secrets.E2E_PARENT_A_EMAIL }}
+          E2E_PARENT_A_PASSWORD: ${{ secrets.E2E_PARENT_A_PASSWORD }}
+          E2E_PARENT_A_PIN: ${{ secrets.E2E_PARENT_A_PIN }}
+          E2E_CHILD_A_EMAIL: ${{ secrets.E2E_CHILD_A_EMAIL }}
+          E2E_CHILD_A_PASSWORD: ${{ secrets.E2E_CHILD_A_PASSWORD }}
+          E2E_PARENT_B_EMAIL: ${{ secrets.E2E_PARENT_B_EMAIL }}
+          E2E_PARENT_B_PASSWORD: ${{ secrets.E2E_PARENT_B_PASSWORD }}

@@ -1,0 +1,35 @@
+name: Authenticated recurring routines staging acceptance
+on:
+  # Manual only. Never supply family test secrets to unreviewed pull-request code.
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  routine-family-isolation:
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Validate staging acceptance script syntax
+        run: node --check tests/routine-staging-acceptance.mjs
+      - name: Verify parent grant, child completion, tenant RLS and idempotence
+        run: node tests/routine-staging-acceptance.mjs
+        env:
+          E2E_STAGING_PROJECT_REF: ${{ secrets.E2E_STAGING_PROJECT_REF }}
+          E2E_STAGING_SUPABASE_URL: ${{ secrets.E2E_STAGING_SUPABASE_URL }}
+          E2E_STAGING_SUPABASE_KEY: ${{ secrets.E2E_STAGING_SUPABASE_KEY }}
+          E2E_PARENT_A_EMAIL: ${{ secrets.E2E_PARENT_A_EMAIL }}
+          E2E_PARENT_A_PASSWORD: ${{ secrets.E2E_PARENT_A_PASSWORD }}
+          E2E_PARENT_A_PIN: ${{ secrets.E2E_PARENT_A_PIN }}
+          E2E_CHILD_A_EMAIL: ${{ secrets.E2E_CHILD_A_EMAIL }}
+          E2E_CHILD_A_PASSWORD: ${{ secrets.E2E_CHILD_A_PASSWORD }}
+          E2E_PARENT_B_EMAIL: ${{ secrets.E2E_PARENT_B_EMAIL }}
+          E2E_PARENT_B_PASSWORD: ${{ secrets.E2E_PARENT_B_PASSWORD }}

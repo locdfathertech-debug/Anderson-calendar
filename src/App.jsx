@@ -240,7 +240,7 @@ export default function App() {
     {loading ? <main className="auth-scene"><div className="auth-box"><CalendarDays/><h1>Gathering your family plans…</h1></div></main>
       : recovery && session ? <Auth recovery onError={setError}/>
       : demo || (session && profile?.family_id) ? unlocked && isParent(profile)
-        ? <Planner eventRequest={eventRequest} onEventRequestHandled={() => setEventRequest(null)} records={records} profile={profile} accounts={accounts} access={access} onManageAccess={manageAccess} onSave={save} onDelete={remove} onSubmitChore={submitChore} onSignOut={signOut} onLock={lock} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} onStopKiosk={stopKiosk} demo={demo} busy={busy}/>
+        ? <Planner eventRequest={eventRequest} onEventRequestHandled={() => setEventRequest(null)} records={records} profile={profile} accounts={accounts} access={access} onManageAccess={manageAccess} onSave={save} onRefresh={() => session?.user ? load(session.user) : Promise.resolve()} onDelete={remove} onSubmitChore={submitChore} onSignOut={signOut} onLock={lock} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} onStopKiosk={stopKiosk} demo={demo} busy={busy}/>
         : <CalendarKiosk familyId={profile.family_id} sample={demo ? records : null} profile={profile} onSubmitChore={submitChore} busy={busy} onOpenParent={openParent} onRequestEvent={requestNewEvent} portalOpen={gateOpen} kioskEnabled={activeKiosk} onStartKiosk={startKiosk} kioskNotice={kioskNotice}/>
       : session ? <FamilyOnboarding email={session.user.email} onComplete={() => load(session.user)} onSignOut={signOut}/>
       : <Auth onError={setError}/>}

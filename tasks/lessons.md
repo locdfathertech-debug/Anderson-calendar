@@ -73,3 +73,8 @@
 - When extending an existing month/week/year calendar, keep month as the default, integrate new view navigation through the same anchor state, and test cross-year date arithmetic explicitly.
 - Derive agenda entries strictly from existing household-authorized, member-filtered and searched event records; presentation components should never query unscoped Supabase tables.
 - Route parent quick-add to the existing server-granted Parent Portal and hide it in kiosk mode; never introduce a client-side bypass or fixed PIN.
+
+- A PostgreSQL planner kind CHECK can reject a new template kind; query real constraints before designing a recurring task model and avoid forced production schema changes.
+- Daily recurring chore instances need transactional server-side idempotence; a UI check against currently loaded chores is vulnerable to multi-device races.
+- Child completion must retain the already-approved `submit_planner_chore` RPC, parent approval and manual payment. Never treat configured points/amount as paid before server-reviewed status changes.
+- A repeat schedule template does not create daily chore records by itself. Unless a secure background scheduler is independently implemented/tested, label generation as explicit parent action rather than claiming unattended recurrence.
