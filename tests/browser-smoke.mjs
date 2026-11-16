@@ -127,10 +127,10 @@ for (const device of viewports) {
     await manager.getByRole("button",{name:/Generate due chores for/}).click();
     await manager.getByText(/Created [1-9] assigned chores? across 1 day/).waitFor();
     // The status overview is read-only; only parent-authorized actions write.
-    await manager.getByText("Awaiting approval",{exact:true}).first().waitFor();
+    await manager.locator(".routine-week-summary").getByText(/Awaiting approval/).waitFor();
     await manager.getByRole("button",{name:"Generate next 7 days"}).click();
     await manager.getByText(/Created [1-9][0-9]* assigned chores? across 7 days/).waitFor();
-    await manager.getByText("Not generated",{exact:true}).first().waitFor();
+    await manager.locator(".routine-week-summary").getByText(/Not generated/).waitFor();
     await page.getByText("Brush teeth",{exact:true}).first().waitFor();
     await page.getByRole("dialog",{name:"Family chat and AI assistant"}).waitFor({state:"detached"});
     assert.deepEqual(pageErrors,[],"No uncaught client error");
