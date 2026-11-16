@@ -280,7 +280,7 @@ export default function Planner({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function itemCard(r, extra) {
-    if (r.kind === "member") return <MemberTile key={r.id} record={r} members={members} dark={dark} editable={parent} busy={busy} onSave={onSave} onEdit={() => setDialog({ ...r, data: { ...r.data } })} />;
+    if (r.kind === "member") return <MemberTile key={r.id} record={r} members={members} dark={dark} editable={parent} busy={busy} demo={demo} onSave={onSave} onEdit={() => setDialog({ ...r, data: { ...r.data } })} />;
     return (
       <article
         className={`item-card tint-${r.data.color || colorFor(r.data.member)}`}
@@ -1307,7 +1307,7 @@ export default function Planner({
               ).map(([key, label, type = "text"], i) => type === "color" ? (
                 <ThemeColorField dark={dark} key={key} value={dialog.data[key] || ""} disabled={dialog.readOnly} onChange={value => setDialog({ ...dialog, data: { ...dialog.data, [key]: value } })} />
               ) : key === "avatar_url" ? (
-                <MemberPhotoField key={dialog.id || "new-photo"} value={dialog.data.avatar_url || ""} disabled={dialog.readOnly || busy} onBusyChange={setPhotoBusy} onChange={value => setDialog(current => current ? { ...current, data: { ...current.data, avatar_url: value } } : current)} />
+                <MemberPhotoField demo={demo} key={dialog.id || "new-photo"} value={dialog.data.avatar_url || ""} disabled={dialog.readOnly || busy} onBusyChange={setPhotoBusy} onChange={value => setDialog(current => current ? { ...current, data: { ...current.data, avatar_url: value } } : current)} />
               ) : type === "memberrole" ? (
                 <FamilyTypeField key={key} value={dialog.data[key] || ""} disabled={dialog.readOnly} onChange={value => setDialog({ ...dialog, data: { ...dialog.data, [key]: value } })} />
               ) : (
