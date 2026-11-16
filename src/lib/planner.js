@@ -84,6 +84,7 @@ export function sampleRecords() {
                 : "School drop-off",
           date,
           time: i === 0 ? "09:00" : "07:30",
+          end_time: i === 0 ? "10:00" : "08:15",
           member: i % 2 ? "Mom" : "Dad",
           category: i === 3 ? "Work" : i === 0 || i === 6 ? "Family" : "Daycare",
           video_url: i === 0 ? "/demo-recipe.mp4" : "",
