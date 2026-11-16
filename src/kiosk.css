@@ -338,3 +338,15 @@
 .kiosk-agenda-empty{margin:4px 0 16px;color:#b9b9c0;font-size:13px;padding:12px;border:1px dashed #47474d;border-radius:10px;}
 @media(max-width:700px){.kiosk-agenda-body{padding:10px}.kiosk-agenda-event{gap:8px;padding:10px}.kiosk-agenda-time{min-width:91px;font-size:11px}.kiosk-agenda-heading>div{gap:5px;flex-wrap:wrap}.kiosk-agenda-heading h2{font-size:13px}.kiosk-view-toggle{display:flex;flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.kiosk-agenda-event{scroll-behavior:auto}}
+
+
+/* Family routine cards. Display-only on locked shared tablet. */
+.kiosk-repeating-routines{display:grid;gap:11px;padding:10px;border:1px solid #4a655e;border-radius:12px;background:#0b25221c;}
+.kiosk-repeating-routines h2{display:flex;align-items:center;gap:7px;}
+.kiosk-routine-period{min-width:0;display:grid;gap:7px;}
+.kiosk-routine-period h3{margin:0;color:#d0fcf6;font-size:12px;font-weight:700;}
+.kiosk-routine-period ul{display:grid;gap:6px;padding:0;margin:0;list-style:none;}
+.kiosk-repeating-routines .kiosk-chore{min-height:42px;padding:9px 7px;gap:8px;}
+.kiosk-repeating-routines .kiosk-chore strong{overflow-wrap:anywhere;}
+.kiosk-repeating-routines .kiosk-chore small{line-height:1.35;}
+@media(max-width:560px){.kiosk-repeating-routines{padding:8px}.kiosk-routine-period h3{font-size:12px}}
