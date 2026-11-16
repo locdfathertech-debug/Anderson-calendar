@@ -21,6 +21,8 @@ jobs:
         run: npm ci
       - name: Unit and integration tests
         run: npm test
+      - name: Check protected staging acceptance script syntax
+        run: node --check tests/routine-staging-acceptance.mjs
       - name: Production build
         run: npm run build
       - name: Dependency vulnerabilities
