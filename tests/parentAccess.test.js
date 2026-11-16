@@ -8,6 +8,12 @@ test('unlock token only accompanies this project REST requests and expires on lo
   await fetcher('https://family.supabase.co/rest/v1/planner_records', { headers: { authorization: 'Bearer jwt' } });
   assert.equal(requests[0].get('x-parent-unlock'), 'a'.repeat(64));
   assert.equal(requests[0].get('authorization'), 'Bearer jwt');
+  const parentRequests = [];
+  const hardened = createParentFetch('https://family.supabase.co', async (_, init) => parentRequests.push(init));
+  await hardened('https://family.supabase.co/rest/v1/planner_records');
+  assert.equal(parentRequests[0].redirect, 'error', 'An API redirect must not forward the unlock token to a new origin');
+  await hardened('https://other.supabase.co/rest/v1/planner_records');
+  assert.equal(parentRequests[1].redirect, undefined, 'Non-project requests remain unaffected');
   await fetcher(new Request('https://family.supabase.co/rest/v1/rpc/parent_portal_status', { headers: { apikey: 'public-test-key' } }));
   assert.equal(requests.at(-1).get('apikey'), 'public-test-key');
   assert.equal(requests.at(-1).get('x-parent-unlock'), 'a'.repeat(64));
