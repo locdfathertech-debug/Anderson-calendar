@@ -6,7 +6,7 @@ import MemberPhotoField from "./MemberPhotoField.jsx";
 import { MEMBER_COLORS, MEMBER_COLOR_LABELS, memberTileStyle, memberColorForSave, isMemberColor } from "./lib/memberColors.js";
 import { safeAvatarUrl } from "./lib/avatar.js";
 
-export default function MemberTile({ record, members, editable, busy, onSave, onEdit }) {
+export default function MemberTile({ record, members, editable, busy, onSave, onEdit, demo = false }) {
   const [color, setColor] = useState(record.data.color || "");
   const [photo, setPhoto] = useState(record.data.avatar_url || "");
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -47,7 +47,7 @@ export default function MemberTile({ record, members, editable, busy, onSave, on
         </select></label>
         <label>Custom color<input aria-label={`Custom tile color for ${record.data.title}`} type="color" value={isMemberColor(color) ? hex : "#4bc88b"} disabled={disabled} onChange={e => { setColor(e.target.value); setMessage(""); }} /></label>
       </div>
-      <MemberPhotoField compact value={photo} disabled={busy || saving} onBusyChange={setPhotoBusy} onChange={value => { setPhoto(value); setMessage(""); }} />
+      <MemberPhotoField compact demo={demo} value={photo} disabled={busy || saving} onBusyChange={setPhotoBusy} onChange={value => { setPhoto(value); setMessage(""); }} />
       <button type="button" className="btn family-tile-save" disabled={disabled || !changed} onClick={saveTile}>{saving ? "Saving…" : "Save tile"}</button>
       <p className="family-tile-status" role="status">{message || (changed ? "Preview · select Save tile to keep changes." : "Change the color or upload a photo here.")}</p>
     </div>}
