@@ -24,6 +24,24 @@ for (const device of viewports) {
     assert.equal(response?.status(),200,"Demo entry point must load");
     await page.locator(".calendar-kiosk").waitFor({timeout:15000});
     assert.equal(await page.getByRole("button",{name:"Month",exact:true}).getAttribute("aria-pressed"),"true","Month is the default");
+    await page.getByRole("button",{name:"Day",exact:true}).click();
+    const dayView=page.getByRole("region",{name:"Daily agenda"});
+    await dayView.waitFor();
+    assert.equal(await page.getByRole("button",{name:"Day",exact:true}).getAttribute("aria-pressed"),"true");
+    await dayView.getByRole("heading").first().waitFor();
+    await page.getByRole("button",{name:"Next day"}).click();
+    await dayView.waitFor();
+    await page.getByRole("button",{name:"Today",exact:true}).click();
+    await page.getByRole("button",{name:"Agenda",exact:true}).click();
+    const agendaView=page.getByRole("region",{name:"14-day family agenda"});
+    await agendaView.waitFor();
+    assert.equal(await agendaView.locator(".kiosk-agenda-group").count(),14,
+      "Agenda must show exactly 14 days, including dates without events");
+    assert.ok(await agendaView.locator(".kiosk-agenda-event").count() > 0,
+      "Sample household must show events in rolling agenda");
+    await agendaView.getByRole("button",{name:/Add event on /}).first().waitFor();
+    await page.getByRole("button",{name:"Month",exact:true}).click();
+    await page.locator(".kiosk-month-grid").waitFor();
     await page.getByRole("button",{name:"Year",exact:true}).click();
     await page.locator(".kiosk-year-grid").waitFor();
     await page.getByRole("button",{name:"Month",exact:true}).click();
