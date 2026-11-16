@@ -11,6 +11,8 @@ import YearCalendar from "./YearCalendar.jsx";
 import MonthlyScreensaver from "./MonthlyScreensaver.jsx";
 import GroceryPanel from "./GroceryPanel.jsx";
 import { timeOfDayMode, routineGreeting, nextLocalDate } from "./lib/routineMode.js";
+import { useFamilyRoutines } from "./lib/useFamilyRoutines.js";
+import { isRoutineDue, routineRewards } from "./lib/routineSchedule.js";
 import { weekDays, shiftWeek } from "./lib/weekTimeline.js";
 import MemberAvatar from "./MemberAvatar.jsx";
 import { videoSource, categoryInfo } from "./lib/video.js";
@@ -37,6 +39,7 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   const dialogRef = useRef(null);
   const alerted = useRef(new Set());
   const { records, status, refresh } = useKioskRecords(familyId, sample);
+  const {rows:templates,ready:routinesReady,status:routinesStatus}=useFamilyRoutines(familyId,Boolean(sample));
   useEffect(() => { setVideo(null); lastActivity.current = Date.now(); }, [familyId]);
   const today = dateKey(now);
   const days = calendarView === "week" ? weekDays(anchor) : monthDays(month);
@@ -49,6 +52,8 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
   const dinners = records.filter(r => r.kind === "meal" && r.data.date === today && String(r.data.type || "Dinner").toLowerCase() === "dinner");
   const chores = records.filter(r => r.kind === "chore" && r.data.date === today);
   const routine = timeOfDayMode(now);
+  const dueRoutines=templates.filter(t=>isRoutineDue(t,today) && (!member||t.member_name===member));
+  const routineProgress=routineRewards(records,profile?.role==="member"?profile.id:null);
   const tomorrow = nextLocalDate(now);
   const tomorrowEvents = records.filter(r => r.kind === "event" && r.data.date === tomorrow).sort((a,b)=>(a.data.time||"").localeCompare(b.data.time||"")).slice(0,3);
   const upcoming = upcomingEvents(records.filter(r => r.kind === "event"), now).slice(0, 2);
@@ -239,6 +244,26 @@ export default function CalendarKiosk({ familyId, sample, profile, onSubmitChore
         </div>
         {rightColumn === "groceries" ? <GroceryPanel familyId={familyId} userId={profile?.id} demo={Boolean(sample)} dinners={dinners}/> : <>
         {routine === "evening" && <section className="kiosk-tomorrow"><h2><Moon size={19}/> Tomorrow’s schedule</h2>{tomorrowEvents.length ? <ul>{tomorrowEvents.map(r=><li key={r.id} className="kiosk-chore"><div><strong>{r.data.title}</strong><small>{r.data.time || "All day"} · {r.data.member || "Family"}</small></div></li>)}</ul> : <p className="kiosk-empty">Nothing scheduled tomorrow.</p>}</section>}
+        <section className="kiosk-repeating-routines" aria-label="Recurring routines today">
+          <h2><CheckCircle size={19}/> Repeating routines</h2>
+          <p className="kiosk-hint" role="status">{routinesStatus}</p>
+          {routinesReady ? <>
+            {["morning","evening"].map(period=>{
+              const due=dueRoutines.filter(t=>t.time_of_day===period);
+              return <div key={period} className="kiosk-routine-period">
+                <h3>{period==="morning"?"Morning":"Evening"} routine</h3>
+                {due.length ? <ul>{due.map(t=>{
+                  const instance=chores.find(r=>r.data.routine_template_id===t.id);
+                  return <li key={t.id} className="kiosk-chore"><div>
+                    <strong>{t.title}</strong>
+                    <small>{t.member_name} · {instance?.data.status||"Scheduled · awaiting parent generation"}</small>
+                  </div><span className="kiosk-reward">{t.points} pts</span></li>;
+                })}</ul> : <p className="kiosk-empty">No {period} routine scheduled today.</p>}
+              </div>;
+            })}
+            {profile?.role==="member" && <p className="kiosk-hint">Your routine progress: {routineProgress.open} open · {routineProgress.awaiting} awaiting approval · {routineProgress.approvedPoints} approved points. Rewards require parent review.</p>}
+          </> : <p className="kiosk-empty">Routine templates will appear after secure staging activation.</p>}
+        </section>
         <section><h2><CheckCircle size={19} /> Today’s chores</h2><ul>{chores.filter(r => !isBounty(r.data)).map(choreCard)}</ul>{!chores.some(r => !isBounty(r.data)) && <p className="kiosk-empty">No chores scheduled today.</p>}</section>
         <section className="kiosk-dinner"><h2><Utensils size={19} /> Dinner</h2>{dinners.length ? dinners.map(r => <article key={r.id} className="kiosk-meal"><strong>{r.data.title}</strong>{r.data.notes && <p>{r.data.notes}</p>}{videoSource(r.data.video_url) ? <button className="kiosk-control kiosk-play" onClick={() => playVideo(r)}><Play size={17} /> Play recipe</button> : r.data.video_url ? <p className="kiosk-hint">This video link is unsupported. Ask a parent to update it.</p> : null}</article>) : <p className="kiosk-empty">No dinner planned for today.</p>}</section>
         <section><h2>Bounty board</h2><p className="kiosk-hint">Ask a parent to assign a task.</p><ul>{chores.filter(r => isBounty(r.data) && (r.data.status || "open") === "open").map(choreCard)}</ul>{!chores.some(r => isBounty(r.data) && (r.data.status || "open") === "open") && <p className="kiosk-empty">No open bounties today.</p>}</section>
