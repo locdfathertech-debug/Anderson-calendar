@@ -423,7 +423,7 @@ Implementation stays in draft PR until CI and authenticated staging acceptance p
 - [x] Add optional validated event end time; render exact event duration and family avatar clusters in existing proportional week view.
 - [x] Add parent-only (not locked kiosk) focusable 1-hour quick-creation slots; route through existing Parent Portal with date/time prefilled.
 - [x] Extend browser smoke tests for four responsive sizes and example timed sample records.
-- [ ] Verify new branch's automated unit tests, dependency audit, build and multi-viewport browser tests; fix failures before approval.
+- [x] Verified 63/63 unit tests, build and dependency gate (workflow 43792777465 and 43792777401); browser QA passed all four desktop/mobile/Samsung Tab S7 portrait and landscape viewports (workflow 43792777473). npm audit still reports one low-severity issue; security gate permits low severity.
 - [ ] Complete authenticated cross-family, child-v-parent, secure photo, time/session expiry and physical Samsung Tab S7 acceptance separately.
 - [ ] Obtain a legitimately accessible application bundle or public UI observation capture before claiming REA reverse-engineering results. Do not attempt to unlock protected/private Skylight code.
 - [ ] Extend day/schedule views, recurring task routine controls, sleep mode and calendar-sync integrations in future isolated, reviewed PRs.
