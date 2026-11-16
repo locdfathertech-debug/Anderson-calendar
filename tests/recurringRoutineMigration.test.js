@@ -27,3 +27,14 @@ test("templates can only be paused after creation, no client status/payment chan
   assert.doesNotMatch(sql,/grant update\([^)]*amount[^)]*\)/i);
   assert.match(sql,/returns integer/i);
 });
+
+
+test("realtime publication block uses valid PostgreSQL dollar quoting",()=>{
+  assert.match(sql,/do \$\$[\s\S]*?end \$\$;/i);
+  assert.doesNotMatch(sql,/\bdo \$(?!\$)/i);
+  assert.match(sql,/alter publication supabase_realtime add table public\.routine_templates/i);
+});
+test("only authenticated actors receive the parent-authorized function",()=>{
+  assert.match(sql,/revoke all on function public\.materialize_family_routines\(date\) from public, anon, authenticated/i);
+  assert.match(sql,/grant execute on function public\.materialize_family_routines\(date\) to authenticated/i);
+});
