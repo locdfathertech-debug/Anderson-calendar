@@ -178,7 +178,7 @@ export default function App() {
       if (demo) next = {...record,id:record.id || `sample-${Date.now()}-${Math.random().toString(36).slice(2)}`};
       else {
         const data = record.kind === "member"
-          ? await prepareMemberPhotoData(supabase,profile.family_id,record.data)
+          ? await prepareMemberPhotoData(supabase,profile.family_id,record.data,undefined,records.find(r => r.id === record.id)?.data?.avatar_url ?? null)
           : record.data;
         const payload = {kind:record.kind,data,family_id:profile.family_id};
         const result = record.id
