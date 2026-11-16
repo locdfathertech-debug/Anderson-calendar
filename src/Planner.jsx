@@ -335,7 +335,7 @@ export default function Planner({
             setTab("home");
           }}
         >
-          <img className="sidebar-brand-image" src="/anderson-circular-logo.svg" alt="Anderson Family Calendar" width="1024" height="1024" />
+          <img className="sidebar-brand-image" src="/anderson-neon-logo.svg" alt="Anderson Family Calendar" width="1024" height="1024" />
         </a>
         <div className="family-home">
           <span>🏡</span>
