@@ -63,7 +63,8 @@ const FIELDS = {
   event: [
     ["title", "Event name"],
     ["date", "Date", "date"],
-    ["time", "Time", "time"],
+    ["time", "Start time", "time"],
+    ["end_time", "End time (optional)", "time"],
     ["member", "Family member", "member"],
     ["category", "Category", "category"],
     ["location", "Location"],
@@ -239,6 +240,13 @@ export default function Planner({
     if (dialog.kind === "member" && rawAvatar && !avatar) {
       const field = e.currentTarget.querySelector("[data-avatar-url]");
       field?.setCustomValidity("Use a direct HTTPS photo link without account credentials.");
+      field?.reportValidity();
+      return;
+    }
+    if (dialog.kind === "event" && dialog.data.end_time && dialog.data.time &&
+        dialog.data.end_time <= dialog.data.time) {
+      const field = e.currentTarget.querySelector('[name="end_time"]');
+      field?.setCustomValidity("End time must be later than start time.");
       field?.reportValidity();
       return;
     }
