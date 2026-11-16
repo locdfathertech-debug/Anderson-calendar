@@ -138,6 +138,6 @@ begin
   return v_added;
 end
 $routine$;
-revoke all on function public.materialize_family_routines(date) from public, anon;
+revoke all on function public.materialize_family_routines(date) from public, anon, authenticated;
 grant execute on function public.materialize_family_routines(date) to authenticated;
 commit;
