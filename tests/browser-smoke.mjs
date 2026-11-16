@@ -23,6 +23,20 @@ for (const device of viewports) {
     const response = await page.goto(appUrl+"/demo", {waitUntil:"networkidle",timeout:30000});
     assert.equal(response?.status(),200,"Demo entry point must load");
     await page.locator(".calendar-kiosk").waitFor({timeout:15000});
+    const neonLogo=page.locator('.kiosk-family img[src="/anderson-neon-logo.svg"]');
+    await neonLogo.waitFor();
+    const appearance=await neonLogo.evaluate(element=>({
+      loaded:element.complete && element.naturalWidth>0,
+      objectFit:getComputedStyle(element).objectFit,
+      displayedWidth:element.getBoundingClientRect().width,
+      displayedHeight:element.getBoundingClientRect().height
+    }));
+    assert.ok(appearance.loaded,"The new neon logo should render successfully");
+    assert.equal(appearance.objectFit,"contain","Logo may never crop its circular border");
+    assert.ok(appearance.displayedWidth<=215 && appearance.displayedHeight<=215,"Logo should fit tablet sidebar without monopolizing space");
+    const manifest=await page.evaluate(async()=>await (await fetch("/kiosk.webmanifest")).json());
+    assert.equal(manifest.icons[0].src,"/anderson-neon-logo.svg","Kiosk install icon should match website logo");
+
     assert.equal(await page.getByRole("button",{name:"Month",exact:true}).getAttribute("aria-pressed"),"true","Month is the default");
     await page.getByRole("button",{name:"Day",exact:true}).click();
     const dayView=page.getByRole("region",{name:"Daily agenda"});
