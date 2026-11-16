@@ -1385,7 +1385,7 @@ export default function Planner({
                       }
                       value={dialog.data[key] ?? ""}
                       onChange={(e) => {
-                        if (type === "video" || key === "avatar_url") e.target.setCustomValidity("");
+                        if (type === "video" || key === "avatar_url" || key === "end_time" || key === "time") e.target.setCustomValidity("");
                         setDialog({
                           ...dialog,
                           data: {
