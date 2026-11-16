@@ -39,10 +39,13 @@ export async function signedPrivatePhotoUrl(client, ref) {
 // value would be visible to every household member with planner read access.
 // Existing legacy photos remain readable until an audited migration replaces
 // them, but new uploads require private Storage with household RLS.
-export async function prepareMemberPhotoData(client, familyId, recordData, storageEnabled = privatePhotoEnabled()) {
+export async function prepareMemberPhotoData(client, familyId, recordData, storageEnabled = privatePhotoEnabled(), previousPhoto = null) {
   if (!recordData || typeof recordData !== "object") throw new Error("Invalid family member data.");
   const value = typeof recordData.avatar_url === "string" ? recordData.avatar_url : "";
   if (!value.startsWith("data:")) return recordData;
+  // A legacy inline image already stored for this very record can remain
+  // unchanged during a color/name edit; never accept a newly supplied copy.
+  if (previousPhoto !== null && value === previousPhoto) return recordData;
   if (!value.startsWith("data:image/jpeg;base64,")) throw new Error("Only JPEG uploads are supported.");
   if (!storageEnabled) throw new Error("Private photo storage is not activated. This photo was not saved to the shared family database.");
   const avatar_url = await uploadPrivateMemberPhoto(client, familyId, value);
