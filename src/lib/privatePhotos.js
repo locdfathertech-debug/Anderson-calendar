@@ -34,3 +34,17 @@ export async function signedPrivatePhotoUrl(client, ref) {
   if (error || typeof data?.signedUrl !== "string" || !data.signedUrl.startsWith("https://")) return null;
   return data.signedUrl;
 }
+
+// Never persist a fresh inline JPEG in a planner record: the entire base64
+// value would be visible to every household member with planner read access.
+// Existing legacy photos remain readable until an audited migration replaces
+// them, but new uploads require private Storage with household RLS.
+export async function prepareMemberPhotoData(client, familyId, recordData, storageEnabled = privatePhotoEnabled()) {
+  if (!recordData || typeof recordData !== "object") throw new Error("Invalid family member data.");
+  const value = typeof recordData.avatar_url === "string" ? recordData.avatar_url : "";
+  if (!value.startsWith("data:")) return recordData;
+  if (!value.startsWith("data:image/jpeg;base64,")) throw new Error("Only JPEG uploads are supported.");
+  if (!storageEnabled) throw new Error("Private photo storage is not activated. This photo was not saved to the shared family database.");
+  const avatar_url = await uploadPrivateMemberPhoto(client, familyId, value);
+  return {...recordData,avatar_url};
+}
