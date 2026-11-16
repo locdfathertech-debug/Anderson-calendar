@@ -128,7 +128,7 @@ export default function RoutineManager({familyId,profile,accounts=[],records=[],
     </li>)}</ul>:<p className="muted">No reusable routines yet.</p>}
     <div className="routine-preview">
       <h3>Upcoming assignments</h3>
-      <label>Preview start date <input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>
+      <label>Preview start date <input type="date" required value={date} onChange={e=>{if(e.target.value)setDate(e.target.value)}}/></label>
       <ol>{preview.map(p=><li key={p.date}><strong>{p.date}</strong><span>{p.templates.length
         ? p.templates.map(t=>`${t.title} (${t.member_name})`).join(" · "):"No routine tasks"}</span></li>)}</ol>
       {canManage&&<button type="button" className="btn" disabled={!ready||working||busy}
