@@ -1470,14 +1470,17 @@ function Wall({ records, clock, onClose }) {
   const photo = photos.length
     ? photos[Math.floor(clock.getTime() / 15000) % photos.length]
     : null;
+  // Only allow validated image sources in CSS URLs. A planner record is data,
+  // not trusted markup or CSS, even when edited by a parent account.
+  const safePhoto = safeAvatarUrl(photo?.data?.url);
   return (
     <button
       className="wall-display"
       onClick={onClose}
       aria-label="Close wall display"
       style={{
-        backgroundImage: photo
-          ? `linear-gradient(0deg,rgba(0,0,0,.65),rgba(0,0,0,.2)),url("${encodeURI(photo.data.url).replace(/"/g, "%22")}")`
+        backgroundImage: safePhoto
+          ? `linear-gradient(0deg,rgba(0,0,0,.65),rgba(0,0,0,.2)),url("${safePhoto.replace(/"/g, "%22")}")`
           : undefined,
       }}
     >
