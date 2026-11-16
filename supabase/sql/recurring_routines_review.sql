@@ -72,6 +72,15 @@ for select to authenticated using (
   private.live_portal_session() is not null and private.is_family_member(family_id)
 );
 
+-- Family-scoped INSERT and UPDATE deliveries; no client DELETE events.
+do $
+begin
+  if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime'
+    and schemaname='public' and tablename='routine_templates') then
+    alter publication supabase_realtime add table public.routine_templates;
+  end if;
+end $;
+
 -- Parent-triggered, transaction-atomic materialization. Chores enter the
 -- EXISTING open -> submitted -> approved -> paid workflow; no auto payouts.
 create or replace function public.materialize_family_routines(target_day date)
