@@ -229,7 +229,7 @@ export default function Planner({
   useEffect(() => {
     if (!eventRequest || !parent) return;
     setTab("calendar"); setDate(eventRequest.date);
-    add("event", { date: eventRequest.date });
+    add("event", { date: eventRequest.date, ...(eventRequest.time ? { time: eventRequest.time } : {}) });
     onEventRequestHandled?.();
   }, [eventRequest, parent]);
   async function save(e) {
