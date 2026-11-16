@@ -1,0 +1,56 @@
+# Anderson Family Calendar — Security Assessment & Remediation
+
+**Date:** November 16, 2026  
+**Target:** `locdfathertech-debug/Anderson-calendar`; Vercel `vite-anderson-calendar`; production Supabase `kwaqscxveniaostnmonu`; authorized isolated staging `npoqzqtwlhvvqzryjvkm`.  
+**Approach:** Read-only production source/metadata review, production/staging Supabase Advisor inspection, SQL/policy/grant review, non-destructive staging SQL tests, and branch-only fixes with unit/build/browser CI. **Not a comprehensive authenticated penetration test or a claim of zero vulnerabilities.** No vulnerability exploitation, brute forcing, real-family content extraction, or disruptive load testing performed.
+
+## Findings and evidence
+
+| Priority | Finding | Evidence and risk | Status |
+| --- | --- | --- | --- |
+| **High** | Revoked-session gap in some production family reads and onboarding RPCs | Production `private.is_family_member` only checked `auth.uid()` and family ID. Some RLS reads and `public.create_family` / `public.accept_family_authorization` did not require `private.live_portal_session()`. A previously issued, not-yet-expired token could potentially remain usable after its session is revoked. No actual token was stolen or replayed. | **Fixed in staging only** by `security_session_hardening_review.sql`. Forged JWT claims with a nonexistent session returned 0 visible profiles/plans, no family membership. Production unchanged. |
+| **High-priority configuration** | Production leaked-password protection is off | Supabase production Advisor `auth_leaked_password_protection` reports disabled. This makes reused known-compromised passwords more likely to be accepted. | **Needs Supabase Dashboard Auth setting**; this connection cannot update that setting. |
+| **Medium / privacy** | Uploaded profile JPEG may be saved as inline JSON in a shared planner record | Before this branch, `src/App.jsx` stored `data:image/jpeg;base64,...` when `VITE_PRIVATE_FAMILY_PHOTOS` was not enabled. Production has **zero Storage buckets**. All authorized family members reading shared planner records may receive the complete base64 image. This is a privacy boundary, not evidence of cross-household access. | **Fixed in branch**: new uploads fail closed without private Storage, and upload control is disabled in signed-in UI. Existing unchanged legacy photos remain editable; a future cleanup migration is needed. |
+| **Medium** | Private family-photo storage not deployed to production | No `family-photos` bucket in production. The intended `storage.objects` parent-only upload policy was review-only. | **Staging-only fix:** created private `family-photos` bucket, max 256 KiB, JPEG-only, with family/parent RLS. Signed-in cross-household Storage acceptance still required. |
+| **Medium** | Missing explicit frame, MIME and referrer controls in `vercel.json` | Before this branch `vercel.json` had rewrites and build commands but no configured security response headers. Exploitability of clickjacking depends on browser/context; no exploit demonstrated. | **Fixed in branch:** anti-framing CSP/X-Frame-Options, no-sniff, no-referrer, permissions controls, HSTS. Validate on an actual preview and review third-party integrations before release. |
+| **Medium / defense in depth** | Parent grant attached to privileged API requests could follow an HTTP redirect | `createParentFetch` injects `x-parent-unlock` into same-origin REST/Storage requests. A custom header might be forwarded in redirect handling if an unexpected response redirects to a different origin. This is a potential exposure path, **not an observed attack**. | **Fixed in branch:** grant-bearing requests force `redirect:'error'`, retaining normal behavior on unprivileged requests. |
+| **Medium / privacy & rendering** | Untrusted photo URL was interpolated into wall-display CSS | `Planner.jsx` previously rendered a planner-record URL into CSS without validating the URL against the existing safe HTTPS/JPEG image policy. No executable injection was reproduced. | **Fixed in branch** via `safeAvatarUrl` before CSS URL usage. |
+| **Medium / release process** | Automatic production release controls incomplete | Previous merges deployed while QA was still running; current Vercel build skip is an interim hold. GitHub branch rulesets/environments were not administratively configurable through current connector. | **Admin action required:** enforced PR reviews, required security/test checks, protected environment approval and deployment promotion policy. |
+| **Needs authenticated testing** | `SECURITY DEFINER` API functions | Supabase Advisor flags 4 executable definer RPCs in production (`accept_family_authorization`, `create_family`, `set_family_role`, `submit_planner_chore`). Source inspection found intentional identity/PIN/role conditions; Advisor warning alone is not proof of bypass. | **No confirmed privilege escalation.** Test with real Parent A, Child A and separate Parent B. |
+| **Info / expected** | Private tables have RLS without user policies | Supabase Advisor flags 3 `private` tables; direct access is intentionally denied, and access occurs through verified helper functions. | **Not a finding of broken RLS by itself.** |
+| **Info / performance** | Nine unindexed legacy foreign keys and redundant permissive policies | Supabase production performance Advisor reports 9 unindexed FKs and 5 cases of multiple permissive policies. | Review indexing and query plans after security fixes; do not drop policies indiscriminately. |
+
+## Verified existing protections
+
+- Public family data policies use family membership and restrict parent record mutations through `private.can_manage_family`.
+- Parent Portal unlock uses a server-generated 32-byte random token (64 hex characters), stored hashed and valid for 15 minutes, bound to user and live `auth.sessions` ID.
+- PINs are bcrypt-hashed, must contain 6–12 digits, and wrong PIN attempts are rate-limited (five failures / five-minute lockout per user).
+- `submit_planner_chore` requires the assigned user's ID and `open` status. Manual parent approval/payment remain separate.
+- React renders family chat as text rather than raw HTML; video URLs are normalized/restricted and avatar URLs are filtered.
+- No `service_role` key was identified in the inspected frontend source. Frontend uses a publishable/anon key; continue auditing CI variables and deployment settings.
+- Installed app kiosk fullscreen alone is not equivalent to OS-level device lockdown; Android app pinning and on-device QA remain necessary.
+
+## Work performed
+
+**Branch:** `security/pentest-hardening-20261116` (unmerged; no intentional production deployment).
+
+1. Staged SQL `supabase/sql/security_session_hardening_review.sql` and **applied only to approved staging**. Fake authenticated claims with a nonexistent `session_id` were denied: zero profiles, zero planner records and no valid family membership. Onboarding RPCs now require live verified sessions. Anonymous execution was denied. These tests do not replace real Auth-user acceptance.
+2. Applied the previously reviewed `private_family_photos_review.sql` to staging only. Verified bucket `public=false`, `image/jpeg` only, max 262144 bytes and scoped SELECT/INSERT policies. No Storage buckets or schema changed in production.
+3. Patched client-side photo serialization to refuse **new** inline base64 persistence without private Storage; existing unchanged legacy photo data stays intact during unrelated edits. Disabled photo upload controls where private Storage is unavailable. Kept demo photo processing functional.
+4. Added restrictive Vercel HTTP headers, safe wall-display photo URL usage, and parent grant redirect guard, with regression tests.
+5. Added a push-triggered CI audit workflow for the isolated security branch. It runs `npm ci`, unit tests, build, `npm audit --audit-level=high`, and four browser viewports; no deployment step.
+
+## Remaining release blockers
+
+1. **Enable leaked-password protection** in the production Supabase dashboard (Authentication → Security / Password Protection; exact interface wording may vary). Review minimum password policy and consider MFA for parents.
+2. **Provision only disposable Auth test accounts** through the reviewed Auth Admin script using a staging-only key kept in a private environment. Current staging project has no Auth users. Execute authenticated two-family isolation tests for planner, photos, groceries and chat (where tables are installed), plus family-owner role changes, active/revoked session, expired PIN grant and concurrent chore generation.
+3. Verify `x-parent-unlock` is passed into Storage RLS in the staging runtime, test that a child cannot upload and that Family B cannot fetch Family A's photos even with an object path.
+4. Inventory and migrate any previously stored inline base64 photos **only after** signed-in private Storage tests, with a reversible plan. Do not delete family images automatically.
+5. Establish administrator-enforced GitHub branch rulesets, reviewed Vercel deployment promotion and protected staging/production environments. A build-skip setting by itself is not a robust approval mechanism.
+6. Evaluate comprehensive CSP `script-src` and `connect-src` in report-only mode with OAuth, Supabase Realtime, Google Fonts and YouTube/Vimeo enabled; avoid a speculative policy that breaks the calendar.
+7. Conduct dependency/SCA audits continuously, inspect GitHub code/secret scanning and audit logs with authorized admin rights, and test the actual Galaxy Tab S7.
+8. Do not enable `pg_cron`, release routine database schema, or publish fixes to production until the authenticated release gates pass.
+
+## Explicit exclusions
+
+This pass did **not** perform unbounded internet scanning, brute force login/PIN testing, denial of service, social engineering, malware testing, service-role extraction, third-party supplier audits, or an authenticated live-user/cross-family exploit. A green unit/browser suite proves only the tested logic, not that the deployed system is free of vulnerabilities.
