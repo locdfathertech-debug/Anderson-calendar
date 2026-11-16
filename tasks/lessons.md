@@ -69,3 +69,7 @@
 - For familiar calendar features, reuse the already-tested proportional weekly grid, secured Parent Portal and private avatar hook instead of replacing the entire application; enhance only missing interactions.
 - Protect quick-create gestures with actual parent role checks **and** the existing server-issued Parent Portal grant; exclude locked kiosk mode and preserve default monthly view.
 - New event duration fields can initially live in existing planner-record JSON rather than requiring an unverified SQL migration. Preserve precise same-day start/end validation.
+
+- When extending an existing month/week/year calendar, keep month as the default, integrate new view navigation through the same anchor state, and test cross-year date arithmetic explicitly.
+- Derive agenda entries strictly from existing household-authorized, member-filtered and searched event records; presentation components should never query unscoped Supabase tables.
+- Route parent quick-add to the existing server-granted Parent Portal and hide it in kiosk mode; never introduce a client-side bypass or fixed PIN.
