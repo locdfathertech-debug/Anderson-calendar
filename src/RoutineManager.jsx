@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { CalendarClock, CheckCircle, Plus, Sunrise, Moon, Coins } from "lucide-react";
 import { useFamilyRoutines } from "./lib/useFamilyRoutines.js";
-import { ROUTINE_DAYS, routinePreview, routineRewards, isRoutineDue } from "./lib/routineSchedule.js";
-import { dateKey, money } from "./lib/planner.js";
+import { ROUTINE_DAYS, routineRewards, isRoutineDue } from "./lib/routineSchedule.js";
+import { weeklyRoutineOverview, canGenerateRoutineWeek } from "./lib/routineWeek.js";
+import { dateKey, shiftDate, money } from "./lib/planner.js";
 import "./routines.css";
 
 const sampleAccounts=[{id:"sample-parent",email:"mia@sample.family",role:"member"}];
@@ -26,7 +27,8 @@ export default function RoutineManager({familyId,profile,accounts=[],records=[],
   },[accounts,profile,records,demo]);
   const canManage=["admin","super_admin"].includes(profile?.role);
   const rewards=routineRewards(records);
-  const preview=useMemo(()=>routinePreview(rows,date,7),[rows,date]);
+  const week=useMemo(()=>weeklyRoutineOverview(rows,records,date),[rows,records,date]);
+  const allowWeeklyGeneration=canGenerateRoutineWeek(date,dateKey());
   async function create(event){
     event.preventDefault();setError("");setNotice("");
     if(!canManage||!ready||working||busy)return;
@@ -47,30 +49,39 @@ export default function RoutineManager({familyId,profile,accounts=[],records=[],
     }catch(e){setError(e.message||"Routine could not be saved.");}
     finally{setWorking(false);}
   }
-  async function materialize() {
-    if(!ready||!canManage||busy||working)return;
+  async function materialize(numberOfDays=1) {
+    if(!ready||!canManage||busy||working||numberOfDays>1&&!allowWeeklyGeneration)return;
     setWorking(true);setNotice("");setError("");
+    let completedDates=0;
+    let created=0;
     try {
-      if(demo){
-        const due=rows.filter(t=>isRoutineDue(t,date));
-        let created=0;
-        for(const t of due){
-          if(records.some(r=>r.kind==="chore" && r.data?.routine_template_id===t.id && r.data?.date===date))continue;
-          const saved=await onSave?.({kind:"chore",data:{
-            title:t.title,member:t.member_name,assigned_user_id:t.assigned_user_id,
-            date,status:"open",amount:Number(t.amount),points:Number(t.points),
-            routine_template_id:t.id,time_of_day:t.time_of_day
-          }});
-          if(saved===false)throw Error("Demo chore could not be created.");
-          created++;
+      for(let i=0;i<numberOfDays;i++){
+        const dueDate=shiftDate(date,i);
+        if(demo){
+          const due=rows.filter(t=>isRoutineDue(t,dueDate));
+          for(const t of due){
+            if(records.some(r=>r.kind==="chore" && r.data?.routine_template_id===t.id && r.data?.date===dueDate))continue;
+            if(!onSave)throw Error("Sample chore writer is unavailable.");
+            const saved=await onSave({kind:"chore",data:{
+              title:t.title,member:t.member_name,assigned_user_id:t.assigned_user_id,
+              date:dueDate,status:"open",amount:Number(t.amount),points:Number(t.points),
+              routine_template_id:t.id,time_of_day:t.time_of_day
+            }});
+            if(saved===false)throw Error("Sample chore could not be created.");
+            created++;
+          }
+        }else{
+          // Every date is independently verified by the server-side parent-grant RPC.
+          created+=Number(await generate(dueDate))||0;
         }
-        setNotice(`Created ${created} sample chore${created===1?"":"s"} for ${date}.`);
-      }else{
-        const count=await generate(date);
-        await onRefresh?.();
-        setNotice(`Created ${count} assigned chore${count===1?"":"s"} for ${date}. Existing occurrences were not duplicated.`);
+        completedDates++;
       }
-    }catch(e){setError(e.message||"Scheduled chores could not be generated.");}
+      if(!demo)await onRefresh?.();
+      setNotice(`Created ${created} assigned chore${created===1?"":"s"} across ${completedDates} day${completedDates===1?"":"s"}. Existing occurrences were not duplicated.`);
+    }catch(e){
+      if(!demo)await onRefresh?.().catch(()=>{});
+      setError(`Stopped after ${completedDates} of ${numberOfDays} days. ${e.message||"Generation failed"}. Already-generated chores are retained; review the schedule before retrying.`);
+    }
     finally{setWorking(false);}
   }
   return <section className="routine-manager surface" aria-label="Recurring family routines">
@@ -129,10 +140,28 @@ export default function RoutineManager({familyId,profile,accounts=[],records=[],
     <div className="routine-preview">
       <h3>Upcoming assignments</h3>
       <label>Preview start date <input type="date" required value={date} onChange={e=>{if(e.target.value)setDate(e.target.value)}}/></label>
-      <ol>{preview.map(p=><li key={p.date}><strong>{p.date}</strong><span>{p.templates.length
-        ? p.templates.map(t=>`${t.title} (${t.member_name})`).join(" · "):"No routine tasks"}</span></li>)}</ol>
-      {canManage&&<button type="button" className="btn" disabled={!ready||working||busy}
-        onClick={()=>void materialize()}><CheckCircle size={16}/> Generate due chores for {date}</button>}
+      <div className="routine-week-summary" aria-label="Weekly routine status">
+        <span><strong>{week.scheduled}</strong> Not generated</span>
+        <span><strong>{week.open}</strong> Open</span>
+        <span><strong>{week.awaiting}</strong> Awaiting approval</span>
+        <span><strong>{week.approved+week.paid}</strong> Approved or paid</span>
+        <span><strong>{week.earnedPoints}</strong> Earned points</span>
+      </div>
+      <ol>{week.rows.map(p=><li key={p.date}><strong>{p.date}</strong>
+        <span>{p.entries.length?p.entries.map(entry=>
+          <span className="routine-week-entry" key={entry.template.id}>
+            <span>{entry.template.title} ({entry.template.member_name})</span>
+            <small className={`routine-status routine-status-${entry.status}`}>{entry.status==="scheduled"?"Not generated":entry.status==="submitted"?"Awaiting review":entry.status}</small>
+          </span>
+        ):"No routine tasks"}</span>
+      </li>)}</ol>
+      {canManage&&<div className="routine-actions">
+        <button type="button" className="btn" disabled={!ready||working||busy}
+          onClick={()=>void materialize(1)}><CheckCircle size={16}/> Generate due chores for {date}</button>
+        <button type="button" className="btn" disabled={!ready||working||busy||!allowWeeklyGeneration}
+          onClick={()=>void materialize(7)}><CalendarClock size={16}/> Generate next 7 days</button>
+      </div>}
+      {canManage&&!allowWeeklyGeneration&&<p className="muted">Weekly generation is available from yesterday through 25 days ahead, keeping every date within the server's allowed window.</p>}
       <p className="muted">Generation is parent-authorized and duplicate-safe on the server. A daily background scheduler is not activated yet; generate due chores as part of the parent workflow.</p>
     </div>
     {notice&&<p role="status" className="routine-notice">{notice}</p>}

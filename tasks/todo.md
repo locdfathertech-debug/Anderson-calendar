@@ -461,3 +461,15 @@ Implementation stays in draft PR until CI and authenticated staging acceptance p
 - [ ] Preserve production unchanged until authenticated release gates pass.
 
 **Release:** Draft feature PR only; SQL not applied and real family data unchanged. Existing child/parent rewards are recorded, not automatically paid.
+
+
+## Parent weekly routine planner — 2026-11-15
+
+- [x] Read latest merged routine and staging branches; Auth fixture creation remains blocked by missing protected staging-only Auth Admin secret.
+- [x] Add read-only seven-day schedule statuses: not generated, open, submitted, approved, paid, earned points and approved rewards, using only authorized planner records.
+- [x] Add parent-initiated 7-day chore generation; each day independently checks live parent PIN grant in the existing server RPC. Stop after errors, disclose partial completion, never auto-pay.
+- [x] Add strict date-window guard so the last day of the batch remains within the server's yesterday-to-31-days-ahead limit.
+- [x] Add unit tests for reward approvals, household member filtering, recurrence and dates, plus four-viewport browser regression for weekly creation.
+- [ ] Run CI unit/build/security/browser tests; fix any regression.
+- [ ] Manually provision three disposable Auth users with the approved staging-only service role using the reviewed script, then run authenticated isolation and session revocation tests.
+- [ ] Keep Supabase Cron OFF and preserve Month default, parent gate, kiosk mode and production data.

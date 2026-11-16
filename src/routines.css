@@ -25,3 +25,18 @@
 .routine-notice{color:#2dbea7;font-weight:600;}
 .routine-error{color:#fc8d7c;font-weight:600;}
 @media(max-width:580px){.routine-manager{padding:11px}.routine-preview ol li{grid-template-columns:1fr}.routine-template-list li{flex-wrap:wrap}}
+
+
+/* Accessible weekly routine status and parent-controlled batch creation. */
+.routine-week-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;}
+.routine-week-summary>span{display:grid;gap:4px;border:1px solid #4a625d;border-radius:9px;padding:9px 10px;font-size:11px;min-width:0;}
+.routine-week-summary strong{font-size:18px;color:var(--accent,#32c7b6);font-variant-numeric:tabular-nums;}
+.routine-week-entry{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;margin:3px 0;padding:4px 0;min-width:0;}
+.routine-week-entry>span{overflow-wrap:anywhere;min-width:0;}
+.routine-status{display:inline-flex;align-items:center;justify-content:center;flex:none;padding:4px 7px;border-radius:7px;font-size:10px;font-weight:700;text-transform:capitalize;border:1px solid #5a6c6e;background:#1a282e;color:#e2edf1;}
+.routine-status-approved,.routine-status-paid{border-color:#239e87;background:#123c34;color:#c8f8ea;}
+.routine-status-submitted{border-color:#caa447;background:#493917;color:#ffedba;}
+.routine-status-scheduled{border-color:#787986;background:#292b36;color:#d6d6e2;}
+.routine-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.routine-actions .btn{min-height:44px;}
+@media(max-width:580px){.routine-week-entry{align-items:flex-start;flex-direction:column;gap:4px}.routine-actions .btn{width:100%}}
