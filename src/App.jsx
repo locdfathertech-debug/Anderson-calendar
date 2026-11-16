@@ -1,4 +1,4 @@
-import { privatePhotoEnabled, uploadPrivateMemberPhoto } from "./lib/privatePhotos.js";
+import { prepareMemberPhotoData } from "./lib/privatePhotos.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Planner from "./Planner.jsx";
 import FamilyOnboarding from "./FamilyOnboarding.jsx";
@@ -177,10 +177,8 @@ export default function App() {
       let next;
       if (demo) next = {...record,id:record.id || `sample-${Date.now()}-${Math.random().toString(36).slice(2)}`};
       else {
-        const photo = record.kind === "member" && typeof record.data?.avatar_url === "string"
-          ? record.data.avatar_url : "";
-        const data = photo.startsWith("data:image/jpeg;base64,") && privatePhotoEnabled()
-          ? { ...record.data, avatar_url: await uploadPrivateMemberPhoto(supabase, profile.family_id, photo) }
+        const data = record.kind === "member"
+          ? await prepareMemberPhotoData(supabase,profile.family_id,record.data)
           : record.data;
         const payload = {kind:record.kind,data,family_id:profile.family_id};
         const result = record.id
