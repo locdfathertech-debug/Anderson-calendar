@@ -78,8 +78,8 @@ try{
   const bRead=await b.c.from("routine_templates").select("id").eq("id",id);
   assert.ifError(bRead.error);
   assert.equal(bRead.data.length,0,"Family B read family A routine");
-  const childEdit=await child.c.from("routine_templates").update({enabled:false}).eq("id",id);
-  assert.ok(childEdit.error,"Child cannot disable routine");
+  const childEdit=await child.c.from("routine_templates").update({enabled:false}).eq("id",id).select("id");
+  assert.ok(childEdit.error || childEdit.data?.length===0,"Child cannot disable routine");
   const bEdit=await b.c.from("routine_templates").update({enabled:false})
     .eq("id",id).select("id");
   assert.ifError(bEdit.error);
